@@ -44,6 +44,10 @@ export class ExpressRequestAdapter implements HttpRequest {
     return (this.expressRequest as any).user;
   }
 
+  set user(value: unknown) {
+    (this.expressRequest as any).user = value;
+  }
+
   get cookies(): Record<string, string> | undefined {
     return (this.expressRequest as any).cookies;
   }

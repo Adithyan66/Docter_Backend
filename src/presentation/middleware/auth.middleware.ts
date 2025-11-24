@@ -1,9 +1,9 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext, HttpHandler } from '../interfaces';
 import { JwtPayload, IJwtService } from '../../application/interfaces/jwt-service.interface';
-import { ValidationError } from '../../domain/errors/validation.error';
 import { AuthenticationErrors } from '../../infrastructure/constants/error-messages';
 import { container } from '../../di/container';
+import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
 
 @injectable()
 export class AuthMiddleware {
@@ -26,14 +26,14 @@ export class AuthMiddleware {
         }
         
         if (!token) {
-          throw new ValidationError(AuthenticationErrors.TOKEN_MISSING);
+          throw new UnauthorizedError(AuthenticationErrors.TOKEN_MISSING);
         }
         
         let payload: JwtPayload;
         try {
           payload = this.jwtService.verify(token);
         } catch (error) {
-          throw new ValidationError(AuthenticationErrors.TOKEN_INVALID);
+          throw new UnauthorizedError(AuthenticationErrors.TOKEN_INVALID);
         }
         
         (req as any).user = payload;
