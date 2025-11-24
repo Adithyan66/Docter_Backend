@@ -23,6 +23,7 @@ export const AuthenticationErrors = {
   TOKEN_INVALID: 'Invalid token',
   TOKEN_MISSING: 'Token is missing',
   SESSION_EXPIRED: 'Session has expired',
+  INVALID_REFRESH_TOKEN: 'Invalid or expired refresh token',
 } as const;
 
 export const AuthorizationErrors = {

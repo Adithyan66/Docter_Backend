@@ -1,7 +1,7 @@
 import { injectable, inject } from 'tsyringe';
-import { DoctorRepository } from '../../domain/repositories/doctor.repository';
-import { PasswordService } from '../../infrastructure/shared/password.service';
-import { JwtService } from '../../infrastructure/shared/jwt.service';
+import { IDoctorRepository } from '../../domain/repositories/doctor.repository';
+import { IPasswordService } from '../interfaces/password-service.interface';
+import { IJwtService } from '../interfaces/jwt-service.interface';
 import { NotFoundError } from '../../domain/errors/not-found.error';
 import { ValidationError } from '../../domain/errors/validation.error';
 import { AuthenticationErrors } from '../../infrastructure/constants/error-messages';
@@ -9,12 +9,12 @@ import { AuthenticationErrors } from '../../infrastructure/constants/error-messa
 @injectable()
 export class LoginUseCase {
   constructor(
-    @inject('DoctorRepository') private doctorRepository: DoctorRepository,
-    @inject('PasswordService') private passwordService: PasswordService,
-    @inject('JwtService') private jwtService: JwtService
+    @inject('IDoctorRepository') private doctorRepository: IDoctorRepository,
+    @inject('IPasswordService') private passwordService: IPasswordService,
+    @inject('IJwtService') private jwtService: IJwtService
   ) {}
 
-  async execute(email: string, password: string): Promise<{ token: string }> {
+  async execute(email: string, password: string): Promise<{ accessToken: string; refreshToken: string; user: { id: string; email: string } }> {
     const doctor = await this.doctorRepository.findByEmail(email);
 
     if (!doctor) {
@@ -27,12 +27,24 @@ export class LoginUseCase {
       throw new ValidationError(AuthenticationErrors.INVALID_CREDENTIALS);
     }
 
-    const token = this.jwtService.generate({
+    const payload = {
       id: doctor.id,
       email: doctor.email.toString(),
-    });
+    };
 
-    return { token };
+    const accessToken = this.jwtService.generateAccessToken(payload);
+    const refreshToken = this.jwtService.generateRefreshToken(payload);
+
+    await this.doctorRepository.updateRefreshToken(doctor.id, refreshToken);
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: doctor.id,
+        email: doctor.email.toString(),
+      },
+    };
   }
 }
 

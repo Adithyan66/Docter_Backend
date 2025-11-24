@@ -1,21 +1,29 @@
 import 'reflect-metadata';
 import { container } from 'tsyringe';
-import { DoctorRepository } from '../domain/repositories/doctor.repository';
-import { DoctorRepository as DoctorRepositoryImpl } from '../infrastructure/repositories/doctor.repository';
+import { IDoctorRepository } from '../domain/repositories/doctor.repository';
+import { MongoDoctorRepository } from '../infrastructure/repositories/mongodb/doctor.repository';
 import { PasswordService } from '../infrastructure/shared/password.service';
 import { JwtService } from '../infrastructure/shared/jwt.service';
+import { LoginUseCase } from '../application/use-cases/login.use-case';
+import { RefreshTokenUseCase } from '../application/use-cases/refresh-token.use-case';
+import { LogoutUseCase } from '../application/use-cases/logout.use-case';
+import { IPasswordService } from '../application/interfaces/password-service.interface';
+import { IJwtService } from '../application/interfaces/jwt-service.interface';
+import { AuthMiddleware } from '../presentation/middleware/auth.middleware';
 
-container.register<DoctorRepository>('DoctorRepository', {
-  useClass: DoctorRepositoryImpl,
-});
+container.registerSingleton<IDoctorRepository>('IDoctorRepository', MongoDoctorRepository);
 
-container.register<PasswordService>('PasswordService', {
-  useClass: PasswordService,
-});
+container.registerSingleton<IPasswordService>('IPasswordService', PasswordService);
 
-container.register<JwtService>('JwtService', {
-  useClass: JwtService,
-});
+container.registerSingleton<IJwtService>('IJwtService', JwtService);
+
+container.registerSingleton<LoginUseCase>('LoginUseCase', LoginUseCase);
+
+container.registerSingleton<RefreshTokenUseCase>('RefreshTokenUseCase', RefreshTokenUseCase);
+
+container.registerSingleton<LogoutUseCase>('LogoutUseCase', LogoutUseCase);
+
+container.registerSingleton<AuthMiddleware>('AuthMiddleware', AuthMiddleware);
 
 export { container };
 export default container;

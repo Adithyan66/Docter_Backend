@@ -1,5 +1,6 @@
 import express, { Express as ExpressApp, Router as ExpressRouter } from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { config as appConfig } from '../../../infrastructure/config';
 import { ExpressRouterAdapter } from './express-router.adapter';
 import { Router } from '../../interfaces/router.interface';
@@ -15,7 +16,8 @@ export interface AppConfig {
 export const createExpressApp = (config: AppConfig): ExpressApp => {
   const app = express();
 
-  app.use(cors({ origin: appConfig.corsOrigin || '*' }));
+  app.use(cors({ origin: appConfig.corsOrigin || '*', credentials: true }));
+  app.use(cookieParser());
   app.use(express.json());
   app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (err instanceof SyntaxError && 'body' in err) {

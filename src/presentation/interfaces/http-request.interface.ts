@@ -9,5 +9,6 @@ export interface HttpRequest {
   ip?: string;
   protocol?: string;
   user?: unknown;
+  cookies?: Record<string, string>;
   get(header: string): string | undefined;
 }

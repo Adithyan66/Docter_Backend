@@ -1,11 +1,11 @@
 import { injectable } from 'tsyringe';
-import { DoctorRepository as IDoctorRepository } from '../../domain/repositories/doctor.repository';
-import { Doctor } from '../../domain/entities/doctor.entity';
-import { DoctorModel, IDoctor } from '../database/mongoose/doctor.model';
-import { Email } from '../../domain/value-objects/email.vo';
+import { IDoctorRepository } from '../../../domain/repositories/doctor.repository';
+import { Doctor } from '../../../domain/entities/doctor.entity';
+import { DoctorModel, IDoctor } from '../../database/mongoose/doctor.model';
+import { Email } from '../../../domain/value-objects/email.vo';
 
 @injectable()
-export class DoctorRepository implements IDoctorRepository {
+export class MongoDoctorRepository implements IDoctorRepository {
   async findById(id: string): Promise<Doctor | null> {
     const doctorDoc = await DoctorModel.findById(id);
     if (!doctorDoc) return null;
@@ -21,6 +21,7 @@ export class DoctorRepository implements IDoctorRepository {
     const doctorDoc = new DoctorModel({
       email: entity.email.toString(),
       password: entity.password,
+      refreshToken: entity.refreshToken,
     });
     const saved = await doctorDoc.save();
     return this.toDomain(saved);
@@ -30,6 +31,7 @@ export class DoctorRepository implements IDoctorRepository {
     const updateData: any = {};
     if (entity.email) updateData.email = entity.email.toString();
     if (entity.password) updateData.password = entity.password;
+    if (entity.refreshToken !== undefined) updateData.refreshToken = entity.refreshToken;
 
     const doctorDoc = await DoctorModel.findByIdAndUpdate(id, updateData, { new: true });
     if (!doctorDoc) return null;
@@ -47,13 +49,18 @@ export class DoctorRepository implements IDoctorRepository {
     return this.toDomain(doctorDoc);
   }
 
+  async updateRefreshToken(id: string, refreshToken: string | null): Promise<void> {
+    await DoctorModel.findByIdAndUpdate(id, { refreshToken });
+  }
+
   private toDomain(doc: IDoctor): Doctor {
     return new Doctor(
       doc._id.toString(),
       new Email(doc.email),
       doc.password,
       doc.createdAt,
-      doc.updatedAt
+      doc.updatedAt,
+      doc.refreshToken
     );
   }
 }

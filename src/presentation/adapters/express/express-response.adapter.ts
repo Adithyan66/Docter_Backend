@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { HttpResponse } from '../../interfaces/http-response.interface';
+import { HttpResponse, CookieOptions } from '../../interfaces/http-response.interface';
 
 export class ExpressResponseAdapter implements HttpResponse {
   constructor(private readonly expressResponse: Response) {}
@@ -27,6 +27,24 @@ export class ExpressResponseAdapter implements HttpResponse {
 
   setHeader(name: string, value: string): HttpResponse {
     this.expressResponse.setHeader(name, value);
+    return this;
+  }
+
+  cookie(name: string, value: string, options?: CookieOptions): HttpResponse {
+    if (options) {
+      this.expressResponse.cookie(name, value, options);
+    } else {
+      this.expressResponse.cookie(name, value);
+    }
+    return this;
+  }
+
+  clearCookie(name: string, options?: CookieOptions): HttpResponse {
+    if (options) {
+      this.expressResponse.clearCookie(name, options);
+    } else {
+      this.expressResponse.clearCookie(name);
+    }
     return this;
   }
 }

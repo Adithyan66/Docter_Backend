@@ -1,8 +1,9 @@
 import bcrypt from 'bcrypt';
 import { injectable } from 'tsyringe';
+import { IPasswordService } from '../../application/interfaces/password-service.interface';
 
 @injectable()
-export class PasswordService {
+export class PasswordService implements IPasswordService {
   private readonly saltRounds = 10;
 
   async hash(password: string): Promise<string> {
