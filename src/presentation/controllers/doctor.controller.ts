@@ -1,9 +1,9 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
-import { LoginUseCase } from '../../application/use-cases/login.use-case';
-import { RefreshTokenUseCase } from '../../application/use-cases/refresh-token.use-case';
-import { LogoutUseCase } from '../../application/use-cases/logout.use-case';
+import { LoginUseCase } from '../../application/use-cases/auth/login.use-case';
+import { RefreshTokenUseCase } from '../../application/use-cases/auth/refresh-token.use-case';
+import { LogoutUseCase } from '../../application/use-cases/auth/logout.use-case';
 import { ValidationError } from '../../domain/errors/validation.error';
 import { config } from '../../infrastructure/config';
 

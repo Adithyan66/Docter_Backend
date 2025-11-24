@@ -1,10 +1,10 @@
 import { injectable, inject } from 'tsyringe';
-import { IDoctorRepository } from '../../domain/repositories/doctor.repository';
-import { IPasswordService } from '../interfaces/password-service.interface';
-import { IJwtService } from '../interfaces/jwt-service.interface';
-import { NotFoundError } from '../../domain/errors/not-found.error';
-import { ValidationError } from '../../domain/errors/validation.error';
-import { AuthenticationErrors } from '../../infrastructure/constants/error-messages';
+import { IDoctorRepository } from '../../../domain/repositories/doctor.repository';
+import { IPasswordService } from '../../interfaces/password-service.interface';
+import { IJwtService } from '../../interfaces/jwt-service.interface';
+import { NotFoundError } from '../../../domain/errors/not-found.error';
+import { ValidationError } from '../../../domain/errors/validation.error';
+import { AuthenticationErrors } from '../../../infrastructure/constants/error-messages';
 
 @injectable()
 export class LoginUseCase {
