@@ -4,6 +4,8 @@ import { IDoctorRepository } from '../domain/repositories/doctor.repository';
 import { MongoDoctorRepository } from '../infrastructure/repositories/mongodb/doctor.repository';
 import { ITreatmentRepository } from '../domain/repositories/treatment.repository';
 import { MongoTreatmentRepository } from '../infrastructure/repositories/mongodb/treatment.repository';
+import { IClinicRepository } from '../domain/repositories/clinic.repository';
+import { MongoClinicRepository } from '../infrastructure/repositories/mongodb/clinic.repository';
 import { PasswordService } from '../infrastructure/shared/password.service';
 import { JwtService } from '../infrastructure/shared/jwt.service';
 import { S3Service } from '../infrastructure/shared/s3.service';
@@ -18,6 +20,12 @@ import { DeleteTreatmentUseCase } from '../application/use-cases/treatment/delet
 import { GetTreatmentUseCase } from '../application/use-cases/treatment/get-treatment.use-case';
 import { GetAllTreatmentsUseCase } from '../application/use-cases/treatment/get-all-treatments.use-case';
 import { GetTreatmentNamesUseCase } from '../application/use-cases/treatment/get-treatment-names.use-case';
+import { CreateClinicUseCase } from '../application/use-cases/clinic/create-clinic.use-case';
+import { UpdateClinicUseCase } from '../application/use-cases/clinic/update-clinic.use-case';
+import { DeleteClinicUseCase } from '../application/use-cases/clinic/delete-clinic.use-case';
+import { GetClinicUseCase } from '../application/use-cases/clinic/get-clinic.use-case';
+import { GetAllClinicsUseCase } from '../application/use-cases/clinic/get-all-clinics.use-case';
+import { GetClinicNamesUseCase } from '../application/use-cases/clinic/get-clinic-names.use-case';
 import { IPasswordService } from '../application/interfaces/password-service.interface';
 import { IJwtService } from '../application/interfaces/jwt-service.interface';
 import { IS3Service } from '../application/interfaces/s3-service.interface';
@@ -25,11 +33,14 @@ import { IImageUploadService } from '../application/interfaces/image-upload-serv
 import { IGenerateImageUploadUrlUseCase } from '../application/interfaces/generate-image-upload-url-use-case.interface';
 import { ImageServiceController } from '../presentation/controllers/image-service.controller';
 import { TreatmentController } from '../presentation/controllers/treatment.controller';
+import { ClinicController } from '../presentation/controllers/clinic.controller';
 import { AuthMiddleware } from '../presentation/middleware/auth.middleware';
 
 container.registerSingleton<IDoctorRepository>('IDoctorRepository', MongoDoctorRepository);
 
 container.registerSingleton<ITreatmentRepository>('ITreatmentRepository', MongoTreatmentRepository);
+
+container.registerSingleton<IClinicRepository>('IClinicRepository', MongoClinicRepository);
 
 container.registerSingleton<IPasswordService>('IPasswordService', PasswordService);
 
@@ -59,9 +70,23 @@ container.registerSingleton<GetAllTreatmentsUseCase>('GetAllTreatmentsUseCase', 
 
 container.registerSingleton<GetTreatmentNamesUseCase>('GetTreatmentNamesUseCase', GetTreatmentNamesUseCase);
 
+container.registerSingleton<CreateClinicUseCase>('CreateClinicUseCase', CreateClinicUseCase);
+
+container.registerSingleton<UpdateClinicUseCase>('UpdateClinicUseCase', UpdateClinicUseCase);
+
+container.registerSingleton<DeleteClinicUseCase>('DeleteClinicUseCase', DeleteClinicUseCase);
+
+container.registerSingleton<GetClinicUseCase>('GetClinicUseCase', GetClinicUseCase);
+
+container.registerSingleton<GetAllClinicsUseCase>('GetAllClinicsUseCase', GetAllClinicsUseCase);
+
+container.registerSingleton<GetClinicNamesUseCase>('GetClinicNamesUseCase', GetClinicNamesUseCase);
+
 container.registerSingleton<ImageServiceController>('ImageServiceController', ImageServiceController);
 
 container.registerSingleton<TreatmentController>('TreatmentController', TreatmentController);
+
+container.registerSingleton<ClinicController>('ClinicController', ClinicController);
 
 container.registerSingleton<AuthMiddleware>('AuthMiddleware', AuthMiddleware);
 
