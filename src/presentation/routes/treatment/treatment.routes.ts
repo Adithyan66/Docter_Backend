@@ -11,9 +11,15 @@ export const setupTreatmentRoutes = (router: Router): void => {
   const auth = authMiddleware();
 
   router.post('/treatment/add', auth, validate(createTreatmentSchema), asyncHandler(treatmentController.create.bind(treatmentController)));
-  router.patch('/treatment/:id', auth, validate(updateTreatmentSchema), asyncHandler(treatmentController.update.bind(treatmentController)));
-  router.delete('/treatment/:id', auth, asyncHandler(treatmentController.delete.bind(treatmentController)));
-  router.get('/treatment/:id', auth, asyncHandler(treatmentController.getById.bind(treatmentController)));
+
   router.get('/treatment/all', auth, asyncHandler(treatmentController.getAll.bind(treatmentController)));
+  
+  router.get('/treatment/names', auth, asyncHandler(treatmentController.getNames.bind(treatmentController)));
+  
+  router.patch('/treatment/:id', auth, validate(updateTreatmentSchema), asyncHandler(treatmentController.update.bind(treatmentController)));
+  
+  router.delete('/treatment/:id', auth, asyncHandler(treatmentController.delete.bind(treatmentController)));
+  
+  router.get('/treatment/:id', auth, asyncHandler(treatmentController.getById.bind(treatmentController)));
 };
 

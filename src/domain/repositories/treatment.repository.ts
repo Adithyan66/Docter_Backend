@@ -13,6 +13,7 @@ export interface ITreatmentRepository extends BaseRepository<Treatment> {
   findAllPaginated(options: FindAllPaginatedOptions): Promise<{ treatments: Treatment[]; total: number; page: number; limit: number; totalPages: number }>;
   findAllActive(): Promise<Treatment[]>;
   findByName(name: string): Promise<Treatment | null>;
+  findNames(search?: string): Promise<Array<{ id: string; name: string }>>;
 }
 
  

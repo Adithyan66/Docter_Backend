@@ -17,6 +17,7 @@ import { UpdateTreatmentUseCase } from '../application/use-cases/treatment/updat
 import { DeleteTreatmentUseCase } from '../application/use-cases/treatment/delete-treatment.use-case';
 import { GetTreatmentUseCase } from '../application/use-cases/treatment/get-treatment.use-case';
 import { GetAllTreatmentsUseCase } from '../application/use-cases/treatment/get-all-treatments.use-case';
+import { GetTreatmentNamesUseCase } from '../application/use-cases/treatment/get-treatment-names.use-case';
 import { IPasswordService } from '../application/interfaces/password-service.interface';
 import { IJwtService } from '../application/interfaces/jwt-service.interface';
 import { IS3Service } from '../application/interfaces/s3-service.interface';
@@ -55,6 +56,8 @@ container.registerSingleton<DeleteTreatmentUseCase>('DeleteTreatmentUseCase', De
 container.registerSingleton<GetTreatmentUseCase>('GetTreatmentUseCase', GetTreatmentUseCase);
 
 container.registerSingleton<GetAllTreatmentsUseCase>('GetAllTreatmentsUseCase', GetAllTreatmentsUseCase);
+
+container.registerSingleton<GetTreatmentNamesUseCase>('GetTreatmentNamesUseCase', GetTreatmentNamesUseCase);
 
 container.registerSingleton<ImageServiceController>('ImageServiceController', ImageServiceController);
 

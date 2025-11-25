@@ -6,6 +6,7 @@ import { UpdateTreatmentUseCase } from '../../application/use-cases/treatment/up
 import { DeleteTreatmentUseCase } from '../../application/use-cases/treatment/delete-treatment.use-case';
 import { GetTreatmentUseCase } from '../../application/use-cases/treatment/get-treatment.use-case';
 import { GetAllTreatmentsUseCase } from '../../application/use-cases/treatment/get-all-treatments.use-case';
+import { GetTreatmentNamesUseCase } from '../../application/use-cases/treatment/get-treatment-names.use-case';
 import { ValidationError } from '../../domain/errors/validation.error';
 import { CreateTreatmentRequestDto, UpdateTreatmentRequestDto, TreatmentResponseDto, PaginatedTreatmentsResponseDto } from '../dto/treatment.dto';
 import { Treatment } from '../../domain/entities/treatment.entity';
@@ -17,7 +18,8 @@ export class TreatmentController {
     @inject('UpdateTreatmentUseCase') private readonly updateTreatmentUseCase: UpdateTreatmentUseCase,
     @inject('DeleteTreatmentUseCase') private readonly deleteTreatmentUseCase: DeleteTreatmentUseCase,
     @inject('GetTreatmentUseCase') private readonly getTreatmentUseCase: GetTreatmentUseCase,
-    @inject('GetAllTreatmentsUseCase') private readonly getAllTreatmentsUseCase: GetAllTreatmentsUseCase
+    @inject('GetAllTreatmentsUseCase') private readonly getAllTreatmentsUseCase: GetAllTreatmentsUseCase,
+    @inject('GetTreatmentNamesUseCase') private readonly getTreatmentNamesUseCase: GetTreatmentNamesUseCase
   ) {}
 
   async create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
@@ -90,6 +92,12 @@ export class TreatmentController {
     };
     
     successResponse(res, response, HttpStatus.OK, SuccessMessages.RETRIEVED);
+  }
+
+  async getNames(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const search = req.query.search ? String(req.query.search) : undefined;
+    const names = await this.getTreatmentNamesUseCase.execute(search);
+    successResponse(res, names, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
   private toResponseDto(treatment: Treatment): TreatmentResponseDto {

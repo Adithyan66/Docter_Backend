@@ -27,6 +27,20 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
     return this.toDomain(treatmentDoc);
   }
 
+  async findNames(search?: string): Promise<Array<{ id: string; name: string }>> {
+    const filter: any = { isDeleted: false };
+    if (search && search.trim().length > 0) {
+      const regex = new RegExp(search.trim(), 'i');
+      filter.$or = [{ name: regex }, { description: regex }];
+    }
+
+    const documents = await TreatmentModel.find(filter).sort({ name: 1 }).select({ name: 1 });
+    return documents.map((doc) => ({
+      id: doc._id.toString(),
+      name: doc.name,
+    }));
+  }
+
   async findAllPaginated(options: FindAllPaginatedOptions): Promise<{ treatments: Treatment[]; total: number; page: number; limit: number; totalPages: number }> {
     const { page, limit, sortBy = 'createdAt', sortOrder = 'desc', search } = options;
     const skip = (page - 1) * limit;
