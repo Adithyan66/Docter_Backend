@@ -5,6 +5,7 @@ import { setupTreatmentRoutes } from './treatment/treatment.routes';
 import { setupClinicRoutes } from './clinic/clinic.routes';
 import { setupPatientRoutes } from './patient/patient.routes';
 import { setupTreatmentCourseRoutes } from './treatment-course/treatment-course.routes';
+import { setupVisitRoutes } from './visit/visit.routes';
 
 export const setupRoutes = (router: Router): void => {
   setupAuthRoutes(router);
@@ -13,5 +14,6 @@ export const setupRoutes = (router: Router): void => {
   setupClinicRoutes(router);
   setupPatientRoutes(router);
   setupTreatmentCourseRoutes(router);
+  setupVisitRoutes(router);
 };
 

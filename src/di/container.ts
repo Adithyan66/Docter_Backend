@@ -12,6 +12,8 @@ import { IPatientIdCounterRepository } from '../domain/repositories/patient-id-c
 import { MongoPatientIdCounterRepository } from '../infrastructure/repositories/mongodb/patient-id-counter.repository';
 import { ITreatmentCourseRepository } from '../domain/repositories/treatment-course.repository';
 import { MongoTreatmentCourseRepository } from '../infrastructure/repositories/mongodb/treatment-course.repository';
+import { IVisitRepository } from '../domain/repositories/visit.repository';
+import { MongoVisitRepository } from '../infrastructure/repositories/mongodb/visit.repository';
 import { PasswordService } from '../infrastructure/shared/password.service';
 import { JwtService } from '../infrastructure/shared/jwt.service';
 import { S3Service } from '../infrastructure/shared/s3.service';
@@ -42,6 +44,11 @@ import { UpdateTreatmentCourseUseCase } from '../application/use-cases/treatment
 import { DeleteTreatmentCourseUseCase } from '../application/use-cases/treatment-course/delete-treatment-course.use-case';
 import { GetTreatmentCourseUseCase } from '../application/use-cases/treatment-course/get-treatment-course.use-case';
 import { GetAllTreatmentCoursesUseCase } from '../application/use-cases/treatment-course/get-all-treatment-courses.use-case';
+import { CreateVisitUseCase } from '../application/use-cases/visit/create-visit.use-case';
+import { UpdateVisitUseCase } from '../application/use-cases/visit/update-visit.use-case';
+import { DeleteVisitUseCase } from '../application/use-cases/visit/delete-visit.use-case';
+import { GetVisitUseCase } from '../application/use-cases/visit/get-visit.use-case';
+import { GetAllVisitsUseCase } from '../application/use-cases/visit/get-all-visits.use-case';
 import { IPasswordService } from '../application/interfaces/password-service.interface';
 import { IJwtService } from '../application/interfaces/jwt-service.interface';
 import { IS3Service } from '../application/interfaces/s3-service.interface';
@@ -52,6 +59,7 @@ import { TreatmentController } from '../presentation/controllers/treatment.contr
 import { ClinicController } from '../presentation/controllers/clinic.controller';
 import { PatientController } from '../presentation/controllers/patient.controller';
 import { TreatmentCourseController } from '../presentation/controllers/treatment-course.controller';
+import { VisitController } from '../presentation/controllers/visit.controller';
 import { AuthMiddleware } from '../presentation/middleware/auth.middleware';
 
 container.registerSingleton<IDoctorRepository>('IDoctorRepository', MongoDoctorRepository);
@@ -63,6 +71,7 @@ container.registerSingleton<IClinicRepository>('IClinicRepository', MongoClinicR
 container.registerSingleton<IPatientRepository>('IPatientRepository', MongoPatientRepository);
 container.registerSingleton<IPatientIdCounterRepository>('IPatientIdCounterRepository', MongoPatientIdCounterRepository);
 container.registerSingleton<ITreatmentCourseRepository>('ITreatmentCourseRepository', MongoTreatmentCourseRepository);
+container.registerSingleton<IVisitRepository>('IVisitRepository', MongoVisitRepository);
 
 container.registerSingleton<IPasswordService>('IPasswordService', PasswordService);
 
@@ -116,6 +125,12 @@ container.registerSingleton<DeleteTreatmentCourseUseCase>('DeleteTreatmentCourse
 container.registerSingleton<GetTreatmentCourseUseCase>('GetTreatmentCourseUseCase', GetTreatmentCourseUseCase);
 container.registerSingleton<GetAllTreatmentCoursesUseCase>('GetAllTreatmentCoursesUseCase', GetAllTreatmentCoursesUseCase);
 
+container.registerSingleton<CreateVisitUseCase>('CreateVisitUseCase', CreateVisitUseCase);
+container.registerSingleton<UpdateVisitUseCase>('UpdateVisitUseCase', UpdateVisitUseCase);
+container.registerSingleton<DeleteVisitUseCase>('DeleteVisitUseCase', DeleteVisitUseCase);
+container.registerSingleton<GetVisitUseCase>('GetVisitUseCase', GetVisitUseCase);
+container.registerSingleton<GetAllVisitsUseCase>('GetAllVisitsUseCase', GetAllVisitsUseCase);
+
 container.registerSingleton<ImageServiceController>('ImageServiceController', ImageServiceController);
 
 container.registerSingleton<TreatmentController>('TreatmentController', TreatmentController);
@@ -123,6 +138,7 @@ container.registerSingleton<TreatmentController>('TreatmentController', Treatmen
 container.registerSingleton<ClinicController>('ClinicController', ClinicController);
 container.registerSingleton<PatientController>('PatientController', PatientController);
 container.registerSingleton<TreatmentCourseController>('TreatmentCourseController', TreatmentCourseController);
+container.registerSingleton<VisitController>('VisitController', VisitController);
 
 container.registerSingleton<AuthMiddleware>('AuthMiddleware', AuthMiddleware);
 
