@@ -49,7 +49,7 @@ export class MongoTreatmentCourseRepository implements ITreatmentCourseRepositor
     return this.toDomain(saved);
   }
 
-  async update(id: string, entity: Partial<TreatmentCourse>): Promise<TreatmentCourse | null> {
+  async update(id: string, entity: Partial<TreatmentCourse>, session?: any): Promise<TreatmentCourse | null> {
     const updateData: any = {};
     if (entity.doctorId !== undefined) updateData.doctor = new Types.ObjectId(entity.doctorId);
     if (entity.patientId !== undefined) updateData.patient = new Types.ObjectId(entity.patientId);
@@ -67,11 +67,17 @@ export class MongoTreatmentCourseRepository implements ITreatmentCourseRepositor
     if (entity.payments !== undefined) updateData.payments = entity.payments.map((p) => new Types.ObjectId(p));
     if (entity.isDeleted !== undefined) updateData.isDeleted = entity.isDeleted;
 
-    const doc = await TreatmentCourseModel.findOneAndUpdate(
+    const updateOptions: any = { new: true };
+    if (session) {
+      updateOptions.session = session;
+    }
+
+    await TreatmentCourseModel.findOneAndUpdate(
       { _id: id, isDeleted: false },
       updateData,
-      { new: true }
+      updateOptions
     );
+    const doc = await TreatmentCourseModel.findOne({ _id: id, isDeleted: false }).session(session || null);
     if (!doc) return null;
     return this.toDomain(doc);
   }
@@ -207,6 +213,71 @@ export class MongoTreatmentCourseRepository implements ITreatmentCourseRepositor
       doc.payments ? doc.payments.map((p) => p.toString()) : [],
       doc.isDeleted || false
     );
+  }
+
+  async incrementTotalPaid(courseId: string, amount: number, session?: any, paymentId?: string): Promise<TreatmentCourse | null> {
+    const updateOptions: any = { new: true };
+    if (session) {
+      updateOptions.session = session;
+    }
+
+    const updateData: any = { $inc: { totalPaid: amount } };
+    if (paymentId) {
+      updateData.$addToSet = { payments: new Types.ObjectId(paymentId) };
+    }
+
+    await TreatmentCourseModel.findOneAndUpdate(
+      { _id: courseId, isDeleted: false },
+      updateData,
+      updateOptions
+    );
+
+    const updated = await TreatmentCourseModel.findOne({ _id: courseId, isDeleted: false }).session(session || null);
+    if (!updated) return null;
+
+    if (updated.totalPaid >= updated.totalCost) {
+      await TreatmentCourseModel.findOneAndUpdate(
+        { _id: courseId, isDeleted: false },
+        { $set: { isPaymentCompleted: true } },
+        updateOptions
+      );
+      updated.isPaymentCompleted = true;
+    } else {
+      updated.isPaymentCompleted = false;
+    }
+
+    return this.toDomain(updated);
+  }
+
+  async decrementTotalPaid(courseId: string, amount: number, session?: any): Promise<TreatmentCourse | null> {
+    const updateOptions: any = { new: true };
+    if (session) {
+      updateOptions.session = session;
+    }
+
+    const doc = await TreatmentCourseModel.findOneAndUpdate(
+      { _id: courseId, isDeleted: false },
+      { $inc: { totalPaid: -amount } },
+      updateOptions
+    );
+
+    if (!doc) return null;
+
+    const updated = await TreatmentCourseModel.findOne({ _id: courseId, isDeleted: false }).session(session || null);
+    if (!updated) return null;
+
+    if (updated.totalPaid >= updated.totalCost) {
+      await TreatmentCourseModel.findOneAndUpdate(
+        { _id: courseId, isDeleted: false },
+        { $set: { isPaymentCompleted: true } },
+        updateOptions
+      );
+      updated.isPaymentCompleted = true;
+    } else {
+      updated.isPaymentCompleted = false;
+    }
+
+    return this.toDomain(updated);
   }
 
   private toDomainFromPlainObject(doc: any): TreatmentCourse {
