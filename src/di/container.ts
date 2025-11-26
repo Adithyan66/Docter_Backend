@@ -16,6 +16,8 @@ import { IVisitRepository } from '../domain/repositories/visit.repository';
 import { MongoVisitRepository } from '../infrastructure/repositories/mongodb/visit.repository';
 import { IPaymentRepository } from '../domain/repositories/payment.repository';
 import { MongoPaymentRepository } from '../infrastructure/repositories/mongodb/payment.repository';
+import { IPrescriptionRepository } from '../domain/repositories/prescription.repository';
+import { MongoPrescriptionRepository } from '../infrastructure/repositories/mongodb/prescription.repository';
 import { PasswordService } from '../infrastructure/shared/password.service';
 import { JwtService } from '../infrastructure/shared/jwt.service';
 import { S3Service } from '../infrastructure/shared/s3.service';
@@ -55,6 +57,11 @@ import { CreatePaymentUseCase } from '../application/use-cases/payment/create-pa
 import { GetPaymentUseCase } from '../application/use-cases/payment/get-payment.use-case';
 import { GetAllPaymentsUseCase } from '../application/use-cases/payment/get-all-payments.use-case';
 import { RefundPaymentUseCase } from '../application/use-cases/payment/refund-payment.use-case';
+import { CreatePrescriptionUseCase } from '../application/use-cases/prescription/create-prescription.use-case';
+import { GetPrescriptionUseCase } from '../application/use-cases/prescription/get-prescription.use-case';
+import { GetAllPrescriptionsUseCase } from '../application/use-cases/prescription/get-all-prescriptions.use-case';
+import { UpdatePrescriptionUseCase } from '../application/use-cases/prescription/update-prescription.use-case';
+import { DeletePrescriptionUseCase } from '../application/use-cases/prescription/delete-prescription.use-case';
 import { IPasswordService } from '../application/interfaces/password-service.interface';
 import { IJwtService } from '../application/interfaces/jwt-service.interface';
 import { IS3Service } from '../application/interfaces/s3-service.interface';
@@ -67,6 +74,7 @@ import { PatientController } from '../presentation/controllers/patient.controlle
 import { TreatmentCourseController } from '../presentation/controllers/treatment-course.controller';
 import { VisitController } from '../presentation/controllers/visit.controller';
 import { PaymentController } from '../presentation/controllers/payment.controller';
+import { PrescriptionController } from '../presentation/controllers/prescription.controller';
 import { AuthMiddleware } from '../presentation/middleware/auth.middleware';
 
 container.registerSingleton<IDoctorRepository>('IDoctorRepository', MongoDoctorRepository);
@@ -80,6 +88,7 @@ container.registerSingleton<IPatientIdCounterRepository>('IPatientIdCounterRepos
 container.registerSingleton<ITreatmentCourseRepository>('ITreatmentCourseRepository', MongoTreatmentCourseRepository);
 container.registerSingleton<IVisitRepository>('IVisitRepository', MongoVisitRepository);
 container.registerSingleton<IPaymentRepository>('IPaymentRepository', MongoPaymentRepository);
+container.registerSingleton<IPrescriptionRepository>('IPrescriptionRepository', MongoPrescriptionRepository);
 
 container.registerSingleton<IPasswordService>('IPasswordService', PasswordService);
 
@@ -144,6 +153,12 @@ container.registerSingleton<GetPaymentUseCase>('GetPaymentUseCase', GetPaymentUs
 container.registerSingleton<GetAllPaymentsUseCase>('GetAllPaymentsUseCase', GetAllPaymentsUseCase);
 container.registerSingleton<RefundPaymentUseCase>('RefundPaymentUseCase', RefundPaymentUseCase);
 
+container.registerSingleton<CreatePrescriptionUseCase>('CreatePrescriptionUseCase', CreatePrescriptionUseCase);
+container.registerSingleton<GetPrescriptionUseCase>('GetPrescriptionUseCase', GetPrescriptionUseCase);
+container.registerSingleton<GetAllPrescriptionsUseCase>('GetAllPrescriptionsUseCase', GetAllPrescriptionsUseCase);
+container.registerSingleton<UpdatePrescriptionUseCase>('UpdatePrescriptionUseCase', UpdatePrescriptionUseCase);
+container.registerSingleton<DeletePrescriptionUseCase>('DeletePrescriptionUseCase', DeletePrescriptionUseCase);
+
 container.registerSingleton<ImageServiceController>('ImageServiceController', ImageServiceController);
 
 container.registerSingleton<TreatmentController>('TreatmentController', TreatmentController);
@@ -153,6 +168,7 @@ container.registerSingleton<PatientController>('PatientController', PatientContr
 container.registerSingleton<TreatmentCourseController>('TreatmentCourseController', TreatmentCourseController);
 container.registerSingleton<VisitController>('VisitController', VisitController);
 container.registerSingleton<PaymentController>('PaymentController', PaymentController);
+container.registerSingleton<PrescriptionController>('PrescriptionController', PrescriptionController);
 
 container.registerSingleton<AuthMiddleware>('AuthMiddleware', AuthMiddleware);
 

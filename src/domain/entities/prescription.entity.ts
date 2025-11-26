@@ -1,28 +1,44 @@
 import { BaseEntity } from './base.entity';
 
+export interface PrescriptionItem {
+  medicineName: string;
+  form?: string;
+  strength?: string;
+  dosage?: string;
+  frequency?: string;
+  duration?: string;
+  notes?: string;
+}
+
 export class Prescription extends BaseEntity {
-  doctorId: string;
-  patientId: string;
-  visitId?: string;
-  medications: string[];
-  instructions?: string;
+  doctor: string;
+  patient: string;
+  visit: string;
+  clinic?: string;
+  diagnosis?: string[];
+  items: PrescriptionItem[];
+  notes?: string;
 
   constructor(
     id: string,
-    doctorId: string,
-    patientId: string,
-    medications: string[],
+    doctor: string,
+    patient: string,
+    visit: string,
+    items: PrescriptionItem[],
     createdAt?: Date,
     updatedAt?: Date,
-    visitId?: string,
-    instructions?: string
+    clinic?: string,
+    diagnosis?: string[],
+    notes?: string
   ) {
     super(id, createdAt, updatedAt);
-    this.doctorId = doctorId;
-    this.patientId = patientId;
-    this.visitId = visitId;
-    this.medications = medications;
-    this.instructions = instructions;
+    this.doctor = doctor;
+    this.patient = patient;
+    this.visit = visit;
+    this.clinic = clinic;
+    this.diagnosis = diagnosis || [];
+    this.items = items || [];
+    this.notes = notes;
   }
 }
 
