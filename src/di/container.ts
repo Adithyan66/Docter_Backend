@@ -18,6 +18,8 @@ import { IPaymentRepository } from '../domain/repositories/payment.repository';
 import { MongoPaymentRepository } from '../infrastructure/repositories/mongodb/payment.repository';
 import { IPrescriptionRepository } from '../domain/repositories/prescription.repository';
 import { MongoPrescriptionRepository } from '../infrastructure/repositories/mongodb/prescription.repository';
+import { IMediaRepository } from '../domain/repositories/media.repository';
+import { MongoMediaRepository } from '../infrastructure/repositories/mongodb/media.repository';
 import { PasswordService } from '../infrastructure/shared/password.service';
 import { JwtService } from '../infrastructure/shared/jwt.service';
 import { S3Service } from '../infrastructure/shared/s3.service';
@@ -62,6 +64,11 @@ import { GetPrescriptionUseCase } from '../application/use-cases/prescription/ge
 import { GetAllPrescriptionsUseCase } from '../application/use-cases/prescription/get-all-prescriptions.use-case';
 import { UpdatePrescriptionUseCase } from '../application/use-cases/prescription/update-prescription.use-case';
 import { DeletePrescriptionUseCase } from '../application/use-cases/prescription/delete-prescription.use-case';
+import { CreateMediaUseCase } from '../application/use-cases/media/create-media.use-case';
+import { GetMediaUseCase } from '../application/use-cases/media/get-media.use-case';
+import { GetAllMediaUseCase } from '../application/use-cases/media/get-all-media.use-case';
+import { UpdateMediaUseCase } from '../application/use-cases/media/update-media.use-case';
+import { DeleteMediaUseCase } from '../application/use-cases/media/delete-media.use-case';
 import { IPasswordService } from '../application/interfaces/password-service.interface';
 import { IJwtService } from '../application/interfaces/jwt-service.interface';
 import { IS3Service } from '../application/interfaces/s3-service.interface';
@@ -75,6 +82,7 @@ import { TreatmentCourseController } from '../presentation/controllers/treatment
 import { VisitController } from '../presentation/controllers/visit.controller';
 import { PaymentController } from '../presentation/controllers/payment.controller';
 import { PrescriptionController } from '../presentation/controllers/prescription.controller';
+import { MediaController } from '../presentation/controllers/media.controller';
 import { AuthMiddleware } from '../presentation/middleware/auth.middleware';
 
 container.registerSingleton<IDoctorRepository>('IDoctorRepository', MongoDoctorRepository);
@@ -89,6 +97,7 @@ container.registerSingleton<ITreatmentCourseRepository>('ITreatmentCourseReposit
 container.registerSingleton<IVisitRepository>('IVisitRepository', MongoVisitRepository);
 container.registerSingleton<IPaymentRepository>('IPaymentRepository', MongoPaymentRepository);
 container.registerSingleton<IPrescriptionRepository>('IPrescriptionRepository', MongoPrescriptionRepository);
+container.registerSingleton<IMediaRepository>('IMediaRepository', MongoMediaRepository);
 
 container.registerSingleton<IPasswordService>('IPasswordService', PasswordService);
 
@@ -159,6 +168,12 @@ container.registerSingleton<GetAllPrescriptionsUseCase>('GetAllPrescriptionsUseC
 container.registerSingleton<UpdatePrescriptionUseCase>('UpdatePrescriptionUseCase', UpdatePrescriptionUseCase);
 container.registerSingleton<DeletePrescriptionUseCase>('DeletePrescriptionUseCase', DeletePrescriptionUseCase);
 
+container.registerSingleton<CreateMediaUseCase>('CreateMediaUseCase', CreateMediaUseCase);
+container.registerSingleton<GetMediaUseCase>('GetMediaUseCase', GetMediaUseCase);
+container.registerSingleton<GetAllMediaUseCase>('GetAllMediaUseCase', GetAllMediaUseCase);
+container.registerSingleton<UpdateMediaUseCase>('UpdateMediaUseCase', UpdateMediaUseCase);
+container.registerSingleton<DeleteMediaUseCase>('DeleteMediaUseCase', DeleteMediaUseCase);
+
 container.registerSingleton<ImageServiceController>('ImageServiceController', ImageServiceController);
 
 container.registerSingleton<TreatmentController>('TreatmentController', TreatmentController);
@@ -169,6 +184,7 @@ container.registerSingleton<TreatmentCourseController>('TreatmentCourseControlle
 container.registerSingleton<VisitController>('VisitController', VisitController);
 container.registerSingleton<PaymentController>('PaymentController', PaymentController);
 container.registerSingleton<PrescriptionController>('PrescriptionController', PrescriptionController);
+container.registerSingleton<MediaController>('MediaController', MediaController);
 
 container.registerSingleton<AuthMiddleware>('AuthMiddleware', AuthMiddleware);
 

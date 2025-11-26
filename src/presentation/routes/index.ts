@@ -8,6 +8,7 @@ import { setupTreatmentCourseRoutes } from './treatment-course/treatment-course.
 import { setupVisitRoutes } from './visit/visit.routes';
 import { setupPaymentRoutes } from './payment/payment.routes';
 import { setupPrescriptionRoutes } from './prescription/prescription.routes';
+import { setupMediaRoutes } from './media/media.routes';
 
 export const setupRoutes = (router: Router): void => {
   setupAuthRoutes(router);
@@ -19,5 +20,6 @@ export const setupRoutes = (router: Router): void => {
   setupVisitRoutes(router);
   setupPaymentRoutes(router);
   setupPrescriptionRoutes(router);
+  setupMediaRoutes(router);
 };
 
