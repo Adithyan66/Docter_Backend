@@ -11,6 +11,10 @@ const workingDaySchema = z.object({
 });
 
 export const createClinicSchema = z.object({
+  clinicId: z.string()
+    .min(1, 'clinicId is required')
+    .regex(/^[A-Z]{3}$/, 'clinicId must be exactly 3 capital letters')
+    .transform(val => val.toUpperCase()),
   name: z.string().min(1, 'Name is required'),
   address: z.string().optional(),
   city: z.string().optional(),

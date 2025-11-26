@@ -39,6 +39,10 @@ export class UpdateClinicUseCase {
       throw new NotFoundError('Clinic', id);
     }
 
+    if ('clinicId' in input && input.clinicId !== undefined) {
+      throw new ValidationError('clinicId cannot be updated');
+    }
+
     const trimmedInput = {
       ...input,
       name: input.name !== undefined ? input.name.trim() : undefined,

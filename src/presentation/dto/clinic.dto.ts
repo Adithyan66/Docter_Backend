@@ -1,6 +1,7 @@
 import { DayOfWeek } from '../../domain/value-objects/working-day.vo';
 
 export interface CreateClinicRequestDto {
+  clinicId: string;
   name: string;
   address?: string;
   city?: string;
@@ -44,6 +45,7 @@ export interface UpdateClinicRequestDto {
 
 export interface ClinicResponseDto {
   id: string;
+  clinicId: string;
   name: string;
   address?: string;
   city?: string;

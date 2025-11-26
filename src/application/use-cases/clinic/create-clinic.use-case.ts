@@ -7,6 +7,7 @@ import { Email } from '../../../domain/value-objects/email.vo';
 import { WorkingDay, DayOfWeek } from '../../../domain/value-objects/working-day.vo';
 
 interface CreateClinicInput {
+  clinicId: string;
   name: string;
   address?: string;
   city?: string;
@@ -36,6 +37,7 @@ export class CreateClinicUseCase {
   async execute(input: CreateClinicInput): Promise<void> {
     const trimmedInput = {
       ...input,
+      clinicId: input.clinicId.trim().toUpperCase(),
       name: input.name.trim(),
       address: input.address?.trim(),
       city: input.city?.trim(),
@@ -49,9 +51,14 @@ export class CreateClinicUseCase {
 
     this.validateInput(trimmedInput);
 
-    const existingClinic = await this.clinicRepository.findByName(trimmedInput.name);
-    if (existingClinic) {
+    const existingClinicByName = await this.clinicRepository.findByName(trimmedInput.name);
+    if (existingClinicByName) {
       throw new ConflictError(`Clinic with name "${trimmedInput.name}" already exists`);
+    }
+
+    const existingClinicById = await this.clinicRepository.findByClinicId(trimmedInput.clinicId);
+    if (existingClinicById) {
+      throw new ConflictError(`Clinic with clinicId "${trimmedInput.clinicId}" already exists`);
     }
 
     let email: Email | undefined;
@@ -66,6 +73,7 @@ export class CreateClinicUseCase {
 
     const clinic = new Clinic(
       '',
+      trimmedInput.clinicId,
       trimmedInput.name,
       undefined,
       undefined,
@@ -79,6 +87,7 @@ export class CreateClinicUseCase {
       trimmedInput.locationUrl,
       workingDays,
       trimmedInput.treatments,
+      undefined,
       trimmedInput.images,
       trimmedInput.notes,
       trimmedInput.isActive
@@ -88,6 +97,15 @@ export class CreateClinicUseCase {
   }
 
   private validateInput(input: CreateClinicInput): void {
+    if (!input.clinicId || input.clinicId.trim().length === 0) {
+      throw new ValidationError('clinicId is required');
+    }
+
+    const clinicIdRegex = /^[A-Z]{3}$/;
+    if (!clinicIdRegex.test(input.clinicId.trim().toUpperCase())) {
+      throw new ValidationError('clinicId must be exactly 3 capital letters');
+    }
+
     if (!input.name || input.name.trim().length === 0) {
       throw new ValidationError('Name is required');
     }

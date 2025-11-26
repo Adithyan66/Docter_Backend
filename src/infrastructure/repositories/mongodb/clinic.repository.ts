@@ -25,6 +25,12 @@ export class MongoClinicRepository implements IClinicRepository {
     return this.toDomain(clinicDoc);
   }
 
+  async findByClinicId(clinicId: string): Promise<Clinic | null> {
+    const clinicDoc = await ClinicModel.findOne({ clinicId: clinicId.toUpperCase(), isDeleted: false }).populate('treatments', 'name');
+    if (!clinicDoc) return null;
+    return this.toDomain(clinicDoc);
+  }
+
   async findNames(search?: string): Promise<Array<{ id: string; name: string }>> {
     const filter: any = { isDeleted: false };
     if (search && search.trim().length > 0) {
@@ -148,6 +154,7 @@ export class MongoClinicRepository implements IClinicRepository {
 
   async create(entity: Clinic): Promise<Clinic> {
     const clinicDoc = new ClinicModel({
+      clinicId: entity.clinicId.toUpperCase(),
       name: entity.name,
       address: entity.address,
       city: entity.city,
@@ -175,6 +182,9 @@ export class MongoClinicRepository implements IClinicRepository {
 
   async update(id: string, entity: Partial<Clinic>): Promise<Clinic | null> {
     const updateData: any = {};
+    if (entity.clinicId !== undefined) {
+      throw new Error('clinicId cannot be updated');
+    }
     if (entity.name !== undefined) updateData.name = entity.name;
     if (entity.address !== undefined) updateData.address = entity.address;
     if (entity.city !== undefined) updateData.city = entity.city;
@@ -260,6 +270,7 @@ export class MongoClinicRepository implements IClinicRepository {
 
     return new Clinic(
       doc._id.toString(),
+      doc.clinicId,
       doc.name,
       doc.createdAt,
       doc.updatedAt,
@@ -348,6 +359,7 @@ export class MongoClinicRepository implements IClinicRepository {
 
     return new Clinic(
       id,
+      doc.clinicId || '',
       doc.name || '',
       doc.createdAt,
       doc.updatedAt,

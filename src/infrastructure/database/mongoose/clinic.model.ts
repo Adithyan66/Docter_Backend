@@ -7,6 +7,7 @@ export interface IWorkingDay {
 }
 
 export interface IClinic extends Document {
+  clinicId: string;
   name: string;
   address?: string;
   city?: string;
@@ -37,6 +38,18 @@ const WorkingDaySchema = new Schema<IWorkingDay>(
 
 const ClinicSchema = new Schema<IClinic>(
   {
+    clinicId: {
+      type: String,
+      required: true,
+      immutable: true,
+      uppercase: true,
+      validate: {
+        validator: function(v: string) {
+          return /^[A-Z]{3}$/.test(v);
+        },
+        message: 'clinicId must be exactly 3 capital letters'
+      }
+    },
     name: { type: String, required: true },
     address: { type: String, required: false },
     city: { type: String, required: false },
@@ -60,6 +73,7 @@ const ClinicSchema = new Schema<IClinic>(
 
 ClinicSchema.index({ isDeleted: 1, createdAt: -1 });
 ClinicSchema.index({ name: 1 }, { unique: true, partialFilterExpression: { isDeleted: false } });
+ClinicSchema.index({ clinicId: 1 }, { unique: true, partialFilterExpression: { isDeleted: false } });
 ClinicSchema.index({ name: 'text', city: 'text' });
 
 export const ClinicModel = mongoose.model<IClinic>('Clinic', ClinicSchema);

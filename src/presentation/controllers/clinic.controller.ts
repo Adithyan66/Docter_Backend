@@ -98,6 +98,7 @@ export class ClinicController {
   private toResponseDto(clinic: Clinic): ClinicResponseDto {
     return {
       id: clinic.id,
+      clinicId: clinic.clinicId,
       name: clinic.name,
       address: clinic.address,
       city: clinic.city,

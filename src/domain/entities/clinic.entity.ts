@@ -3,6 +3,7 @@ import { Email } from '../value-objects/email.vo';
 import { WorkingDay } from '../value-objects/working-day.vo';
 
 export class Clinic extends BaseEntity {
+  clinicId: string;
   name: string;
   address?: string;
   city?: string;
@@ -22,6 +23,7 @@ export class Clinic extends BaseEntity {
 
   constructor(
     id: string,
+    clinicId: string,
     name: string,
     createdAt?: Date,
     updatedAt?: Date,
@@ -42,6 +44,7 @@ export class Clinic extends BaseEntity {
     isDeleted?: boolean
   ) {
     super(id, createdAt, updatedAt);
+    this.clinicId = clinicId;
     this.name = name;
     this.address = address;
     this.city = city;
