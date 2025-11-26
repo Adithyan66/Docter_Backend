@@ -8,6 +8,7 @@ export class GetAllClinicsUseCase {
   ) {}
 
   async execute(
+    doctorId: string,
     page: number = 1,
     limit: number = 10,
     search?: string
@@ -20,6 +21,7 @@ export class GetAllClinicsUseCase {
       page,
       limit,
       search: search?.trim() || undefined,
+      doctorId,
     };
 
     return await this.clinicRepository.findAllPaginated(options);

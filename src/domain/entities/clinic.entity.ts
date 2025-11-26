@@ -4,6 +4,7 @@ import { WorkingDay } from '../value-objects/working-day.vo';
 
 export class Clinic extends BaseEntity {
   clinicId: string;
+  doctorId: string;
   name: string;
   address?: string;
   city?: string;
@@ -24,6 +25,7 @@ export class Clinic extends BaseEntity {
   constructor(
     id: string,
     clinicId: string,
+    doctorId: string,
     name: string,
     createdAt?: Date,
     updatedAt?: Date,
@@ -45,6 +47,7 @@ export class Clinic extends BaseEntity {
   ) {
     super(id, createdAt, updatedAt);
     this.clinicId = clinicId;
+    this.doctorId = doctorId;
     this.name = name;
     this.address = address;
     this.city = city;

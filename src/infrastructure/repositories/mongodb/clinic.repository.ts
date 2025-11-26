@@ -1,5 +1,5 @@
 import { injectable } from 'tsyringe';
-import { PipelineStage } from 'mongoose';
+import { PipelineStage, Types } from 'mongoose';
 import { IClinicRepository, FindAllPaginatedOptions } from '../../../domain/repositories/clinic.repository';
 import { Clinic } from '../../../domain/entities/clinic.entity';
 import { ClinicModel, IClinic } from '../../database/mongoose/clinic.model';
@@ -19,20 +19,20 @@ export class MongoClinicRepository implements IClinicRepository {
     return clinicDocs.map((doc) => this.toDomain(doc));
   }
 
-  async findByName(name: string): Promise<Clinic | null> {
-    const clinicDoc = await ClinicModel.findOne({ name: name.trim(), isDeleted: false }).populate('treatments', 'name');
+  async findByName(name: string, doctorId: string): Promise<Clinic | null> {
+    const clinicDoc = await ClinicModel.findOne({ name: name.trim(), doctor: new Types.ObjectId(doctorId), isDeleted: false }).populate('treatments', 'name');
     if (!clinicDoc) return null;
     return this.toDomain(clinicDoc);
   }
 
-  async findByClinicId(clinicId: string): Promise<Clinic | null> {
-    const clinicDoc = await ClinicModel.findOne({ clinicId: clinicId.toUpperCase(), isDeleted: false }).populate('treatments', 'name');
+  async findByClinicId(clinicId: string, doctorId: string): Promise<Clinic | null> {
+    const clinicDoc = await ClinicModel.findOne({ clinicId: clinicId.toUpperCase(), doctor: new Types.ObjectId(doctorId), isDeleted: false }).populate('treatments', 'name');
     if (!clinicDoc) return null;
     return this.toDomain(clinicDoc);
   }
 
-  async findNames(search?: string): Promise<Array<{ id: string; name: string }>> {
-    const filter: any = { isDeleted: false };
+  async findNames(doctorId: string, search?: string): Promise<Array<{ id: string; name: string }>> {
+    const filter: any = { isDeleted: false, doctor: new Types.ObjectId(doctorId) };
     if (search && search.trim().length > 0) {
       const regex = new RegExp(search.trim(), 'i');
       filter.$or = [{ name: regex }, { city: regex }];
@@ -46,10 +46,10 @@ export class MongoClinicRepository implements IClinicRepository {
   }
 
   async findAllPaginated(options: FindAllPaginatedOptions): Promise<{ clinics: Clinic[]; total: number; page: number; limit: number; totalPages: number }> {
-    const { page, limit, search } = options;
+    const { page, limit, search, doctorId } = options;
     const skip = (page - 1) * limit;
 
-    const matchStage: any = { isDeleted: false };
+    const matchStage: any = { isDeleted: false, doctor: new Types.ObjectId(doctorId) };
 
     if (search && search.trim().length > 0) {
       const searchRegex = { $regex: search.trim(), $options: 'i' };
@@ -155,6 +155,7 @@ export class MongoClinicRepository implements IClinicRepository {
   async create(entity: Clinic): Promise<Clinic> {
     const clinicDoc = new ClinicModel({
       clinicId: entity.clinicId.toUpperCase(),
+      doctor: new Types.ObjectId(entity.doctorId),
       name: entity.name,
       address: entity.address,
       city: entity.city,
@@ -271,6 +272,7 @@ export class MongoClinicRepository implements IClinicRepository {
     return new Clinic(
       doc._id.toString(),
       doc.clinicId,
+      doc.doctor ? doc.doctor.toString() : '',
       doc.name,
       doc.createdAt,
       doc.updatedAt,
@@ -360,6 +362,7 @@ export class MongoClinicRepository implements IClinicRepository {
     return new Clinic(
       id,
       doc.clinicId || '',
+      doc.doctor ? doc.doctor.toString() : '',
       doc.name || '',
       doc.createdAt,
       doc.updatedAt,

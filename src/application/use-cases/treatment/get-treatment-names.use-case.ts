@@ -7,8 +7,8 @@ export class GetTreatmentNamesUseCase {
     @inject('ITreatmentRepository') private readonly treatmentRepository: ITreatmentRepository
   ) {}
 
-  async execute(search?: string): Promise<Array<{ id: string; name: string }>> {
-    return this.treatmentRepository.findNames(search?.trim());
+  async execute(doctorId: string, search?: string): Promise<Array<{ id: string; name: string }>> {
+    return this.treatmentRepository.findNames(doctorId, search?.trim());
   }
 }
 

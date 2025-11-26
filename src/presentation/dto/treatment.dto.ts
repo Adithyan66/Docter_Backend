@@ -34,6 +34,7 @@ export interface UpdateTreatmentRequestDto {
 
 export interface TreatmentResponseDto {
   id: string;
+  doctorId: string;
   name: string;
   description?: string;
   minDuration?: number;

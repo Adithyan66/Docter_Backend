@@ -27,20 +27,21 @@ export class CreateTreatmentUseCase {
     @inject('ITreatmentRepository') private treatmentRepository: ITreatmentRepository
   ) {}
 
-  async execute(input: CreateTreatmentInput): Promise<void> {
+  async execute(doctorId: string, input: CreateTreatmentInput): Promise<void> {
     const trimmedInput = {
       ...input,
       name: input.name.trim(),
     };
     this.validateInput(trimmedInput);
 
-    const existingTreatment = await this.treatmentRepository.findByName(trimmedInput.name);
+    const existingTreatment = await this.treatmentRepository.findByName(trimmedInput.name, doctorId);
     if (existingTreatment) {
       throw new ConflictError(`Treatment with name "${trimmedInput.name}" already exists`);
     }
 
     const treatment = new Treatment(
       '',
+      doctorId,
       trimmedInput.name,
       undefined,
       undefined,

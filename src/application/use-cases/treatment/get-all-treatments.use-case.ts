@@ -8,6 +8,7 @@ export class GetAllTreatmentsUseCase {
   ) {}
 
   async execute(
+    doctorId: string,
     page: number = 1,
     limit: number = 10,
     sortBy?: 'fees' | 'duration' | 'createdAt',
@@ -24,6 +25,7 @@ export class GetAllTreatmentsUseCase {
       sortBy: sortBy || 'createdAt',
       sortOrder: sortOrder || 'desc',
       search: search?.trim() || undefined,
+      doctorId,
     };
 
     return await this.treatmentRepository.findAllPaginated(options);

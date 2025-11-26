@@ -46,6 +46,7 @@ export interface UpdateClinicRequestDto {
 export interface ClinicResponseDto {
   id: string;
   clinicId: string;
+  doctorId: string;
   name: string;
   address?: string;
   city?: string;

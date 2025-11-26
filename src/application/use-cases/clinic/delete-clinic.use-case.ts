@@ -8,9 +8,9 @@ export class DeleteClinicUseCase {
     @inject('IClinicRepository') private clinicRepository: IClinicRepository
   ) {}
 
-  async execute(id: string): Promise<void> {
+  async execute(id: string, doctorId: string): Promise<void> {
     const clinic = await this.clinicRepository.findById(id);
-    if (!clinic) {
+    if (!clinic || clinic.doctorId !== doctorId) {
       throw new NotFoundError('Clinic', id);
     }
 

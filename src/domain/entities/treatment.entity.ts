@@ -1,6 +1,7 @@
 import { BaseEntity } from './base.entity';
 
 export class Treatment extends BaseEntity {
+  doctorId: string;
   name: string;
   description?: string;
   minDuration?: number;
@@ -19,6 +20,7 @@ export class Treatment extends BaseEntity {
 
   constructor(
     id: string,
+    doctorId: string,
     name: string,
     createdAt?: Date,
     updatedAt?: Date,
@@ -38,6 +40,7 @@ export class Treatment extends BaseEntity {
     isDeleted?: boolean
   ) {
     super(id, createdAt, updatedAt);
+    this.doctorId = doctorId;
     this.name = name;
     this.description = description;
     this.minDuration = minDuration;

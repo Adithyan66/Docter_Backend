@@ -1,6 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
-import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
+import { successResponse, HttpStatus, SuccessMessages, AuthenticationErrors } from '../../infrastructure/constants';
 import { CreateTreatmentUseCase } from '../../application/use-cases/treatment/create-treatment.use-case';
 import { UpdateTreatmentUseCase } from '../../application/use-cases/treatment/update-treatment.use-case';
 import { DeleteTreatmentUseCase } from '../../application/use-cases/treatment/delete-treatment.use-case';
@@ -10,6 +10,7 @@ import { GetTreatmentNamesUseCase } from '../../application/use-cases/treatment/
 import { ValidationError } from '../../domain/errors/validation.error';
 import { CreateTreatmentRequestDto, UpdateTreatmentRequestDto, TreatmentResponseDto, PaginatedTreatmentsResponseDto } from '../dto/treatment.dto';
 import { Treatment } from '../../domain/entities/treatment.entity';
+import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
 
 @injectable()
 export class TreatmentController {
@@ -27,8 +28,9 @@ export class TreatmentController {
       throw new ValidationError('Request body is required');
     }
 
+    const doctorId = this.getDoctorId(req);
     const input = req.body as CreateTreatmentRequestDto;
-    await this.createTreatmentUseCase.execute(input);
+    await this.createTreatmentUseCase.execute(doctorId, input);
     
     successResponse(res, null, HttpStatus.CREATED, SuccessMessages.CREATED);
   }
@@ -43,8 +45,9 @@ export class TreatmentController {
       throw new ValidationError('Treatment ID is required');
     }
 
+    const doctorId = this.getDoctorId(req);
     const input = req.body as UpdateTreatmentRequestDto;
-    await this.updateTreatmentUseCase.execute(id, input);
+    await this.updateTreatmentUseCase.execute(id, doctorId, input);
     
     successResponse(res, null, HttpStatus.OK, SuccessMessages.UPDATED);
   }
@@ -55,7 +58,8 @@ export class TreatmentController {
       throw new ValidationError('Treatment ID is required');
     }
 
-    await this.deleteTreatmentUseCase.execute(id);
+    const doctorId = this.getDoctorId(req);
+    await this.deleteTreatmentUseCase.execute(id, doctorId);
     
     successResponse(res, null, HttpStatus.OK, SuccessMessages.DELETED);
   }
@@ -66,7 +70,8 @@ export class TreatmentController {
       throw new ValidationError('Treatment ID is required');
     }
 
-    const treatment = await this.getTreatmentUseCase.execute(id);
+    const doctorId = this.getDoctorId(req);
+    const treatment = await this.getTreatmentUseCase.execute(id, doctorId);
     const response: TreatmentResponseDto = this.toResponseDto(treatment);
     
     successResponse(res, response, HttpStatus.OK, SuccessMessages.RETRIEVED);
@@ -82,7 +87,8 @@ export class TreatmentController {
     const validSortBy = sortBy && ['fees', 'duration', 'createdAt'].includes(sortBy) ? sortBy : undefined;
     const validSortOrder = sortOrder && ['asc', 'desc'].includes(sortOrder) ? sortOrder : undefined;
 
-    const result = await this.getAllTreatmentsUseCase.execute(page, limit, validSortBy, validSortOrder, search);
+    const doctorId = this.getDoctorId(req);
+    const result = await this.getAllTreatmentsUseCase.execute(doctorId, page, limit, validSortBy, validSortOrder, search);
     const response: PaginatedTreatmentsResponseDto = {
       treatments: result.treatments.map(t => this.toResponseDto(t)),
       total: result.total,
@@ -95,14 +101,16 @@ export class TreatmentController {
   }
 
   async getNames(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const doctorId = this.getDoctorId(req);
     const search = req.query.search ? String(req.query.search) : undefined;
-    const names = await this.getTreatmentNamesUseCase.execute(search);
+    const names = await this.getTreatmentNamesUseCase.execute(doctorId, search);
     successResponse(res, names, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
   private toResponseDto(treatment: Treatment): TreatmentResponseDto {
     return {
       id: treatment.id,
+      doctorId: treatment.doctorId,
       name: treatment.name,
       description: treatment.description,
       minDuration: treatment.minDuration,
@@ -120,6 +128,14 @@ export class TreatmentController {
       createdAt: treatment.createdAt,
       updatedAt: treatment.updatedAt,
     };
+  }
+
+  private getDoctorId(req: HttpRequest): string {
+    const user = req.user as { id?: string } | undefined;
+    if (!user || !user.id) {
+      throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
+    }
+    return user.id;
   }
 }
 

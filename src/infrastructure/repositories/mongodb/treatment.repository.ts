@@ -1,5 +1,5 @@
 import { injectable } from 'tsyringe';
-import { PipelineStage } from 'mongoose';
+import { PipelineStage, Types } from 'mongoose';
 import { ITreatmentRepository, FindAllPaginatedOptions } from '../../../domain/repositories/treatment.repository';
 import { Treatment } from '../../../domain/entities/treatment.entity';
 import { TreatmentModel, ITreatment } from '../../database/mongoose/treatment.model';
@@ -17,18 +17,19 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
     return treatmentDocs.map((doc) => this.toDomain(doc));
   }
 
-  async findAllActive(): Promise<Treatment[]> {
-    return this.findAll();
+  async findAllActive(doctorId: string): Promise<Treatment[]> {
+    const treatmentDocs = await TreatmentModel.find({ isDeleted: false, doctor: new Types.ObjectId(doctorId) });
+    return treatmentDocs.map((doc) => this.toDomain(doc));
   }
 
-  async findByName(name: string): Promise<Treatment | null> {
-    const treatmentDoc = await TreatmentModel.findOne({ name: name.trim(), isDeleted: false });
+  async findByName(name: string, doctorId: string): Promise<Treatment | null> {
+    const treatmentDoc = await TreatmentModel.findOne({ name: name.trim(), doctor: new Types.ObjectId(doctorId), isDeleted: false });
     if (!treatmentDoc) return null;
     return this.toDomain(treatmentDoc);
   }
 
-  async findNames(search?: string): Promise<Array<{ id: string; name: string }>> {
-    const filter: any = { isDeleted: false };
+  async findNames(doctorId: string, search?: string): Promise<Array<{ id: string; name: string }>> {
+    const filter: any = { isDeleted: false, doctor: new Types.ObjectId(doctorId) };
     if (search && search.trim().length > 0) {
       const regex = new RegExp(search.trim(), 'i');
       filter.$or = [{ name: regex }, { description: regex }];
@@ -42,11 +43,12 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
   }
 
   async findAllPaginated(options: FindAllPaginatedOptions): Promise<{ treatments: Treatment[]; total: number; page: number; limit: number; totalPages: number }> {
-    const { page, limit, sortBy = 'createdAt', sortOrder = 'desc', search } = options;
+    const { page, limit, sortBy = 'createdAt', sortOrder = 'desc', search, doctorId } = options;
     const skip = (page - 1) * limit;
 
     const matchStage: any = {
       isDeleted: false,
+      doctor: new Types.ObjectId(doctorId),
     };
 
     if (search && search.trim().length > 0) {
@@ -163,6 +165,7 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
 
   async create(entity: Treatment): Promise<Treatment> {
     const treatmentDoc = new TreatmentModel({
+      doctor: new Types.ObjectId(entity.doctorId),
       name: entity.name,
       description: entity.description,
       minDuration: entity.minDuration,
@@ -222,6 +225,7 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
   private toDomain(doc: ITreatment): Treatment {
     return new Treatment(
       doc._id.toString(),
+      doc.doctor ? doc.doctor.toString() : '',
       doc.name,
       doc.createdAt,
       doc.updatedAt,
@@ -246,6 +250,7 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
     const id = doc._id ? doc._id.toString() : '';
     return new Treatment(
       id,
+      doc.doctor ? doc.doctor.toString() : '',
       doc.name || '',
       doc.createdAt,
       doc.updatedAt,

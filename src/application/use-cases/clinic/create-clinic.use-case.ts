@@ -34,7 +34,7 @@ export class CreateClinicUseCase {
     @inject('IClinicRepository') private clinicRepository: IClinicRepository
   ) {}
 
-  async execute(input: CreateClinicInput): Promise<void> {
+  async execute(doctorId: string, input: CreateClinicInput): Promise<void> {
     const trimmedInput = {
       ...input,
       clinicId: input.clinicId.trim().toUpperCase(),
@@ -51,12 +51,12 @@ export class CreateClinicUseCase {
 
     this.validateInput(trimmedInput);
 
-    const existingClinicByName = await this.clinicRepository.findByName(trimmedInput.name);
+    const existingClinicByName = await this.clinicRepository.findByName(trimmedInput.name, doctorId);
     if (existingClinicByName) {
       throw new ConflictError(`Clinic with name "${trimmedInput.name}" already exists`);
     }
 
-    const existingClinicById = await this.clinicRepository.findByClinicId(trimmedInput.clinicId);
+    const existingClinicById = await this.clinicRepository.findByClinicId(trimmedInput.clinicId, doctorId);
     if (existingClinicById) {
       throw new ConflictError(`Clinic with clinicId "${trimmedInput.clinicId}" already exists`);
     }
@@ -74,6 +74,7 @@ export class CreateClinicUseCase {
     const clinic = new Clinic(
       '',
       trimmedInput.clinicId,
+      doctorId,
       trimmedInput.name,
       undefined,
       undefined,

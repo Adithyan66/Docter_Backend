@@ -33,9 +33,9 @@ export class UpdateClinicUseCase {
     @inject('IClinicRepository') private clinicRepository: IClinicRepository
   ) {}
 
-  async execute(id: string, input: UpdateClinicInput): Promise<void> {
+  async execute(id: string, doctorId: string, input: UpdateClinicInput): Promise<void> {
     const existingClinic = await this.clinicRepository.findById(id);
-    if (!existingClinic) {
+    if (!existingClinic || existingClinic.doctorId !== doctorId) {
       throw new NotFoundError('Clinic', id);
     }
 
@@ -59,7 +59,7 @@ export class UpdateClinicUseCase {
     this.validateInput(trimmedInput, existingClinic);
 
     if (trimmedInput.name !== undefined && trimmedInput.name !== existingClinic.name) {
-      const clinicWithSameName = await this.clinicRepository.findByName(trimmedInput.name);
+      const clinicWithSameName = await this.clinicRepository.findByName(trimmedInput.name, doctorId);
       if (clinicWithSameName) {
         throw new ConflictError(`Clinic with name "${trimmedInput.name}" already exists`);
       }

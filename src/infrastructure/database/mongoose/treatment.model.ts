@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ITreatment extends Document {
+  doctor: mongoose.Types.ObjectId;
   name: string;
   description?: string;
   minDuration?: number;
@@ -22,7 +23,8 @@ export interface ITreatment extends Document {
 
 const TreatmentSchema = new Schema<ITreatment>(
   {
-    name: { type: String, required: true ,unique: true },
+    doctor: { type: Schema.Types.ObjectId, ref: 'Doctor', required: true, index: true },
+    name: { type: String, required: true },
     description: { type: String, required: false },
     minDuration: { type: Number, required: false },
     maxDuration: { type: Number, required: false },
@@ -47,7 +49,7 @@ TreatmentSchema.index({ isDeleted: 1, createdAt: -1 });
 TreatmentSchema.index({ isDeleted: 1, avgFees: -1 });
 TreatmentSchema.index({ isDeleted: 1, avgDuration: -1 });
 TreatmentSchema.index({ isDeleted: 1, name: 'text', description: 'text' });
-TreatmentSchema.index({ name: 1 }, { unique: true, partialFilterExpression: { isDeleted: false } });
+TreatmentSchema.index({ doctor: 1, name: 1 }, { unique: true, partialFilterExpression: { isDeleted: false } });
 
 export const TreatmentModel = mongoose.model<ITreatment>('Treatment', TreatmentSchema);
 
