@@ -17,6 +17,7 @@ export interface IPatient extends Document {
   profilePicUrl?: string;
   consultationType: 'one-time' | 'treatment-plan';
   tags?: string[];
+  treatmentCourses?: mongoose.Types.ObjectId[];
   visitCount?: number;
   lastVisitAt?: Date;
   isActive?: boolean;
@@ -62,6 +63,7 @@ const PatientSchema = new Schema<IPatient>(
       required: true,
     },
     tags: { type: [String], default: [] },
+    treatmentCourses: [{ type: Schema.Types.ObjectId, ref: 'TreatmentCourse' }],
     visitCount: { type: Number, default: 0 },
     lastVisitAt: { type: Date },
     isActive: { type: Boolean, default: true },

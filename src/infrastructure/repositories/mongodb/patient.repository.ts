@@ -167,6 +167,7 @@ export class MongoPatientRepository implements IPatientRepository {
       profilePicUrl: entity.profilePicUrl,
       consultationType: entity.consultationType,
       tags: entity.tags || [],
+      treatmentCourses: (entity.treatmentCourses || []).map((id) => this.toObjectId(id)).filter((c): c is Types.ObjectId => !!c),
       visitCount: entity.visitCount,
       lastVisitAt: entity.lastVisitAt,
       isActive: entity.isActive,
@@ -205,6 +206,9 @@ export class MongoPatientRepository implements IPatientRepository {
     if (entity.profilePicUrl !== undefined) updateData.profilePicUrl = entity.profilePicUrl;
     if (entity.consultationType !== undefined) updateData.consultationType = entity.consultationType;
     if (entity.tags !== undefined) updateData.tags = entity.tags;
+    if (entity.treatmentCourses !== undefined) {
+      updateData.treatmentCourses = (entity.treatmentCourses || []).map((c) => this.toObjectId(c)).filter((c): c is Types.ObjectId => !!c);
+    }
     if (entity.visitCount !== undefined) updateData.visitCount = entity.visitCount;
     if (entity.lastVisitAt !== undefined) updateData.lastVisitAt = entity.lastVisitAt;
     if (entity.isActive !== undefined) updateData.isActive = entity.isActive;
@@ -253,6 +257,7 @@ export class MongoPatientRepository implements IPatientRepository {
       doc.address,
       doc.profilePicUrl,
       doc.tags,
+      this.buildTreatmentCourses(doc.treatmentCourses),
       doc.visitCount,
       doc.lastVisitAt,
       doc.isActive,
@@ -285,6 +290,7 @@ export class MongoPatientRepository implements IPatientRepository {
       doc.address,
       doc.profilePicUrl,
       doc.tags,
+      this.buildTreatmentCourses(doc.treatmentCourses),
       doc.visitCount,
       doc.lastVisitAt ? new Date(doc.lastVisitAt) : undefined,
       doc.isActive,
@@ -335,6 +341,18 @@ export class MongoPatientRepository implements IPatientRepository {
     } catch {
       return undefined;
     }
+  }
+
+  private buildTreatmentCourses(treatmentCourses?: any[]): string[] {
+    if (!treatmentCourses || treatmentCourses.length === 0) {
+      return [];
+    }
+    return treatmentCourses.map((course) => {
+      if (!course) return '';
+      if (typeof course === 'string') return course;
+      if (course._id) return course._id.toString();
+      return course.toString();
+    }).filter((value) => !!value);
   }
 }
 

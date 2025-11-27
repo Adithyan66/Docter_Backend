@@ -55,6 +55,13 @@ export class CreateTreatmentCourseUseCase {
     treatmentCourse.recalcPaymentStatus();
 
     const created = await this.treatmentCourseRepository.create(treatmentCourse);
+    
+    const patient = await this.patientRepository.findByIdAndDoctor(input.patientId.trim(), doctorId);
+    if (patient) {
+      patient.addTreatmentCourse(created.id);
+      await this.patientRepository.update(patient.id, patient);
+    }
+    
     return treatmentCourseToDto(created);
   }
 

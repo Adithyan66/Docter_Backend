@@ -12,7 +12,7 @@ export const setupVisitRoutes = (router: Router): void => {
 
   router.post('/visit/add', auth, validate(createVisitSchema), asyncHandler(visitController.create.bind(visitController)));
 
-  router.get('/visit/all', auth, asyncHandler(visitController.getAll.bind(visitController)));
+  router.get('/visits/all', auth, asyncHandler(visitController.getAll.bind(visitController)));
 
   router.get('/visit/:id', auth, asyncHandler(visitController.getById.bind(visitController)));
 

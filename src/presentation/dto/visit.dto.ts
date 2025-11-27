@@ -1,3 +1,23 @@
+import { PrescriptionItemDto, PrescriptionResponseDto } from './prescription.dto';
+import { MediaResponseDto } from './media.dto';
+import { MediaType } from '../../domain/entities/media.entity';
+
+export interface CreateVisitPrescriptionDto {
+  clinicId?: string;
+  diagnosis?: string[];
+  items: PrescriptionItemDto[];
+  notes?: string;
+}
+
+export interface CreateVisitMediaDto {
+  url: string;
+  filename?: string;
+  mimeType?: string;
+  size?: number;
+  type?: MediaType;
+  notes?: string;
+}
+
 export interface CreateVisitRequestDto {
   patientId: string;
   courseId: string;
@@ -6,6 +26,8 @@ export interface CreateVisitRequestDto {
   billedAmount?: number;
   mediaIds?: string[];
   prescriptionId?: string;
+  prescription?: CreateVisitPrescriptionDto;
+  media?: CreateVisitMediaDto[];
 }
 
 export interface UpdateVisitRequestDto {
@@ -29,6 +51,8 @@ export interface VisitResponseDto {
   billedAmount?: number;
   mediaIds: string[];
   prescriptionId?: string;
+  prescription?: PrescriptionResponseDto | null;
+  media?: MediaResponseDto[];
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -45,6 +69,7 @@ export interface GetVisitsQueryDto {
   notes?: string;
   sortBy?: 'visitDate' | 'createdAt';
   sortOrder?: 'asc' | 'desc';
+  include?: string;
 }
 
 export interface PaginatedVisitsResponseDto {

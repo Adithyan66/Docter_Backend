@@ -1,7 +1,10 @@
 import { Patient } from '../../domain/entities/patient.entity';
 import { PatientResponseDto } from '../../presentation/dto/patient.dto';
 
-export const patientToDto = (patient: Patient): PatientResponseDto => ({
+export const patientToDto = (
+  patient: Patient,
+  treatmentCoursesData?: Array<{ id: string; treatmentName: string }>
+): PatientResponseDto => ({
   id: patient.id,
   doctorId: patient.doctorId,
   primaryClinic: patient.primaryClinic,
@@ -19,6 +22,7 @@ export const patientToDto = (patient: Patient): PatientResponseDto => ({
   profilePicUrl: patient.profilePicUrl,
   consultationType: patient.consultationType,
   tags: patient.tags || [],
+  treatmentCourses: treatmentCoursesData || [],
   visitCount: patient.visitCount,
   lastVisitAt: patient.lastVisitAt,
   isActive: patient.isActive,

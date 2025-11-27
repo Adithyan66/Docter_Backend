@@ -60,6 +60,7 @@ export interface PatientResponseDto {
   profilePicUrl?: string;
   consultationType: PatientConsultationType;
   tags: string[];
+  treatmentCourses: Array<{ id: string; treatmentName: string }>;
   visitCount: number;
   lastVisitAt?: Date;
   isActive: boolean;

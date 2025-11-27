@@ -23,6 +23,7 @@ export class Patient extends BaseEntity {
   profilePicUrl?: string;
   consultationType: PatientConsultationType;
   tags: string[];
+  treatmentCourses: string[];
   visitCount: number;
   lastVisitAt?: Date;
   isActive: boolean;
@@ -48,6 +49,7 @@ export class Patient extends BaseEntity {
     address?: string,
     profilePicUrl?: string,
     tags?: string[],
+    treatmentCourses?: string[],
     visitCount?: number,
     lastVisitAt?: Date,
     isActive?: boolean,
@@ -66,6 +68,7 @@ export class Patient extends BaseEntity {
     this.address = address;
     this.profilePicUrl = profilePicUrl;
     this.tags = tags || [];
+    this.treatmentCourses = treatmentCourses || [];
     this.age = age;
     this.visitCount = visitCount ?? 0;
     this.lastVisitAt = lastVisitAt;
@@ -130,6 +133,16 @@ export class Patient extends BaseEntity {
   restore(): void {
     this.isDeleted = false;
     this.isActive = true;
+  }
+
+  addTreatmentCourse(treatmentCourseId: string): void {
+    if (!this.treatmentCourses.includes(treatmentCourseId)) {
+      this.treatmentCourses.push(treatmentCourseId);
+    }
+  }
+
+  removeTreatmentCourse(treatmentCourseId: string): void {
+    this.treatmentCourses = this.treatmentCourses.filter(id => id !== treatmentCourseId);
   }
 
   private buildFullName(fullName?: string): string {

@@ -92,6 +92,7 @@ export class VisitController {
       notes: req.query.notes ? String(req.query.notes) : undefined,
       sortBy,
       sortOrder,
+      include: req.query.include ? String(req.query.include) : undefined,
     };
   }
 

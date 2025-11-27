@@ -51,6 +51,7 @@ export class CreatePatientUseCase {
       input.address ? input.address.trim() : undefined,
       input.profilePicUrl ? input.profilePicUrl.trim() : undefined,
       tags,
+      [],
       input.visitCount ?? 0,
       lastVisitAt,
       input.isActive,
