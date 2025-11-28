@@ -25,6 +25,7 @@ export interface IPatientRepository extends BaseRepository<Patient> {
     page: number;
     limit: number;
     totalPages: number;
+    clinicNames?: Record<string, string>;
   }>;
 }
 

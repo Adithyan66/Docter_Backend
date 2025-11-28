@@ -11,7 +11,9 @@ export class GetPatientsUseCase {
   ) {}
 
   async execute(doctorId: string, input: GetPatientsQueryDto): Promise<PaginatedPatientsResponseDto> {
+
     const page = input.page && input.page > 0 ? input.page : 1;
+    
     const limit = input.limit && input.limit > 0 ? input.limit : 10;
 
     if (input.minAge !== undefined && input.minAge < 0) {
@@ -42,7 +44,9 @@ export class GetPatientsUseCase {
     const result = await this.patientRepository.findPaginated(options);
 
     return {
-      patients: result.patients.map((patient) => patientToDto(patient)),
+      patients: result.patients.map((patient) => 
+        patientToDto(patient, undefined, result.clinicNames?.[patient.id])
+      ),
       total: result.total,
       page: result.page,
       limit: result.limit,

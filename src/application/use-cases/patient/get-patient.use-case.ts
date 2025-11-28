@@ -15,16 +15,19 @@ export class GetPatientUseCase {
   ) {}
 
   async execute(id: string, doctorId: string): Promise<PatientResponseDto> {
+
     const patient = await this.patientRepository.findByIdAndDoctor(id, doctorId);
     if (!patient) {
       throw new NotFoundError('Patient', id);
     }
 
     const treatmentCoursesData = await this.populateTreatmentCourses(patient.treatmentCourses);
+
     return patientToDto(patient, treatmentCoursesData);
   }
 
   private async populateTreatmentCourses(treatmentCourseIds: string[]): Promise<Array<{ id: string; treatmentName: string }>> {
+   
     if (!treatmentCourseIds || treatmentCourseIds.length === 0) {
       return [];
     }

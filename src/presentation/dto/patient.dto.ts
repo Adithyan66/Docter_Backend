@@ -44,27 +44,18 @@ export interface UpdatePatientRequestDto {
 
 export interface PatientResponseDto {
   id: string;
-  doctorId: string;
-  primaryClinic?: string;
-  clinics: string[];
+  primaryClinicName?: string;
   patientId?: string;
-  firstName: string;
-  lastName?: string;
   fullName: string;
-  dob?: Date;
   age?: number;
   gender: PatientGender;
   phone?: string;
   email?: string;
-  address?: string;
   profilePicUrl?: string;
   consultationType: PatientConsultationType;
-  tags: string[];
-  treatmentCourses: Array<{ id: string; treatmentName: string }>;
   visitCount: number;
   lastVisitAt?: Date;
   isActive: boolean;
-  isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

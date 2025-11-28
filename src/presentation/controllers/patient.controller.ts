@@ -55,20 +55,33 @@ export class PatientController {
     successResponse(res, null, HttpStatus.OK, SuccessMessages.DELETED);
   }
 
+
+
   async getById(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+
     const id = req.params.id;
+
     if (!id) {
       throw new ValidationError('Patient ID is required');
     }
+
     const doctorId = this.getDoctorId(req);
+
     const patient = await this.getPatientUseCase.execute(id, doctorId);
+    
     successResponse(res, patient, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
+
+
   async getAll(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+
     const query = this.buildQueryDto(req);
+    
     const doctorId = this.getDoctorId(req);
+    
     const result = await this.getPatientsUseCase.execute(doctorId, query);
+    
     successResponse(res, result, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 

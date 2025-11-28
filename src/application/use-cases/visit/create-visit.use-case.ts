@@ -45,6 +45,11 @@ export class CreateVisitUseCase {
     }
 
     const visitDate = new Date();
+    const billedAmount = input.billedAmount !== undefined ? input.billedAmount : 0;
+
+    if (billedAmount > course.remaining) {
+      throw new ValidationError('billedAmount cannot exceed remaining treatment course balance');
+    }
 
     const visit = new Visit(
       '',
@@ -56,7 +61,7 @@ export class CreateVisitUseCase {
       undefined,
       clinicId,
       input.notes ? input.notes.trim() : undefined,
-      input.billedAmount !== undefined ? input.billedAmount : 0,
+      billedAmount,
       input.mediaIds || [],
       input.prescriptionId ? input.prescriptionId.trim() : undefined,
       false
@@ -125,6 +130,10 @@ export class CreateVisitUseCase {
     if (patient) {
       patient.incrementVisitCount(visitDate);
       await this.patientRepository.update(patient.id, patient);
+    }
+
+    if (billedAmount > 0) {
+      course.addPayment(billedAmount);
     }
 
     course.addVisit(created.id);

@@ -36,12 +36,16 @@ export class MongoPatientRepository implements IPatientRepository {
     return this.toDomain(doc);
   }
 
+
+
+
   async findPaginated(options: PatientSearchOptions): Promise<{
     patients: Patient[];
     total: number;
     page: number;
     limit: number;
     totalPages: number;
+    clinicNames?: Record<string, string>;
   }> {
     const { page, limit, doctorId, search, patientId, clinicId, gender, consultationType, minAge, maxAge, sortBy, sortOrder } = options;
     const skip = (page - 1) * limit;
@@ -58,8 +62,8 @@ export class MongoPatientRepository implements IPatientRepository {
       andConditions.push({
         $or: [
           { fullName: regex },
-          { firstName: regex },
-          { lastName: regex },
+          // { firstName: regex },
+          // { lastName: regex },
           { patientId: regex },
         ],
       });
@@ -111,6 +115,43 @@ export class MongoPatientRepository implements IPatientRepository {
             { $sort: { [resolvedSortField]: resolvedSortOrder, _id: resolvedSortOrder } },
             { $skip: skip },
             { $limit: limit },
+            {
+              $lookup: {
+                from: 'clinics',
+                localField: 'primaryClinic',
+                foreignField: '_id',
+                as: 'primaryClinicData',
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                doctor: 1,
+                primaryClinic: 1,
+                primaryClinicName: { $ifNull: [{ $arrayElemAt: ['$primaryClinicData.name', 0] }, null] },
+                clinics: 1,
+                patientId: 1,
+                firstName: 1,
+                lastName: 1,
+                fullName: 1,
+                dob: 1,
+                age: 1,
+                gender: 1,
+                phone: 1,
+                email: 1,
+                address: 1,
+                profilePicUrl: 1,
+                consultationType: 1,
+                tags: 1,
+                treatmentCourses: 1,
+                visitCount: 1,
+                lastVisitAt: 1,
+                isActive: 1,
+                isDeleted: 1,
+                createdAt: 1,
+                updatedAt: 1,
+              },
+            },
           ],
         },
       },
@@ -131,6 +172,7 @@ export class MongoPatientRepository implements IPatientRepository {
         page,
         limit,
         totalPages: 0,
+        clinicNames: {},
       };
     }
 
@@ -138,7 +180,13 @@ export class MongoPatientRepository implements IPatientRepository {
     const total = aggregationResult.total || 0;
     const totalPages = Math.ceil(total / limit);
 
-    const patients = (aggregationResult.patients || []).map((doc: any) => this.toDomainFromPlain(doc));
+    const clinicNames: Record<string, string> = {};
+    const patients = (aggregationResult.patients || []).map((doc: any) => {
+      if (doc.primaryClinicName && doc._id) {
+        clinicNames[doc._id.toString()] = doc.primaryClinicName;
+      }
+      return this.toDomainFromPlain(doc);
+    });
 
     return {
       patients,
@@ -146,8 +194,12 @@ export class MongoPatientRepository implements IPatientRepository {
       page,
       limit,
       totalPages,
+      clinicNames,
     };
   }
+
+
+
 
   async create(entity: Patient): Promise<Patient> {
     const doc = new PatientModel({
