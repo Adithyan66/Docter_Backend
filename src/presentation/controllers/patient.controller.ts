@@ -67,7 +67,7 @@ export class PatientController {
 
     const doctorId = this.getDoctorId(req);
 
-    const patient = await this.getPatientUseCase.execute(id, doctorId);
+    const patient = await this.getPatientUseCase.executeDetail(id, doctorId);
     
     successResponse(res, patient, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }

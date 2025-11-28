@@ -82,4 +82,43 @@ export interface GetPatientsQueryDto {
   sortOrder?: 'asc' | 'desc';
 }
 
+export interface TreatmentCourseItemDto {
+  id: string;
+  treatmentName: string;
+}
+
+export interface TreatmentCoursesSummaryDto {
+  totalCost: number;
+  totalPaid: number;
+  totalRemaining: number;
+}
+
+export interface PatientDetailResponseDto {
+  id: string;
+  doctorId: string;
+  primaryClinic?: string;
+  primaryClinicName?: string;
+  clinics: string[];
+  patientId?: string;
+  firstName: string;
+  lastName?: string;
+  fullName: string;
+  dob?: Date;
+  age?: number;
+  gender: PatientGender;
+  phone?: string;
+  email?: string;
+  address?: string;
+  profilePicUrl?: string;
+  consultationType: PatientConsultationType;
+  tags: string[];
+  visitCount: number;
+  lastVisitAt?: Date;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  treatmentCourses: TreatmentCourseItemDto[];
+  treatmentCoursesSummary: TreatmentCoursesSummaryDto;
+}
+
 
