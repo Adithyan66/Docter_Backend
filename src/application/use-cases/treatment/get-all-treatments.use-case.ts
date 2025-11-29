@@ -11,7 +11,7 @@ export class GetAllTreatmentsUseCase {
     doctorId: string,
     page: number = 1,
     limit: number = 10,
-    sortBy?: 'fees' | 'duration' | 'createdAt',
+    sortBy?: 'averageAmount' | 'averageDuration' | 'numberOfPatients' | 'ongoing' | 'completed' | '',
     sortOrder?: 'asc' | 'desc',
     search?: string
   ): Promise<{ treatments: any[]; total: number; page: number; limit: number; totalPages: number }> {
@@ -22,7 +22,7 @@ export class GetAllTreatmentsUseCase {
     const options: FindAllPaginatedOptions = {
       page,
       limit,
-      sortBy: sortBy || 'createdAt',
+      sortBy: sortBy || '',
       sortOrder: sortOrder || 'desc',
       search: search?.trim() || undefined,
       doctorId,

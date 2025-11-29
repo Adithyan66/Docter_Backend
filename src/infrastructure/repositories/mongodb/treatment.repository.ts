@@ -1,6 +1,6 @@
 import { injectable } from 'tsyringe';
 import { PipelineStage, Types } from 'mongoose';
-import { ITreatmentRepository, FindAllPaginatedOptions } from '../../../domain/repositories/treatment.repository';
+import { ITreatmentRepository, FindAllPaginatedOptions, TreatmentListResult } from '../../../domain/repositories/treatment.repository';
 import { Treatment } from '../../../domain/entities/treatment.entity';
 import { TreatmentModel, ITreatment } from '../../database/mongoose/treatment.model';
 
@@ -42,8 +42,8 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
     }));
   }
 
-  async findAllPaginated(options: FindAllPaginatedOptions): Promise<{ treatments: Treatment[]; total: number; page: number; limit: number; totalPages: number }> {
-    const { page, limit, sortBy = 'createdAt', sortOrder = 'desc', search, doctorId } = options;
+  async findAllPaginated(options: FindAllPaginatedOptions): Promise<{ treatments: TreatmentListResult[]; total: number; page: number; limit: number; totalPages: number }> {
+    const { page, limit, sortBy = '', sortOrder = 'desc', search, doctorId } = options;
     const skip = (page - 1) * limit;
 
     const matchStage: any = {
@@ -59,31 +59,87 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
       ];
     }
 
-    const sortField = this.getSortField(sortBy);
     const sortDirection = sortOrder === 'asc' ? 1 : -1;
 
     const pipeline: PipelineStage[] = [
       {
         $match: matchStage,
       },
-    ];
-
-    if (sortBy === 'fees' || sortBy === 'duration') {
-      pipeline.push({
+      {
+        $lookup: {
+          from: 'treatmentcourses',
+          let: { treatmentId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$treatment', '$$treatmentId'] },
+                    { $eq: ['$isDeleted', false] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: 'treatmentCourses',
+        },
+      },
+      {
         $addFields: {
-          sortValue: {
-            $ifNull: [sortBy === 'fees' ? '$avgFees' : '$avgDuration', sortOrder === 'asc' ? Number.MAX_SAFE_INTEGER : -1],
+          numberOfPatients: { $size: '$treatmentCourses' },
+          ongoing: {
+            $size: {
+              $filter: {
+                input: '$treatmentCourses',
+                as: 'tc',
+                cond: { $eq: ['$$tc.status', 'active'] },
+              },
+            },
+          },
+          completed: {
+            $size: {
+              $filter: {
+                input: '$treatmentCourses',
+                as: 'tc',
+                cond: { $eq: ['$$tc.status', 'completed'] },
+              },
+            },
           },
         },
-      });
-    }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          avgFees: 1,
+          avgDuration: 1,
+          numberOfPatients: 1,
+          ongoing: 1,
+          completed: 1,
+          createdAt: 1,
+        },
+      },
+    ];
 
     const sortStage: any = {};
-    if (sortBy === 'fees' || sortBy === 'duration') {
-      sortStage.sortValue = sortDirection;
-      sortStage.createdAt = -1;
-    } else {
-      sortStage[sortField] = sortDirection;
+    switch (sortBy) {
+      case 'averageAmount':
+        sortStage.avgFees = sortDirection;
+        break;
+      case 'averageDuration':
+        sortStage.avgDuration = sortDirection;
+        break;
+      case 'numberOfPatients':
+        sortStage.numberOfPatients = sortDirection;
+        break;
+      case 'ongoing':
+        sortStage.ongoing = sortDirection;
+        break;
+      case 'completed':
+        sortStage.completed = sortDirection;
+        break;
+      default:
+        sortStage.createdAt = sortDirection;
     }
 
     pipeline.push(
@@ -104,11 +160,6 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
             {
               $limit: limit,
             },
-            ...(sortBy === 'fees' || sortBy === 'duration' ? [{
-              $project: {
-                sortValue: 0,
-              },
-            }] : []),
           ],
         },
       },
@@ -138,9 +189,15 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
     const total = aggregationResult.total || 0;
     const totalPages = Math.ceil(total / limit);
 
-    const treatments = aggregationResult.treatments.map((doc: any) =>
-      this.toDomainFromPlainObject(doc)
-    );
+    const treatments: TreatmentListResult[] = aggregationResult.treatments.map((doc: any) => ({
+      id: doc._id.toString(),
+      name: doc.name,
+      avgFees: doc.avgFees,
+      avgDuration: doc.avgDuration,
+      numberOfPatients: doc.numberOfPatients || 0,
+      ongoing: doc.ongoing || 0,
+      completed: doc.completed || 0,
+    }));
 
     return {
       treatments,
@@ -149,18 +206,6 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
       limit,
       totalPages,
     };
-  }
-
-  private getSortField(sortBy: 'fees' | 'duration' | 'createdAt'): string {
-    switch (sortBy) {
-      case 'fees':
-        return 'avgFees';
-      case 'duration':
-        return 'avgDuration';
-      case 'createdAt':
-      default:
-        return 'createdAt';
-    }
   }
 
   async create(entity: Treatment): Promise<Treatment> {

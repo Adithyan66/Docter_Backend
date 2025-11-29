@@ -53,8 +53,18 @@ export interface TreatmentResponseDto {
   updatedAt: Date;
 }
 
+export interface TreatmentList {
+  id: string;
+  name: string;
+  avgFees?: number;
+  avgDuration?: number;
+  numberOfPatients: number;
+  ongoing: number;
+  completed: number;
+}
+
 export interface PaginatedTreatmentsResponseDto {
-  treatments: TreatmentResponseDto[];
+  treatments: TreatmentList[];
   total: number;
   page: number;
   limit: number;

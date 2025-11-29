@@ -8,7 +8,7 @@ import { GetTreatmentUseCase } from '../../application/use-cases/treatment/get-t
 import { GetAllTreatmentsUseCase } from '../../application/use-cases/treatment/get-all-treatments.use-case';
 import { GetTreatmentNamesUseCase } from '../../application/use-cases/treatment/get-treatment-names.use-case';
 import { ValidationError } from '../../domain/errors/validation.error';
-import { CreateTreatmentRequestDto, UpdateTreatmentRequestDto, TreatmentResponseDto, PaginatedTreatmentsResponseDto } from '../dto/treatment.dto';
+import { CreateTreatmentRequestDto, UpdateTreatmentRequestDto, TreatmentResponseDto, PaginatedTreatmentsResponseDto, TreatmentList } from '../dto/treatment.dto';
 import { Treatment } from '../../domain/entities/treatment.entity';
 import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
 
@@ -80,17 +80,18 @@ export class TreatmentController {
   async getAll(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
     const page = req.query.page ? parseInt(String(req.query.page), 10) : 1;
     const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : 10;
-    const sortBy = req.query.sortBy as 'fees' | 'duration' | 'createdAt' | undefined;
+    const sortBy = req.query.sortBy as 'averageAmount' | 'averageDuration' | 'numberOfPatients' | 'ongoing' | 'completed' | '' | undefined;
     const sortOrder = req.query.sortOrder as 'asc' | 'desc' | undefined;
     const search = req.query.search as string | undefined;
 
-    const validSortBy = sortBy && ['fees', 'duration', 'createdAt'].includes(sortBy) ? sortBy : undefined;
+    const validSortBy = sortBy && ['averageAmount', 'averageDuration', 'numberOfPatients', 'ongoing', 'completed', ''].includes(sortBy) ? sortBy : '';
     const validSortOrder = sortOrder && ['asc', 'desc'].includes(sortOrder) ? sortOrder : undefined;
 
     const doctorId = this.getDoctorId(req);
     const result = await this.getAllTreatmentsUseCase.execute(doctorId, page, limit, validSortBy, validSortOrder, search);
+    
     const response: PaginatedTreatmentsResponseDto = {
-      treatments: result.treatments.map(t => this.toResponseDto(t)),
+      treatments: result.treatments as TreatmentList[],
       total: result.total,
       page: result.page,
       limit: result.limit,
