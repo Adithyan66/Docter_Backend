@@ -19,6 +19,8 @@ interface UpdateTreatmentInput {
   followUpAfterDays?: number;
   risks?: string[];
   images?: string[];
+  isOneTime?: boolean;
+  regularVisitInterval?: { interval: number; unit: string } | null;
 }
 
 @injectable()
@@ -38,6 +40,7 @@ export class UpdateTreatmentUseCase {
       name: input.name !== undefined ? input.name.trim() : undefined,
     };
     this.validateInput(trimmedInput, existingTreatment);
+    this.validateVisitType(trimmedInput, existingTreatment);
 
     if (trimmedInput.name !== undefined && trimmedInput.name !== existingTreatment.name) {
       const treatmentWithSameName = await this.treatmentRepository.findByName(trimmedInput.name, doctorId);
@@ -61,6 +64,10 @@ export class UpdateTreatmentUseCase {
     if (trimmedInput.followUpAfterDays !== undefined) updateData.followUpAfterDays = trimmedInput.followUpAfterDays;
     if (trimmedInput.risks !== undefined) updateData.risks = trimmedInput.risks;
     if (trimmedInput.images !== undefined) updateData.images = trimmedInput.images;
+    if (trimmedInput.isOneTime !== undefined) updateData.isOneTime = trimmedInput.isOneTime;
+    if (trimmedInput.regularVisitInterval !== undefined) {
+      updateData.regularVisitInterval = trimmedInput.regularVisitInterval;
+    }
 
     const updated = await this.treatmentRepository.update(id, updateData);
     if (!updated) {
@@ -108,6 +115,23 @@ export class UpdateTreatmentUseCase {
       }
       if (maxFees !== undefined && avgFees > maxFees) {
         throw new ValidationError('avgFees must be less than or equal to maxFees');
+      }
+    }
+  }
+
+  private validateVisitType(input: UpdateTreatmentInput, existingTreatment: any): void {
+    const isOneTime = input.isOneTime !== undefined ? input.isOneTime : existingTreatment.isOneTime;
+    const regularVisitInterval = input.regularVisitInterval !== undefined ? input.regularVisitInterval : existingTreatment.regularVisitInterval;
+
+    if (isOneTime === true && regularVisitInterval !== undefined && regularVisitInterval !== null) {
+      throw new ValidationError('Cannot set regularVisitInterval when isOneTime is true');
+    }
+    if (regularVisitInterval !== undefined && regularVisitInterval !== null) {
+      if (regularVisitInterval.interval <= 0) {
+        throw new ValidationError('regularVisitInterval.interval must be a positive number');
+      }
+      if (!regularVisitInterval.unit || regularVisitInterval.unit.trim().length === 0) {
+        throw new ValidationError('regularVisitInterval.unit is required');
       }
     }
   }

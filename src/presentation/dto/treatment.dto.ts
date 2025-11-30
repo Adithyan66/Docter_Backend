@@ -13,6 +13,8 @@ export interface CreateTreatmentRequestDto {
   followUpAfterDays?: number;
   risks?: string[];
   images?: string[];
+  isOneTime?: boolean;
+  regularVisitInterval?: { interval: number; unit: string };
 }
 
 export interface UpdateTreatmentRequestDto {
@@ -30,6 +32,8 @@ export interface UpdateTreatmentRequestDto {
   followUpAfterDays?: number;
   risks?: string[];
   images?: string[];
+  isOneTime?: boolean;
+  regularVisitInterval?: { interval: number; unit: string };
 }
 
 export interface TreatmentResponseDto {
@@ -49,6 +53,8 @@ export interface TreatmentResponseDto {
   followUpAfterDays?: number;
   risks?: string[];
   images?: string[];
+  isOneTime?: boolean;
+  regularVisitInterval?: { interval: number; unit: string };
   createdAt: Date;
   updatedAt: Date;
 }

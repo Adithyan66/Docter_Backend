@@ -225,6 +225,8 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
       followUpAfterDays: entity.followUpAfterDays,
       risks: entity.risks,
       images: entity.images,
+      isOneTime: entity.isOneTime,
+      regularVisitInterval: entity.regularVisitInterval,
       isDeleted: entity.isDeleted || false,
     });
     const saved = await treatmentDoc.save();
@@ -247,6 +249,8 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
     if (entity.followUpAfterDays !== undefined) updateData.followUpAfterDays = entity.followUpAfterDays;
     if (entity.risks !== undefined) updateData.risks = entity.risks;
     if (entity.images !== undefined) updateData.images = entity.images;
+    if (entity.isOneTime !== undefined) updateData.isOneTime = entity.isOneTime;
+    if (entity.regularVisitInterval !== undefined) updateData.regularVisitInterval = entity.regularVisitInterval;
     if (entity.isDeleted !== undefined) updateData.isDeleted = entity.isDeleted;
 
     const treatmentDoc = await TreatmentModel.findOneAndUpdate(
@@ -287,6 +291,8 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
       doc.followUpAfterDays,
       doc.risks,
       doc.images,
+      doc.isOneTime,
+      doc.regularVisitInterval,
       doc.isDeleted
     );
   }
@@ -312,6 +318,8 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
       doc.followUpAfterDays,
       doc.risks,
       doc.images,
+      doc.isOneTime,
+      doc.regularVisitInterval,
       doc.isDeleted
     );
   }

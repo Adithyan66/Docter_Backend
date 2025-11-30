@@ -230,7 +230,7 @@ export class MongoPatientRepository implements IPatientRepository {
     return this.toDomain(saved);
   }
 
-  async update(id: string, entity: Partial<Patient>): Promise<Patient | null> {
+  async update(id: string, entity: Partial<Patient>, session?: any): Promise<Patient | null> {
     const updateData: any = {};
 
     if (entity.primaryClinic !== undefined) {
@@ -266,11 +266,17 @@ export class MongoPatientRepository implements IPatientRepository {
     if (entity.isActive !== undefined) updateData.isActive = entity.isActive;
     if (entity.isDeleted !== undefined) updateData.isDeleted = entity.isDeleted;
 
-    const updated = await PatientModel.findOneAndUpdate(
+    const updateOptions: any = { new: true };
+    if (session) {
+      updateOptions.session = session;
+    }
+
+    await PatientModel.findOneAndUpdate(
       { _id: id, isDeleted: false },
       updateData,
-      { new: true }
+      updateOptions
     );
+    const updated = await PatientModel.findOne({ _id: id, isDeleted: false }).session(session || null);
     if (!updated) return null;
     return this.toDomain(updated);
   }

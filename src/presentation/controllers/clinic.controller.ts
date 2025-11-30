@@ -8,7 +8,8 @@ import { GetClinicUseCase } from '../../application/use-cases/clinic/get-clinic.
 import { GetAllClinicsUseCase } from '../../application/use-cases/clinic/get-all-clinics.use-case';
 import { GetClinicNamesUseCase } from '../../application/use-cases/clinic/get-clinic-names.use-case';
 import { ValidationError } from '../../domain/errors/validation.error';
-import { CreateClinicRequestDto, UpdateClinicRequestDto, ClinicResponseDto, PaginatedClinicsResponseDto } from '../dto/clinic.dto';
+import { CreateClinicRequestDto, UpdateClinicRequestDto, ClinicResponseDto, PaginatedClinicsResponseDto, ClinicListDto } from '../dto/clinic.dto';
+import { GetClinicsParams } from '../../application/use-cases/clinic/get-all-clinics.use-case';
 import { Clinic } from '../../domain/entities/clinic.entity';
 import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
 
@@ -78,14 +79,18 @@ export class ClinicController {
   }
 
   async getAll(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
-    const page = req.query.page ? parseInt(String(req.query.page), 10) : 1;
-    const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : 10;
-    const search = req.query.search as string | undefined;
+    const params: GetClinicsParams = {
+      page: req.query.page ? parseInt(String(req.query.page), 10) : undefined,
+      limit: req.query.limit ? parseInt(String(req.query.limit), 10) : undefined,
+      search: req.query.search as string | undefined,
+      sortBy: req.query.sortBy as 'createdAt' | 'numOfPatients' | 'onGoingTreatments' | 'completedTreatments' | undefined,
+      sortOrder: req.query.sortOrder as 'asc' | 'desc' | undefined,
+    };
 
     const doctorId = this.getDoctorId(req);
-    const result = await this.getAllClinicsUseCase.execute(doctorId, page, limit, search);
+    const result = await this.getAllClinicsUseCase.execute(doctorId, params);
     const response: PaginatedClinicsResponseDto = {
-      clinics: result.clinics.map(c => this.toResponseDto(c)),
+      clinics: result.clinics as ClinicListDto[],
       total: result.total,
       page: result.page,
       limit: result.limit,

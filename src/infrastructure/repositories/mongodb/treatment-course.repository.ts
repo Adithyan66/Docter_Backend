@@ -2,6 +2,7 @@ import { injectable } from 'tsyringe';
 import { PipelineStage, Types } from 'mongoose';
 import { ITreatmentCourseRepository, TreatmentCourseSearchOptions } from '../../../domain/repositories/treatment-course.repository';
 import { TreatmentCourse } from '../../../domain/entities/treatment-course.entity';
+import { TreatmentCourseStatus } from '../../../domain/value-objects/treatment-course-status.vo';
 import { TreatmentCourseModel, ITreatmentCourse } from '../../database/mongoose/treatment-course.model';
 
 @injectable()
@@ -89,6 +90,18 @@ export class MongoTreatmentCourseRepository implements ITreatmentCourseRepositor
       { new: true }
     );
     return !!result;
+  }
+
+  async findByPatientAndTreatmentAndStatus(doctorId: string, patientId: string, treatmentId: string, statuses: TreatmentCourseStatus[]): Promise<TreatmentCourse | null> {
+    const doc = await TreatmentCourseModel.findOne({
+      doctor: new Types.ObjectId(doctorId),
+      patient: new Types.ObjectId(patientId),
+      treatment: new Types.ObjectId(treatmentId),
+      status: { $in: statuses },
+      isDeleted: false,
+    });
+    if (!doc) return null;
+    return this.toDomain(doc);
   }
 
   async findPaginated(options: TreatmentCourseSearchOptions): Promise<{

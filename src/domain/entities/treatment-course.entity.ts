@@ -73,6 +73,14 @@ export class TreatmentCourse extends BaseEntity {
     this.recalcPaymentStatus();
   }
 
+  addToTotalCost(amount: number): void {
+    if (amount < 0) {
+      throw new Error('Amount cannot be negative');
+    }
+    this.totalCost += amount;
+    this.recalcPaymentStatus();
+  }
+
   activate(): void {
     if (this.status === 'cancelled') {
       throw new Error('Cannot activate a cancelled treatment course');

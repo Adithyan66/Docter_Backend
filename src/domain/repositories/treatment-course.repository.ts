@@ -25,6 +25,7 @@ export interface ITreatmentCourseRepository extends BaseRepository<TreatmentCour
     limit: number;
     totalPages: number;
   }>;
+  findByPatientAndTreatmentAndStatus(doctorId: string, patientId: string, treatmentId: string, statuses: TreatmentCourseStatus[]): Promise<TreatmentCourse | null>;
   incrementTotalPaid(courseId: string, amount: number, session?: any, paymentId?: string): Promise<TreatmentCourse | null>;
   decrementTotalPaid(courseId: string, amount: number, session?: any): Promise<TreatmentCourse | null>;
 }

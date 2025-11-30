@@ -1,4 +1,5 @@
 import { injectable, inject } from 'tsyringe';
+import mongoose from 'mongoose';
 import { IVisitRepository } from '../../../domain/repositories/visit.repository';
 import { ITreatmentCourseRepository } from '../../../domain/repositories/treatment-course.repository';
 import { IPatientRepository } from '../../../domain/repositories/patient.repository';
@@ -6,12 +7,20 @@ import { IDoctorRepository } from '../../../domain/repositories/doctor.repositor
 import { IPrescriptionRepository } from '../../../domain/repositories/prescription.repository';
 import { IMediaRepository } from '../../../domain/repositories/media.repository';
 import { IClinicRepository } from '../../../domain/repositories/clinic.repository';
+import { ITreatmentRepository } from '../../../domain/repositories/treatment.repository';
+import { IPaymentRepository } from '../../../domain/repositories/payment.repository';
 import { Visit } from '../../../domain/entities/visit.entity';
 import { Prescription } from '../../../domain/entities/prescription.entity';
 import { Media } from '../../../domain/entities/media.entity';
+import { Payment } from '../../../domain/entities/payment.entity';
+import { PaymentMethodVO } from '../../../domain/value-objects/payment-method.vo';
 import { CreateVisitRequestDto, VisitResponseDto, CreateVisitMediaDto } from '../../../presentation/dto/visit.dto';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { visitToDto } from '../../mappers/visit.mapper';
+import { MongoPaymentRepository } from '../../../infrastructure/repositories/mongodb/payment.repository';
+import { MongoVisitRepository } from '../../../infrastructure/repositories/mongodb/visit.repository';
+import { MongoPatientRepository } from '../../../infrastructure/repositories/mongodb/patient.repository';
+import { MongoTreatmentCourseRepository } from '../../../infrastructure/repositories/mongodb/treatment-course.repository';
 
 @injectable()
 export class CreateVisitUseCase {
@@ -22,7 +31,9 @@ export class CreateVisitUseCase {
     @inject('IDoctorRepository') private readonly doctorRepository: IDoctorRepository,
     @inject('IPrescriptionRepository') private readonly prescriptionRepository: IPrescriptionRepository,
     @inject('IMediaRepository') private readonly mediaRepository: IMediaRepository,
-    @inject('IClinicRepository') private readonly clinicRepository: IClinicRepository
+    @inject('IClinicRepository') private readonly clinicRepository: IClinicRepository,
+    @inject('ITreatmentRepository') private readonly treatmentRepository: ITreatmentRepository,
+    @inject('IPaymentRepository') private readonly paymentRepository: IPaymentRepository
   ) {}
 
   async execute(doctorId: string, input: CreateVisitRequestDto): Promise<VisitResponseDto> {
@@ -47,7 +58,14 @@ export class CreateVisitUseCase {
     const visitDate = new Date();
     const billedAmount = input.billedAmount !== undefined ? input.billedAmount : 0;
 
-    if (billedAmount > course.remaining) {
+    const treatment = await this.treatmentRepository.findById(course.treatmentId);
+    if (!treatment) {
+      throw new ValidationError('Treatment not found');
+    }
+
+    const isOneTime = treatment.isOneTime === true;
+
+    if (!isOneTime && billedAmount > course.remaining) {
       throw new ValidationError('billedAmount cannot exceed remaining treatment course balance');
     }
 
@@ -67,80 +85,132 @@ export class CreateVisitUseCase {
       false
     );
 
-    const created = await this.visitRepository.create(visit);
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    let prescriptionId = input.prescriptionId ? input.prescriptionId.trim() : undefined;
-    const mediaIds: string[] = [...(input.mediaIds || [])];
+    try {
+      const mongoVisitRepo = this.visitRepository as MongoVisitRepository;
+      const mongoPatientRepo = this.patientRepository as MongoPatientRepository;
+      const mongoPaymentRepo = this.paymentRepository as MongoPaymentRepository;
+      const mongoCourseRepo = this.treatmentCourseRepository as MongoTreatmentCourseRepository;
 
-    if (input.prescription) {
-      this.validatePrescriptionInput(input.prescription);
-      
-      const prescription = new Prescription(
-        '',
-        doctorId,
-        input.patientId.trim(),
-        created.id,
-        input.prescription.items || [],
-        undefined,
-        undefined,
-        input.prescription.clinicId ? input.prescription.clinicId.trim() : clinicId,
-        input.prescription.diagnosis || [],
-        input.prescription.notes ? input.prescription.notes.trim() : undefined
-      );
+      const created = await mongoVisitRepo.create(visit, session);
 
-      const createdPrescription = await this.prescriptionRepository.create(prescription);
-      prescriptionId = createdPrescription.id;
-    }
+      let prescriptionId = input.prescriptionId ? input.prescriptionId.trim() : undefined;
+      const mediaIds: string[] = [...(input.mediaIds || [])];
 
-    if (input.media && input.media.length > 0) {
-      for (const mediaData of input.media) {
-        this.validateMediaInput(mediaData);
+      if (input.prescription) {
+        this.validatePrescriptionInput(input.prescription);
         
-        const media = new Media(
+        const prescription = new Prescription(
           '',
           doctorId,
-          mediaData.url.trim(),
-          mediaData.type || 'image',
+          input.patientId.trim(),
+          created.id,
+          input.prescription.items || [],
           undefined,
           undefined,
+          input.prescription.clinicId ? input.prescription.clinicId.trim() : clinicId,
+          input.prescription.diagnosis || [],
+          input.prescription.notes ? input.prescription.notes.trim() : undefined
+        );
+
+        const createdPrescription = await this.prescriptionRepository.create(prescription);
+        prescriptionId = createdPrescription.id;
+      }
+
+      if (input.media && input.media.length > 0) {
+        for (const mediaData of input.media) {
+          this.validateMediaInput(mediaData);
+          
+          const media = new Media(
+            '',
+            doctorId,
+            mediaData.url.trim(),
+            mediaData.type || 'image',
+            undefined,
+            undefined,
+            input.patientId.trim(),
+            input.courseId.trim(),
+            created.id,
+            clinicId,
+            mediaData.filename ? mediaData.filename.trim() : undefined,
+            mediaData.mimeType ? mediaData.mimeType.trim() : undefined,
+            mediaData.size,
+            mediaData.notes ? mediaData.notes.trim() : undefined,
+            false
+          );
+
+          const createdMedia = await this.mediaRepository.create(media);
+          mediaIds.push(createdMedia.id);
+        }
+      }
+
+      if (prescriptionId !== created.prescriptionId || mediaIds.length !== created.mediaIds.length || 
+          !mediaIds.every(id => created.mediaIds.includes(id))) {
+        created.setPrescription(prescriptionId);
+        mediaIds.forEach(id => created.addMedia(id));
+        await mongoVisitRepo.update(created.id, created, session);
+      }
+
+      const patient = await this.patientRepository.findById(input.patientId.trim());
+      if (patient) {
+        patient.incrementVisitCount(visitDate);
+        await mongoPatientRepo.update(patient.id, patient, session);
+      }
+
+      let paymentId: string | undefined;
+
+      if (billedAmount > 0) {
+        const paymentMethod = new PaymentMethodVO(input.paymentMethod!);
+        const paidAt = new Date();
+
+        const payment = new Payment(
+          '',
+          doctorId,
           input.patientId.trim(),
           input.courseId.trim(),
+          billedAmount,
+          paymentMethod,
+          paidAt,
+          undefined,
+          undefined,
           created.id,
           clinicId,
-          mediaData.filename ? mediaData.filename.trim() : undefined,
-          mediaData.mimeType ? mediaData.mimeType.trim() : undefined,
-          mediaData.size,
-          mediaData.notes ? mediaData.notes.trim() : undefined,
+          input.paymentReference ? input.paymentReference.trim() : undefined,
+          false,
+          undefined,
           false
         );
 
-        const createdMedia = await this.mediaRepository.create(media);
-        mediaIds.push(createdMedia.id);
+        const createdPayment = await mongoPaymentRepo.create(payment, session);
+        paymentId = createdPayment.id;
+
+        await mongoCourseRepo.incrementTotalPaid(course.id, billedAmount, session, paymentId);
+        
+        course.addPayment(billedAmount);
+        if (paymentId) {
+          course.addPaymentReference(paymentId);
+        }
+        
+        if (isOneTime) {
+          course.addToTotalCost(billedAmount);
+        }
       }
+
+      course.addVisit(created.id);
+      await mongoCourseRepo.update(course.id, course, session);
+
+      await session.commitTransaction();
+
+      const updatedVisit = await this.visitRepository.findById(created.id);
+      return visitToDto(updatedVisit || created);
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
     }
-
-    if (prescriptionId !== created.prescriptionId || mediaIds.length !== created.mediaIds.length || 
-        !mediaIds.every(id => created.mediaIds.includes(id))) {
-      created.setPrescription(prescriptionId);
-      mediaIds.forEach(id => created.addMedia(id));
-      await this.visitRepository.update(created.id, created);
-    }
-
-    const patient = await this.patientRepository.findById(input.patientId.trim());
-    if (patient) {
-      patient.incrementVisitCount(visitDate);
-      await this.patientRepository.update(patient.id, patient);
-    }
-
-    if (billedAmount > 0) {
-      course.addPayment(billedAmount);
-    }
-
-    course.addVisit(created.id);
-    await this.treatmentCourseRepository.update(course.id, course);
-
-    const updatedVisit = await this.visitRepository.findById(created.id);
-    return visitToDto(updatedVisit || created);
   }
 
   private validateInput(input: CreateVisitRequestDto): void {
@@ -152,6 +222,11 @@ export class CreateVisitUseCase {
     }
     if (input.billedAmount !== undefined && input.billedAmount < 0) {
       throw new ValidationError('billedAmount must be non-negative');
+    }
+    if (input.billedAmount !== undefined && input.billedAmount > 0) {
+      if (!input.paymentMethod) {
+        throw new ValidationError('paymentMethod is required when billedAmount is greater than zero');
+      }
     }
   }
 

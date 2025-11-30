@@ -105,6 +105,17 @@ export class CreateTreatmentCourseUseCase {
         throw new ValidationError('Clinic not found or does not belong to doctor');
       }
     }
+
+    const existingTreatmentCourse = await this.treatmentCourseRepository.findByPatientAndTreatmentAndStatus(
+      doctorId,
+      input.patientId.trim(),
+      input.treatmentId.trim(),
+      ['active', 'paused']
+    );
+
+    if (existingTreatmentCourse) {
+      throw new ValidationError('Treatment course with this treatment already exists for this patient');
+    }
   }
 
   private parseDate(value: string, field: string): Date {

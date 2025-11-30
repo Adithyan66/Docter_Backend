@@ -20,6 +20,11 @@ export const createTreatmentSchema = z.object({
   followUpAfterDays: z.number().int().positive().optional(),
   risks: z.array(z.string()).optional(),
   images: z.array(z.string().url()).optional(),
+  isOneTime: z.boolean().optional(),
+  regularVisitInterval: z.object({
+    interval: z.number().positive('regularVisitInterval.interval must be a positive number'),
+    unit: z.string().min(1, 'regularVisitInterval.unit is required'),
+  }).optional().nullable(),
 }).refine((data) => {
   if (data.minDuration !== undefined && data.maxDuration !== undefined) {
     return data.minDuration <= data.maxDuration;
@@ -62,6 +67,14 @@ export const createTreatmentSchema = z.object({
 }, {
   message: 'avgFees must be between minFees and maxFees',
   path: ['avgFees'],
+}).refine((data) => {
+  if (data.isOneTime === true && data.regularVisitInterval !== undefined && data.regularVisitInterval !== null) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Cannot set regularVisitInterval when isOneTime is true',
+  path: ['regularVisitInterval'],
 });
 
 export const updateTreatmentSchema = z.object({
@@ -79,5 +92,18 @@ export const updateTreatmentSchema = z.object({
   followUpAfterDays: z.number().int().positive().optional(),
   risks: z.array(z.string()).optional(),
   images: z.array(z.string().url()).optional(),
+  isOneTime: z.boolean().optional(),
+  regularVisitInterval: z.object({
+    interval: z.number().positive('regularVisitInterval.interval must be a positive number'),
+    unit: z.string().min(1, 'regularVisitInterval.unit is required'),
+  }).optional().nullable(),
+}).refine((data) => {
+  if (data.isOneTime === true && data.regularVisitInterval !== undefined && data.regularVisitInterval !== null) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Cannot set regularVisitInterval when isOneTime is true',
+  path: ['regularVisitInterval'],
 });
 

@@ -1,6 +1,14 @@
 import { injectable, inject } from 'tsyringe';
 import { IClinicRepository, FindAllPaginatedOptions } from '../../../domain/repositories/clinic.repository';
 
+export type GetClinicsParams = {
+  page?: number;
+  limit?: number;
+  sortBy?: 'createdAt' | 'numOfPatients' | 'onGoingTreatments' | 'completedTreatments';
+  sortOrder?: 'asc' | 'desc';
+  search?: string;
+};
+
 @injectable()
 export class GetAllClinicsUseCase {
   constructor(
@@ -9,19 +17,21 @@ export class GetAllClinicsUseCase {
 
   async execute(
     doctorId: string,
-    page: number = 1,
-    limit: number = 10,
-    search?: string
+    params: GetClinicsParams = {}
   ): Promise<{ clinics: any[]; total: number; page: number; limit: number; totalPages: number }> {
-    if (page < 1) page = 1;
-    if (limit < 1) limit = 10;
-    if (limit > 100) limit = 100;
+    const page = params.page && params.page >= 1 ? params.page : 1;
+    const limit = params.limit && params.limit >= 1 && params.limit <= 100 ? params.limit : 10;
+    const search = params.search?.trim() || undefined;
+    const sortBy = params.sortBy || 'createdAt';
+    const sortOrder = params.sortOrder || 'desc';
 
     const options: FindAllPaginatedOptions = {
       page,
       limit,
-      search: search?.trim() || undefined,
+      search,
       doctorId,
+      sortBy,
+      sortOrder,
     };
 
     return await this.clinicRepository.findAllPaginated(options);

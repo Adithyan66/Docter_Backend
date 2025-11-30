@@ -16,6 +16,8 @@ export class Treatment extends BaseEntity {
   followUpAfterDays?: number;
   risks?: string[];
   images?: string[];
+  isOneTime?: boolean;
+  regularVisitInterval?: { interval: number; unit: string };
   isDeleted?: boolean;
 
   constructor(
@@ -37,6 +39,8 @@ export class Treatment extends BaseEntity {
     followUpAfterDays?: number,
     risks?: string[],
     images?: string[],
+    isOneTime?: boolean,
+    regularVisitInterval?: { interval: number; unit: string },
     isDeleted?: boolean
   ) {
     super(id, createdAt, updatedAt);
@@ -55,6 +59,8 @@ export class Treatment extends BaseEntity {
     this.followUpAfterDays = followUpAfterDays;
     this.risks = risks;
     this.images = images;
+    this.isOneTime = isOneTime;
+    this.regularVisitInterval = regularVisitInterval;
     this.isDeleted = isDeleted || false;
   }
 }

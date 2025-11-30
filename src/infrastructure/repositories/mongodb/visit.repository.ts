@@ -27,7 +27,7 @@ export class MongoVisitRepository implements IVisitRepository {
     return docs.map((doc) => this.toDomain(doc));
   }
 
-  async create(entity: Visit): Promise<Visit> {
+  async create(entity: Visit, session?: any): Promise<Visit> {
     const doc = new VisitModel({
       doctor: new Types.ObjectId(entity.doctorId),
       patient: new Types.ObjectId(entity.patientId),
@@ -40,11 +40,15 @@ export class MongoVisitRepository implements IVisitRepository {
       prescription: entity.prescriptionId ? new Types.ObjectId(entity.prescriptionId) : undefined,
       isDeleted: entity.isDeleted || false,
     });
-    const saved = await doc.save();
-    return this.toDomain(saved);
+    if (session) {
+      await doc.save({ session });
+    } else {
+      await doc.save();
+    }
+    return this.toDomain(doc);
   }
 
-  async update(id: string, entity: Partial<Visit>): Promise<Visit | null> {
+  async update(id: string, entity: Partial<Visit>, session?: any): Promise<Visit | null> {
     const updateData: any = {};
     if (entity.doctorId !== undefined) updateData.doctor = new Types.ObjectId(entity.doctorId);
     if (entity.patientId !== undefined) updateData.patient = new Types.ObjectId(entity.patientId);
@@ -57,11 +61,17 @@ export class MongoVisitRepository implements IVisitRepository {
     if (entity.prescriptionId !== undefined) updateData.prescription = entity.prescriptionId ? new Types.ObjectId(entity.prescriptionId) : null;
     if (entity.isDeleted !== undefined) updateData.isDeleted = entity.isDeleted;
 
-    const doc = await VisitModel.findOneAndUpdate(
+    const updateOptions: any = { new: true };
+    if (session) {
+      updateOptions.session = session;
+    }
+
+    await VisitModel.findOneAndUpdate(
       { _id: id, isDeleted: false },
       updateData,
-      { new: true }
+      updateOptions
     );
+    const doc = await VisitModel.findOne({ _id: id, isDeleted: false }).session(session || null);
     if (!doc) return null;
     return this.toDomain(doc);
   }

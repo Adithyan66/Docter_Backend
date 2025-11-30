@@ -1,6 +1,6 @@
 import { injectable } from 'tsyringe';
 import { PipelineStage, Types } from 'mongoose';
-import { IClinicRepository, FindAllPaginatedOptions } from '../../../domain/repositories/clinic.repository';
+import { IClinicRepository, FindAllPaginatedOptions, ClinicListResult } from '../../../domain/repositories/clinic.repository';
 import { Clinic } from '../../../domain/entities/clinic.entity';
 import { ClinicModel, IClinic } from '../../database/mongoose/clinic.model';
 import { Email } from '../../../domain/value-objects/email.vo';
@@ -45,11 +45,12 @@ export class MongoClinicRepository implements IClinicRepository {
     }));
   }
 
-  async findAllPaginated(options: FindAllPaginatedOptions): Promise<{ clinics: Clinic[]; total: number; page: number; limit: number; totalPages: number }> {
-    const { page, limit, search, doctorId } = options;
+  async findAllPaginated(options: FindAllPaginatedOptions): Promise<{ clinics: ClinicListResult[]; total: number; page: number; limit: number; totalPages: number }> {
+    const { page, limit, search, doctorId, sortBy = 'createdAt', sortOrder = 'desc' } = options;
     const skip = (page - 1) * limit;
+    const doctorObjectId = new Types.ObjectId(doctorId);
 
-    const matchStage: any = { isDeleted: false, doctor: new Types.ObjectId(doctorId) };
+    const matchStage: any = { isDeleted: false, doctor: doctorObjectId };
 
     if (search && search.trim().length > 0) {
       const searchRegex = { $regex: search.trim(), $options: 'i' };
@@ -59,35 +60,67 @@ export class MongoClinicRepository implements IClinicRepository {
       ];
     }
 
+    const sortDirection = sortOrder === 'asc' ? 1 : -1;
+    const sortField = sortBy === 'createdAt' ? 'createdAt' : sortBy;
+
     const pipeline: PipelineStage[] = [
       {
         $match: matchStage,
       },
       {
         $lookup: {
-          from: 'treatments',
-          localField: 'treatments',
-          foreignField: '_id',
-          as: 'populatedTreatments',
+          from: 'treatmentcourses',
+          let: { clinicId: '$_id', doctorId: '$doctor' },
           pipeline: [
             {
-              $match: { isDeleted: { $ne: true } },
-            },
-            {
-              $project: { name: 1 },
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$doctor', '$$doctorId'] },
+                    { $eq: ['$clinic', '$$clinicId'] },
+                    { $ne: ['$clinic', null] },
+                    { $eq: ['$isDeleted', false] },
+                  ],
+                },
+              },
             },
           ],
+          as: 'treatmentCourses',
         },
       },
       {
         $addFields: {
-          populatedTreatments: {
+          patientIds: {
             $map: {
-              input: '$populatedTreatments',
-              as: 'treatment',
-              in: {
-                id: { $toString: '$$treatment._id' },
-                name: '$$treatment.name',
+              input: { $ifNull: ['$treatmentCourses', []] },
+              as: 'tc',
+              in: '$$tc.patient',
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          numOfPatients: {
+            $size: {
+              $setUnion: ['$patientIds'],
+            },
+          },
+          onGoingTreatments: {
+            $size: {
+              $filter: {
+                input: { $ifNull: ['$treatmentCourses', []] },
+                as: 'tc',
+                cond: { $eq: ['$$tc.status', 'active'] },
+              },
+            },
+          },
+          completedTreatments: {
+            $size: {
+              $filter: {
+                input: { $ifNull: ['$treatmentCourses', []] },
+                as: 'tc',
+                cond: { $eq: ['$$tc.status', 'completed'] },
               },
             },
           },
@@ -102,13 +135,24 @@ export class MongoClinicRepository implements IClinicRepository {
           ],
           data: [
             {
-              $sort: { createdAt: -1 },
+              $sort: { [sortField]: sortDirection },
             },
             {
               $skip: skip,
             },
             {
               $limit: limit,
+            },
+            {
+              $project: {
+                id: { $toString: '$_id' },
+                name: 1,
+                clinicId: 1,
+                city: { $ifNull: ['$city', ''] },
+                numOfPatients: 1,
+                onGoingTreatments: 1,
+                completedTreatments: 1,
+              },
             },
           ],
         },
@@ -139,9 +183,15 @@ export class MongoClinicRepository implements IClinicRepository {
     const total = aggregationResult.total || 0;
     const totalPages = Math.ceil(total / limit);
 
-    const clinics = aggregationResult.clinics.map((doc: any) =>
-      this.toDomainFromPlainObject(doc)
-    );
+    const clinics: ClinicListResult[] = aggregationResult.clinics.map((doc: any) => ({
+      id: doc.id,
+      name: doc.name,
+      clinicId: doc.clinicId,
+      city: doc.city || '',
+      numOfPatients: doc.numOfPatients || 0,
+      onGoingTreatments: doc.onGoingTreatments || 0,
+      completedTreatments: doc.completedTreatments || 0,
+    }));
 
     return {
       clinics,

@@ -28,7 +28,7 @@ const TreatmentCourseSchema = new Schema<ITreatmentCourse>(
     treatment: { type: Schema.Types.ObjectId, ref: 'Treatment', required: true },
     startDate: { type: Date, required: true },
     expectedEndDate: { type: Date },
-    totalCost: { type: Number, required: true, min: 0 },
+    totalCost: { type: Number, default: 0, min: 0 },
     totalPaid: { type: Number, default: 0, min: 0 },
     isPaymentCompleted: { type: Boolean, default: false },
     isMedicallyCompleted: { type: Boolean, default: false },

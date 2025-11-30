@@ -126,6 +126,8 @@ export class TreatmentController {
       followUpAfterDays: treatment.followUpAfterDays,
       risks: treatment.risks,
       images: treatment.images,
+      isOneTime: treatment.isOneTime,
+      regularVisitInterval: treatment.regularVisitInterval,
       createdAt: treatment.createdAt,
       updatedAt: treatment.updatedAt,
     };

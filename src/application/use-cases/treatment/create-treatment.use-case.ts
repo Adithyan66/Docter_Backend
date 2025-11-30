@@ -19,6 +19,8 @@ interface CreateTreatmentInput {
   followUpAfterDays?: number;
   risks?: string[];
   images?: string[];
+  isOneTime?: boolean;
+  regularVisitInterval?: { interval: number; unit: string };
 }
 
 @injectable()
@@ -33,6 +35,7 @@ export class CreateTreatmentUseCase {
       name: input.name.trim(),
     };
     this.validateInput(trimmedInput);
+    this.validateVisitType(trimmedInput);
 
     const existingTreatment = await this.treatmentRepository.findByName(trimmedInput.name, doctorId);
     if (existingTreatment) {
@@ -57,7 +60,9 @@ export class CreateTreatmentUseCase {
       trimmedInput.followUpRequired,
       trimmedInput.followUpAfterDays,
       trimmedInput.risks,
-      trimmedInput.images
+      trimmedInput.images,
+      trimmedInput.isOneTime,
+      trimmedInput.regularVisitInterval
     );
 
     await this.treatmentRepository.create(treatment);
@@ -142,6 +147,20 @@ export class CreateTreatmentUseCase {
       }
       if (input.maxFees !== undefined && input.avgFees > input.maxFees) {
         throw new ValidationError('avgFees must be less than or equal to maxFees');
+      }
+    }
+  }
+
+  private validateVisitType(input: CreateTreatmentInput): void {
+    if (input.isOneTime === true && input.regularVisitInterval !== undefined && input.regularVisitInterval !== null) {
+      throw new ValidationError('Cannot set regularVisitInterval when isOneTime is true');
+    }
+    if (input.regularVisitInterval !== undefined && input.regularVisitInterval !== null) {
+      if (input.regularVisitInterval.interval <= 0) {
+        throw new ValidationError('regularVisitInterval.interval must be a positive number');
+      }
+      if (!input.regularVisitInterval.unit || input.regularVisitInterval.unit.trim().length === 0) {
+        throw new ValidationError('regularVisitInterval.unit is required');
       }
     }
   }

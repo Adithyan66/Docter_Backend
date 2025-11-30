@@ -16,6 +16,8 @@ export interface ITreatment extends Document {
   followUpAfterDays?: number;
   risks?: string[];
   images?: string[];
+  isOneTime?: boolean;
+  regularVisitInterval?: { interval: number; unit: string };
   isDeleted?: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -38,6 +40,11 @@ const TreatmentSchema = new Schema<ITreatment>(
     followUpAfterDays: { type: Number, required: false },
     risks: { type: [String], required: false, default: [] },
     images: { type: [String], required: false, default: [] },
+    isOneTime: { type: Boolean, required: false },
+    regularVisitInterval: {
+      interval: { type: Number, required: false },
+      unit: { type: String, required: false },
+    },
     isDeleted: { type: Boolean, required: false, default: false },
   },
   {

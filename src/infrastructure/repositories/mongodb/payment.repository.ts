@@ -224,7 +224,7 @@ export class MongoPaymentRepository implements IPaymentRepository {
   }
 
   private toDomain(doc: IPayment): Payment {
-    const refundDetails = doc.refundDetails
+    const refundDetails = doc.refundDetails && doc.refundDetails.refundedAt
       ? new RefundDetails(
           doc.refundDetails.refundedAt,
           doc.refundDetails.refundAmount,
@@ -253,7 +253,7 @@ export class MongoPaymentRepository implements IPaymentRepository {
 
   private toDomainFromPlainObject(doc: any): Payment {
     const id = doc._id ? doc._id.toString() : '';
-    const refundDetails = doc.refundDetails
+    const refundDetails = doc.refundDetails && doc.refundDetails.refundedAt
       ? new RefundDetails(
           doc.refundDetails.refundedAt,
           doc.refundDetails.refundAmount,

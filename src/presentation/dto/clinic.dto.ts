@@ -70,8 +70,18 @@ export interface ClinicResponseDto {
   updatedAt: Date;
 }
 
+export interface ClinicListDto {
+  id: string;
+  name: string;
+  clinicId: string;
+  city: string;
+  numOfPatients: number;
+  onGoingTreatments: number;
+  completedTreatments: number;
+}
+
 export interface PaginatedClinicsResponseDto {
-  clinics: ClinicResponseDto[];
+  clinics: ClinicListDto[];
   total: number;
   page: number;
   limit: number;
