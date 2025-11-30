@@ -71,8 +71,31 @@ export class TreatmentController {
     }
 
     const doctorId = this.getDoctorId(req);
-    const treatment = await this.getTreatmentUseCase.execute(id, doctorId);
-    const response: TreatmentResponseDto = this.toResponseDto(treatment);
+    
+    const includeStatistics = req.query.includeStatistics === 'true' || req.query.includeStatistics === '1';
+    const startDateFrom = req.query.startDateFrom ? new Date(String(req.query.startDateFrom)) : undefined;
+    const startDateTo = req.query.startDateTo ? new Date(String(req.query.startDateTo)) : undefined;
+    const clinicId = req.query.clinicId ? String(req.query.clinicId) : undefined;
+    const include = req.query.include ? String(req.query.include).split(',').map(s => s.trim()) : undefined;
+    const exclude = req.query.exclude ? String(req.query.exclude).split(',').map(s => s.trim()) : undefined;
+
+    if (startDateFrom && isNaN(startDateFrom.getTime())) {
+      throw new ValidationError('Invalid startDateFrom format. Use ISO date string.');
+    }
+    if (startDateTo && isNaN(startDateTo.getTime())) {
+      throw new ValidationError('Invalid startDateTo format. Use ISO date string.');
+    }
+
+    const result = await this.getTreatmentUseCase.execute(id, doctorId, {
+      includeStatistics,
+      startDateFrom,
+      startDateTo,
+      clinicId,
+      include,
+      exclude,
+    });
+
+    const response: TreatmentResponseDto = this.toResponseDto(result.treatment, result.statistics);
     
     successResponse(res, response, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
@@ -108,8 +131,8 @@ export class TreatmentController {
     successResponse(res, names, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
-  private toResponseDto(treatment: Treatment): TreatmentResponseDto {
-    return {
+  private toResponseDto(treatment: Treatment, statistics?: any): TreatmentResponseDto {
+    const dto: TreatmentResponseDto = {
       id: treatment.id,
       doctorId: treatment.doctorId,
       name: treatment.name,
@@ -131,6 +154,12 @@ export class TreatmentController {
       createdAt: treatment.createdAt,
       updatedAt: treatment.updatedAt,
     };
+
+    if (statistics) {
+      dto.statistics = statistics;
+    }
+
+    return dto;
   }
 
   private getDoctorId(req: HttpRequest): string {

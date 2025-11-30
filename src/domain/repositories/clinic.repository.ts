@@ -20,10 +20,82 @@ export interface ClinicListResult {
   completedTreatments: number;
 }
 
+export interface ClinicStatisticsOptions {
+  doctorId: string;
+  startDateFrom?: Date;
+  startDateTo?: Date;
+  treatmentId?: string;
+}
+
+export interface ClinicStatistics {
+  patients: {
+    totalCount: number;
+    uniqueCount: number;
+  };
+  treatmentCourses: {
+    totalCount: number;
+    statusBreakdown: {
+      active: number;
+      paused: number;
+      completed: number;
+      cancelled: number;
+    };
+    medicallyCompleted: number;
+    paymentCompleted: number;
+  };
+  revenue: {
+    totalPaid: number;
+    totalCost: number;
+    outstanding: number;
+    averagePerCourse: {
+      paid: number;
+      cost: number;
+    };
+    byPaymentMethod: {
+      cash: number;
+      card: number;
+      upi: number;
+      bank: number;
+      insurance: number;
+      online: number;
+    };
+    refunds: {
+      totalAmount: number;
+      count: number;
+    };
+  };
+  treatments: Array<{
+    treatmentId: string;
+    treatmentName: string;
+    courseCount: number;
+    totalPaid: number;
+    totalCost: number;
+    outstanding: number;
+  }>;
+  visits: {
+    totalCount: number;
+    averagePerCourse: number;
+    totalBilledAmount: number;
+    averageBilledAmount: number;
+  };
+  timeMetrics: {
+    earliestStartDate?: Date;
+    latestStartDate?: Date;
+    averageDuration?: number;
+  };
+  completionRates: {
+    treatment: number;
+    payment: number;
+    medical: number;
+    cancellation: number;
+  };
+}
+
 export interface IClinicRepository extends BaseRepository<Clinic> {
   findAllPaginated(options: FindAllPaginatedOptions): Promise<{ clinics: ClinicListResult[]; total: number; page: number; limit: number; totalPages: number }>;
   findByName(name: string, doctorId: string): Promise<Clinic | null>;
   findByClinicId(clinicId: string, doctorId: string): Promise<Clinic | null>;
   findNames(doctorId: string, search?: string): Promise<Array<{ id: string; name: string }>>;
+  getStatistics(clinicId: string, options: ClinicStatisticsOptions): Promise<ClinicStatistics>;
 }
 

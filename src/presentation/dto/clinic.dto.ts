@@ -68,6 +68,79 @@ export interface ClinicResponseDto {
   isDeleted?: boolean;
   createdAt: Date;
   updatedAt: Date;
+  statistics?: ClinicStatisticsDto;
+}
+
+export interface ClinicStatisticsDto {
+  patients: {
+    totalCount: number;
+    uniqueCount: number;
+  };
+  treatmentCourses: {
+    totalCount: number;
+    statusBreakdown: {
+      active: number;
+      paused: number;
+      completed: number;
+      cancelled: number;
+    };
+    medicallyCompleted: number;
+    paymentCompleted: number;
+  };
+  revenue: {
+    totalPaid: number;
+    totalCost: number;
+    outstanding: number;
+    averagePerCourse: {
+      paid: number;
+      cost: number;
+    };
+    byPaymentMethod: {
+      cash: number;
+      card: number;
+      upi: number;
+      bank: number;
+      insurance: number;
+      online: number;
+    };
+    refunds: {
+      totalAmount: number;
+      count: number;
+    };
+  };
+  treatments: Array<{
+    treatmentId: string;
+    treatmentName: string;
+    courseCount: number;
+    totalPaid: number;
+    totalCost: number;
+    outstanding: number;
+  }>;
+  visits: {
+    totalCount: number;
+    averagePerCourse: number;
+    totalBilledAmount: number;
+    averageBilledAmount: number;
+  };
+  timeMetrics: {
+    earliestStartDate?: Date;
+    latestStartDate?: Date;
+    averageDuration?: number;
+  };
+  completionRates: {
+    treatment: number;
+    payment: number;
+    medical: number;
+    cancellation: number;
+  };
+}
+
+export interface GetClinicStatisticsOptions {
+  startDateFrom?: Date;
+  startDateTo?: Date;
+  treatmentId?: string;
+  include?: string[];
+  exclude?: string[];
 }
 
 export interface ClinicListDto {

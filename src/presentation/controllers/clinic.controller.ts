@@ -72,8 +72,31 @@ export class ClinicController {
     }
 
     const doctorId = this.getDoctorId(req);
-    const clinic = await this.getClinicUseCase.execute(id, doctorId);
-    const response: ClinicResponseDto = this.toResponseDto(clinic);
+    
+    const includeStatistics = req.query.includeStatistics === 'true' || req.query.includeStatistics === '1';
+    const startDateFrom = req.query.startDateFrom ? new Date(String(req.query.startDateFrom)) : undefined;
+    const startDateTo = req.query.startDateTo ? new Date(String(req.query.startDateTo)) : undefined;
+    const treatmentId = req.query.treatmentId ? String(req.query.treatmentId) : undefined;
+    const include = req.query.include ? String(req.query.include).split(',').map(s => s.trim()) : undefined;
+    const exclude = req.query.exclude ? String(req.query.exclude).split(',').map(s => s.trim()) : undefined;
+
+    if (startDateFrom && isNaN(startDateFrom.getTime())) {
+      throw new ValidationError('Invalid startDateFrom format. Use ISO date string.');
+    }
+    if (startDateTo && isNaN(startDateTo.getTime())) {
+      throw new ValidationError('Invalid startDateTo format. Use ISO date string.');
+    }
+
+    const result = await this.getClinicUseCase.execute(id, doctorId, {
+      includeStatistics,
+      startDateFrom,
+      startDateTo,
+      treatmentId,
+      include,
+      exclude,
+    });
+
+    const response: ClinicResponseDto = this.toResponseDto(result.clinic, result.statistics);
     
     successResponse(res, response, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
@@ -107,8 +130,8 @@ export class ClinicController {
     successResponse(res, names, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
-  private toResponseDto(clinic: Clinic): ClinicResponseDto {
-    return {
+  private toResponseDto(clinic: Clinic, statistics?: any): ClinicResponseDto {
+    const dto: ClinicResponseDto = {
       id: clinic.id,
       clinicId: clinic.clinicId,
       doctorId: clinic.doctorId,
@@ -130,6 +153,12 @@ export class ClinicController {
       createdAt: clinic.createdAt,
       updatedAt: clinic.updatedAt,
     };
+
+    if (statistics) {
+      dto.statistics = statistics;
+    }
+
+    return dto;
   }
 
   private getDoctorId(req: HttpRequest): string {
