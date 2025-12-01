@@ -33,7 +33,7 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
   }
 
   async findNames(doctorId: string, search?: string): Promise<Array<{ id: string; name: string }>> {
-    const filter: any = { isDeleted: false, doctor: new Types.ObjectId(doctorId) };
+    const filter: any = { isActive: true, isDeleted: false, doctor: new Types.ObjectId(doctorId) };
     if (search && search.trim().length > 0) {
       const regex = new RegExp(search.trim(), 'i');
       filter.$or = [{ name: regex }, { description: regex }];
@@ -115,6 +115,7 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
         $project: {
           _id: 1,
           name: 1,
+          isActive: 1,
           avgFees: 1,
           avgDuration: 1,
           numberOfPatients: 1,
@@ -196,6 +197,7 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
     const treatments: TreatmentListResult[] = aggregationResult.treatments.map((doc: any) => ({
       id: doc._id.toString(),
       name: doc.name,
+      isActive: doc.isActive,
       avgFees: doc.avgFees,
       avgDuration: doc.avgDuration,
       numberOfPatients: doc.numberOfPatients || 0,
@@ -228,6 +230,7 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
       followUpRequired: entity.followUpRequired,
       followUpAfterDays: entity.followUpAfterDays,
       risks: entity.risks,
+      isActive: entity.isActive !== undefined ? entity.isActive : true,
       images: entity.images,
       isOneTime: entity.isOneTime,
       regularVisitInterval: entity.regularVisitInterval,
@@ -239,11 +242,31 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
 
   async update(id: string, entity: Partial<Treatment>): Promise<Treatment | null> {
     const updateData: any = {};
+    const unsetData: any = {};
+    
     if (entity.name !== undefined) updateData.name = entity.name;
     if (entity.description !== undefined) updateData.description = entity.description;
-    if (entity.minDuration !== undefined) updateData.minDuration = entity.minDuration;
-    if (entity.maxDuration !== undefined) updateData.maxDuration = entity.maxDuration;
-    if (entity.avgDuration !== undefined) updateData.avgDuration = entity.avgDuration;
+    if (entity.minDuration !== undefined) {
+      if (entity.minDuration === null) {
+        unsetData.minDuration = '';
+      } else {
+        updateData.minDuration = entity.minDuration;
+      }
+    }
+    if (entity.maxDuration !== undefined) {
+      if (entity.maxDuration === null) {
+        unsetData.maxDuration = '';
+      } else {
+        updateData.maxDuration = entity.maxDuration;
+      }
+    }
+    if (entity.avgDuration !== undefined) {
+      if (entity.avgDuration === null) {
+        unsetData.avgDuration = '';
+      } else {
+        updateData.avgDuration = entity.avgDuration;
+      }
+    }
     if (entity.minFees !== undefined) updateData.minFees = entity.minFees;
     if (entity.maxFees !== undefined) updateData.maxFees = entity.maxFees;
     if (entity.avgFees !== undefined) updateData.avgFees = entity.avgFees;
@@ -254,12 +277,27 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
     if (entity.risks !== undefined) updateData.risks = entity.risks;
     if (entity.images !== undefined) updateData.images = entity.images;
     if (entity.isOneTime !== undefined) updateData.isOneTime = entity.isOneTime;
-    if (entity.regularVisitInterval !== undefined) updateData.regularVisitInterval = entity.regularVisitInterval;
+    if (entity.regularVisitInterval !== undefined) {
+      if (entity.regularVisitInterval === null) {
+        unsetData.regularVisitInterval = '';
+      } else {
+        updateData.regularVisitInterval = entity.regularVisitInterval;
+      }
+    }
+    if (entity.isActive !== undefined) updateData.isActive = entity.isActive;
     if (entity.isDeleted !== undefined) updateData.isDeleted = entity.isDeleted;
+
+    const updateQuery: any = {};
+    if (Object.keys(updateData).length > 0) {
+      updateQuery.$set = updateData;
+    }
+    if (Object.keys(unsetData).length > 0) {
+      updateQuery.$unset = unsetData;
+    }
 
     const treatmentDoc = await TreatmentModel.findOneAndUpdate(
       { _id: id, isDeleted: false },
-      updateData,
+      Object.keys(updateQuery).length > 0 ? updateQuery : updateData,
       { new: true }
     );
     if (!treatmentDoc) return null;
@@ -827,7 +865,8 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
       doc.images,
       doc.isOneTime,
       doc.regularVisitInterval,
-      doc.isDeleted
+      doc.isDeleted,
+      doc.isActive
     );
   }
 
@@ -854,7 +893,8 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
       doc.images,
       doc.isOneTime,
       doc.regularVisitInterval,
-      doc.isDeleted
+      doc.isDeleted,
+      doc.isActive
     );
   }
 }

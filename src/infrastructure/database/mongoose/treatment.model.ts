@@ -19,6 +19,7 @@ export interface ITreatment extends Document {
   isOneTime?: boolean;
   regularVisitInterval?: { interval: number; unit: string };
   isDeleted?: boolean;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,6 +47,7 @@ const TreatmentSchema = new Schema<ITreatment>(
       unit: { type: String, required: false },
     },
     isDeleted: { type: Boolean, required: false, default: false },
+    isActive: { type: Boolean, required: false, default: true },
   },
   {
     timestamps: true,

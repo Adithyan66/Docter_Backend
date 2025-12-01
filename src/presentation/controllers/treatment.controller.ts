@@ -151,6 +151,7 @@ export class TreatmentController {
       images: treatment.images,
       isOneTime: treatment.isOneTime,
       regularVisitInterval: treatment.regularVisitInterval,
+      isActive: treatment.isActive,
       createdAt: treatment.createdAt,
       updatedAt: treatment.updatedAt,
     };

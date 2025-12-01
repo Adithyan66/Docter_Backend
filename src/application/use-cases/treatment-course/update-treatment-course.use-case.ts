@@ -77,12 +77,15 @@ export class UpdateTreatmentCourseUseCase {
       updateData.isPaymentCompleted = input.isPaymentCompleted;
     }
 
-    if (input.isMedicallyCompleted !== undefined) {
-      updateData.isMedicallyCompleted = input.isMedicallyCompleted;
-    }
 
     if (input.status !== undefined) {
       updateData.status = input.status;
+      
+      if (input.status === 'completed') {
+        updateData.isMedicallyCompleted = true;
+      } else if (treatmentCourse.status === 'completed') {
+        updateData.isMedicallyCompleted = false;
+      }
     }
 
     if (input.notes !== undefined) {

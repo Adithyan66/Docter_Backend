@@ -55,6 +55,7 @@ export interface TreatmentResponseDto {
   images?: string[];
   isOneTime?: boolean;
   regularVisitInterval?: { interval: number; unit: string };
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
   statistics?: TreatmentStatisticsDto;
@@ -135,6 +136,7 @@ export interface GetTreatmentStatisticsOptions {
 export interface TreatmentList {
   id: string;
   name: string;
+  isActive: boolean;
   avgFees?: number;
   avgDuration?: number;
   numberOfPatients: number;

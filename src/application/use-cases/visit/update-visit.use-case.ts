@@ -1,17 +1,25 @@
 import { injectable, inject } from 'tsyringe';
+import mongoose from 'mongoose';
 import { IVisitRepository } from '../../../domain/repositories/visit.repository';
 import { ITreatmentCourseRepository } from '../../../domain/repositories/treatment-course.repository';
+import { ITreatmentRepository } from '../../../domain/repositories/treatment.repository';
+import { IPaymentRepository } from '../../../domain/repositories/payment.repository';
 import { Visit } from '../../../domain/entities/visit.entity';
 import { VisitResponseDto, UpdateVisitRequestDto } from '../../../presentation/dto/visit.dto';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { visitToDto } from '../../mappers/visit.mapper';
+import { MongoVisitRepository } from '../../../infrastructure/repositories/mongodb/visit.repository';
+import { MongoPaymentRepository } from '../../../infrastructure/repositories/mongodb/payment.repository';
+import { MongoTreatmentCourseRepository } from '../../../infrastructure/repositories/mongodb/treatment-course.repository';
 
 @injectable()
 export class UpdateVisitUseCase {
   constructor(
     @inject('IVisitRepository') private readonly visitRepository: IVisitRepository,
-    @inject('ITreatmentCourseRepository') private readonly treatmentCourseRepository: ITreatmentCourseRepository
+    @inject('ITreatmentCourseRepository') private readonly treatmentCourseRepository: ITreatmentCourseRepository,
+    @inject('ITreatmentRepository') private readonly treatmentRepository: ITreatmentRepository,
+    @inject('IPaymentRepository') private readonly paymentRepository: IPaymentRepository
   ) {}
 
   async execute(id: string, doctorId: string, input: UpdateVisitRequestDto): Promise<VisitResponseDto> {
@@ -20,9 +28,10 @@ export class UpdateVisitUseCase {
       throw new NotFoundError('Visit', id);
     }
 
+    let course = null;
     if (input.patientId || input.courseId) {
       const courseId = input.courseId ? input.courseId.trim() : visit.courseId;
-      const course = await this.treatmentCourseRepository.findById(courseId);
+      course = await this.treatmentCourseRepository.findById(courseId);
       if (!course) {
         throw new ValidationError('TreatmentCourse not found');
       }
@@ -48,9 +57,6 @@ export class UpdateVisitUseCase {
       updateData.notes = input.notes ? input.notes.trim() : undefined;
     }
     if (input.billedAmount !== undefined) {
-      if (input.billedAmount < 0) {
-        throw new ValidationError('billedAmount must be non-negative');
-      }
       updateData.billedAmount = input.billedAmount;
     }
     if (input.mediaIds !== undefined) {
@@ -58,6 +64,90 @@ export class UpdateVisitUseCase {
     }
     if (input.prescriptionId !== undefined) {
       updateData.prescriptionId = input.prescriptionId ? input.prescriptionId.trim() : undefined;
+    }
+
+    if (input.billedAmount !== undefined) {
+      if (input.billedAmount < 0) {
+        throw new ValidationError('billedAmount must be non-negative');
+      }
+
+      if (!course) {
+        course = await this.treatmentCourseRepository.findById(visit.courseId);
+        if (!course) {
+          throw new ValidationError('TreatmentCourse not found');
+        }
+      }
+
+      const treatment = await this.treatmentRepository.findById(course.treatmentId);
+      if (!treatment) {
+        throw new ValidationError('Treatment not found');
+      }
+
+      const currentBilledAmount = visit.billedAmount || 0;
+      const amountDifference = input.billedAmount - currentBilledAmount;
+
+      if (!treatment.isOneTime) {
+        const newTotalPaid = course.totalPaid + amountDifference;
+        if (newTotalPaid > course.totalCost) {
+          throw new ValidationError('Updated billed amount would cause total paid amount to exceed total cost');
+        }
+      }
+
+      if (amountDifference !== 0) {
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        try {
+          const mongoVisitRepo = this.visitRepository as MongoVisitRepository;
+          const mongoPaymentRepo = this.paymentRepository as MongoPaymentRepository;
+          const mongoCourseRepo = this.treatmentCourseRepository as MongoTreatmentCourseRepository;
+
+          const paymentsResult = await mongoPaymentRepo.findPaginated({
+            doctorId,
+            visitId: id,
+            page: 1,
+            limit: 100,
+          });
+
+          const payments = paymentsResult.payments;
+
+          if (payments.length > 0) {
+            const firstPayment = payments[0];
+            if (input.billedAmount > 0) {
+              await mongoPaymentRepo.update(firstPayment.id, { amount: input.billedAmount }, session);
+            } else {
+              await mongoPaymentRepo.update(firstPayment.id, { isDeleted: true }, session);
+            }
+
+            for (let i = 1; i < payments.length; i++) {
+              await mongoPaymentRepo.update(payments[i].id, { isDeleted: true }, session);
+            }
+          }
+
+          if (amountDifference !== 0) {
+            if (amountDifference > 0) {
+              await mongoCourseRepo.incrementTotalPaid(course.id, amountDifference, session);
+            } else {
+              await mongoCourseRepo.decrementTotalPaid(course.id, Math.abs(amountDifference), session);
+            }
+          }
+
+          const updated = await mongoVisitRepo.update(id, updateData, session);
+          if (!updated) {
+            throw new NotFoundError('Visit', id);
+          }
+
+          await session.commitTransaction();
+
+          const finalVisit = await this.visitRepository.findById(updated.id);
+          return visitToDto(finalVisit || updated);
+        } catch (error) {
+          await session.abortTransaction();
+          throw error;
+        } finally {
+          session.endSession();
+        }
+      }
     }
 
     const updated = await this.visitRepository.update(id, updateData);

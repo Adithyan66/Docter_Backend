@@ -20,6 +20,7 @@ interface UpdateTreatmentInput {
   risks?: string[];
   images?: string[];
   isOneTime?: boolean;
+  isActive?: boolean;
   regularVisitInterval?: { interval: number; unit: string } | null;
 }
 
@@ -65,8 +66,15 @@ export class UpdateTreatmentUseCase {
     if (trimmedInput.risks !== undefined) updateData.risks = trimmedInput.risks;
     if (trimmedInput.images !== undefined) updateData.images = trimmedInput.images;
     if (trimmedInput.isOneTime !== undefined) updateData.isOneTime = trimmedInput.isOneTime;
+    if (trimmedInput.isActive !== undefined) updateData.isActive = trimmedInput.isActive;
+    if (trimmedInput.isOneTime === true) {
+      updateData.minDuration = null;
+      updateData.maxDuration = null;
+      updateData.avgDuration = null;
+      updateData.regularVisitInterval = null;
+    }
     if (trimmedInput.regularVisitInterval !== undefined) {
-      updateData.regularVisitInterval = trimmedInput.regularVisitInterval;
+      updateData.regularVisitInterval = trimmedInput.regularVisitInterval ?? undefined;
     }
 
     const updated = await this.treatmentRepository.update(id, updateData);
@@ -120,17 +128,14 @@ export class UpdateTreatmentUseCase {
   }
 
   private validateVisitType(input: UpdateTreatmentInput, existingTreatment: any): void {
-    const isOneTime = input.isOneTime !== undefined ? input.isOneTime : existingTreatment.isOneTime;
-    const regularVisitInterval = input.regularVisitInterval !== undefined ? input.regularVisitInterval : existingTreatment.regularVisitInterval;
-
-    if (isOneTime === true && regularVisitInterval !== undefined && regularVisitInterval !== null) {
+    if (input.isOneTime === true && input.regularVisitInterval !== undefined && input.regularVisitInterval !== null) {
       throw new ValidationError('Cannot set regularVisitInterval when isOneTime is true');
     }
-    if (regularVisitInterval !== undefined && regularVisitInterval !== null) {
-      if (regularVisitInterval.interval <= 0) {
+    if (input.regularVisitInterval !== undefined && input.regularVisitInterval !== null) {
+      if (input.regularVisitInterval.interval <= 0) {
         throw new ValidationError('regularVisitInterval.interval must be a positive number');
       }
-      if (!regularVisitInterval.unit || regularVisitInterval.unit.trim().length === 0) {
+      if (!input.regularVisitInterval.unit || input.regularVisitInterval.unit.trim().length === 0) {
         throw new ValidationError('regularVisitInterval.unit is required');
       }
     }

@@ -33,7 +33,7 @@ export class MongoClinicRepository implements IClinicRepository {
   }
 
   async findNames(doctorId: string, search?: string): Promise<Array<{ id: string; name: string }>> {
-    const filter: any = { isDeleted: false, doctor: new Types.ObjectId(doctorId) };
+    const filter: any = { isActive: true, isDeleted: false, doctor: new Types.ObjectId(doctorId) };
     if (search && search.trim().length > 0) {
       const regex = new RegExp(search.trim(), 'i');
       filter.$or = [{ name: regex }, { city: regex }];
@@ -149,6 +149,7 @@ export class MongoClinicRepository implements IClinicRepository {
                 id: { $toString: '$_id' },
                 name: 1,
                 clinicId: 1,
+                isActive: 1,
                 city: { $ifNull: ['$city', ''] },
                 numOfPatients: 1,
                 onGoingTreatments: 1,
@@ -188,6 +189,7 @@ export class MongoClinicRepository implements IClinicRepository {
       id: doc.id,
       name: doc.name,
       clinicId: doc.clinicId,
+      isActive: doc.isActive,
       city: doc.city || '',
       numOfPatients: doc.numOfPatients || 0,
       onGoingTreatments: doc.onGoingTreatments || 0,

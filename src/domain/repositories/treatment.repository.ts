@@ -13,6 +13,7 @@ export interface FindAllPaginatedOptions {
 export interface TreatmentListResult {
   id: string;
   name: string;
+  isActive: boolean;
   avgFees?: number;
   avgDuration?: number;
   numberOfPatients: number;

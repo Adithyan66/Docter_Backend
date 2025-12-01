@@ -19,6 +19,7 @@ export class Treatment extends BaseEntity {
   isOneTime?: boolean;
   regularVisitInterval?: { interval: number; unit: string };
   isDeleted?: boolean;
+  isActive: boolean;
 
   constructor(
     id: string,
@@ -41,7 +42,8 @@ export class Treatment extends BaseEntity {
     images?: string[],
     isOneTime?: boolean,
     regularVisitInterval?: { interval: number; unit: string },
-    isDeleted?: boolean
+    isDeleted?: boolean,
+    isActive: boolean = true
   ) {
     super(id, createdAt, updatedAt);
     this.doctorId = doctorId;
@@ -62,6 +64,7 @@ export class Treatment extends BaseEntity {
     this.isOneTime = isOneTime;
     this.regularVisitInterval = regularVisitInterval;
     this.isDeleted = isDeleted || false;
+    this.isActive = isActive;
   }
 }
 
