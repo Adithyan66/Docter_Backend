@@ -43,6 +43,7 @@ import { GetClinicNamesUseCase } from '../application/use-cases/clinic/get-clini
 import { CreatePatientUseCase } from '../application/use-cases/patient/create-patient.use-case';
 import { UpdatePatientUseCase } from '../application/use-cases/patient/update-patient.use-case';
 import { DeletePatientUseCase } from '../application/use-cases/patient/delete-patient.use-case';
+import { RestorePatientUseCase } from '../application/use-cases/patient/restore-patient.use-case';
 import { GetPatientsUseCase } from '../application/use-cases/patient/get-patients.use-case';
 import { GetPatientUseCase } from '../application/use-cases/patient/get-patient.use-case';
 import { CreateTreatmentCourseUseCase } from '../application/use-cases/treatment-course/create-treatment-course.use-case';
@@ -142,6 +143,7 @@ container.registerSingleton<GetClinicNamesUseCase>('GetClinicNamesUseCase', GetC
 container.registerSingleton<CreatePatientUseCase>('CreatePatientUseCase', CreatePatientUseCase);
 container.registerSingleton<UpdatePatientUseCase>('UpdatePatientUseCase', UpdatePatientUseCase);
 container.registerSingleton<DeletePatientUseCase>('DeletePatientUseCase', DeletePatientUseCase);
+container.registerSingleton<RestorePatientUseCase>('RestorePatientUseCase', RestorePatientUseCase);
 container.registerSingleton<GetPatientsUseCase>('GetPatientsUseCase', GetPatientsUseCase);
 container.registerSingleton<GetPatientUseCase>('GetPatientUseCase', GetPatientUseCase);
 

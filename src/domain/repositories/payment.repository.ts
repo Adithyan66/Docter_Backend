@@ -27,5 +27,7 @@ export interface IPaymentRepository extends BaseRepository<Payment> {
     limit: number;
     totalPages: number;
   }>;
+  markDeletedByPatientId(patientId: string, doctorId: string, session?: any): Promise<number>;
+  markRestoredByPatientId(patientId: string, doctorId: string, session?: any): Promise<number>;
 }
 

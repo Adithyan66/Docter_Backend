@@ -60,8 +60,8 @@ export class Patient extends BaseEntity {
     this.primaryClinic = primaryClinic;
     this.clinics = clinics || [];
     this.patientId = patientId;
-    this.firstName = firstName;
-    this.lastName = lastName;
+    this.firstName = this.capitalizeFirst(firstName);
+    this.lastName = lastName ? this.capitalizeFirst(lastName) : lastName;
     this.gender = this.ensureGender(gender);
     this.phone = phone;
     this.email = email;
@@ -75,16 +75,16 @@ export class Patient extends BaseEntity {
     this.isActive = isActive !== undefined ? isActive : true;
     this.isDeleted = isDeleted !== undefined ? isDeleted : false;
     this.consultationType = this.ensureConsultationType(consultationType);
-    this.fullName = this.buildFullName(fullName);
+    this.fullName = this.buildFullName();
     if (dob) {
       this.setDob(dob);
     }
   }
 
-  updateNames(firstName: string, lastName?: string, fullName?: string): void {
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.fullName = this.buildFullName(fullName);
+  updateNames(firstName: string, lastName?: string): void {
+    this.firstName = this.capitalizeFirst(firstName);
+    this.lastName = lastName ? this.capitalizeFirst(lastName) : lastName;
+    this.fullName = this.buildFullName();
   }
 
   setDob(dob?: Date): void {
@@ -145,10 +145,30 @@ export class Patient extends BaseEntity {
     this.treatmentCourses = this.treatmentCourses.filter(id => id !== treatmentCourseId);
   }
 
-  private buildFullName(fullName?: string): string {
-    const computed = `${this.firstName || ''} ${this.lastName || ''}`.trim();
-    const value = fullName && fullName.trim().length ? fullName.trim() : computed;
-    return value || this.firstName;
+  setDefaultTreatmentCourse(treatmentCourseId: string): void {
+    const index = this.treatmentCourses.indexOf(treatmentCourseId);
+    if (index === -1) {
+      throw new Error(`Treatment course with id "${treatmentCourseId}" not found in patient's treatment courses`);
+    }
+    if (index === 0) {
+      return;
+    }
+    this.treatmentCourses.splice(index, 1);
+    this.treatmentCourses.unshift(treatmentCourseId);
+  }
+
+  private buildFullName(): string {
+    const capitalizedFirstName = this.capitalizeFirst(this.firstName || '');
+    const capitalizedLastName = this.capitalizeFirst(this.lastName || '');
+    const computed = `${capitalizedFirstName} ${capitalizedLastName}`.trim();
+    return computed || capitalizedFirstName;
+  }
+
+  private capitalizeFirst(str: string): string {
+    if (!str || str.length === 0) {
+      return str;
+    }
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   }
 
   private ensureConsultationType(type: PatientConsultationType): PatientConsultationType {

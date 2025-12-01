@@ -29,18 +29,11 @@ export class UpdatePatientUseCase {
     const updateData: Partial<Patient> = {};
     let hasChanges = false;
 
-    if ('patientId' in input) {
-      const patientIdValue = await this.ensurePatientId(input.patientId, patient.id);
-      patient.setPatientId(patientIdValue);
-      updateData.patientId = patientIdValue;
-      hasChanges = true;
-    }
-
-    if (input.firstName !== undefined || input.lastName !== undefined || input.fullName !== undefined) {
+ 
+    if (input.firstName !== undefined || input.lastName !== undefined) {
       const firstName = input.firstName !== undefined ? input.firstName.trim() : patient.firstName;
       const lastName = input.lastName !== undefined ? input.lastName.trim() : patient.lastName;
-      const fullName = input.fullName !== undefined ? input.fullName.trim() : undefined;
-      patient.updateNames(firstName, lastName, fullName);
+      patient.updateNames(firstName, lastName);
       updateData.firstName = patient.firstName;
       updateData.lastName = patient.lastName;
       updateData.fullName = patient.fullName;
@@ -146,6 +139,16 @@ export class UpdatePatientUseCase {
       patient.isDeleted = input.isDeleted;
       updateData.isDeleted = input.isDeleted;
       hasChanges = true;
+    }
+
+    if (input.defaultTreatmentCourse !== undefined) {
+      try {
+        patient.setDefaultTreatmentCourse(input.defaultTreatmentCourse);
+        updateData.treatmentCourses = patient.treatmentCourses;
+        hasChanges = true;
+      } catch (error: any) {
+        throw new ValidationError(error.message);
+      }
     }
 
     if (!hasChanges) {

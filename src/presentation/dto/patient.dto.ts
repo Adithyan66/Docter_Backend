@@ -40,6 +40,7 @@ export interface UpdatePatientRequestDto {
   lastVisitAt?: string;
   isActive?: boolean;
   isDeleted?: boolean;
+  defaultTreatmentCourse?: string;
 }
 
 export interface PatientResponseDto {

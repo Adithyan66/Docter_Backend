@@ -18,6 +18,7 @@ export interface PatientSearchOptions {
 
 export interface IPatientRepository extends BaseRepository<Patient> {
   findByIdAndDoctor(id: string, doctorId: string): Promise<Patient | null>;
+  findByIdAndDoctorIncludingDeleted(id: string, doctorId: string): Promise<Patient | null>;
   findByPatientId(patientId: string): Promise<Patient | null>;
   findPaginated(options: PatientSearchOptions): Promise<{
     patients: Patient[];

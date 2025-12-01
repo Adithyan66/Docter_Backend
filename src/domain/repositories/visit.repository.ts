@@ -24,5 +24,7 @@ export interface IVisitRepository extends BaseRepository<Visit> {
     limit: number;
     totalPages: number;
   }>;
+  markDeletedByPatientId(patientId: string, doctorId: string, session?: any): Promise<number>;
+  markRestoredByPatientId(patientId: string, doctorId: string, session?: any): Promise<number>;
 }
 

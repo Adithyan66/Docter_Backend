@@ -49,6 +49,7 @@ export const updatePatientSchema = z.object({
   lastVisitAt: z.string().datetime().optional(),
   isActive: z.boolean().optional(),
   isDeleted: z.boolean().optional(),
+  defaultTreatmentCourse: z.string().trim().min(1, 'defaultTreatmentCourse cannot be empty').optional(),
 });
 
 

@@ -4,6 +4,7 @@ import { successResponse, HttpStatus, SuccessMessages, AuthenticationErrors } fr
 import { CreatePatientUseCase } from '../../application/use-cases/patient/create-patient.use-case';
 import { UpdatePatientUseCase } from '../../application/use-cases/patient/update-patient.use-case';
 import { DeletePatientUseCase } from '../../application/use-cases/patient/delete-patient.use-case';
+import { RestorePatientUseCase } from '../../application/use-cases/patient/restore-patient.use-case';
 import { GetPatientsUseCase } from '../../application/use-cases/patient/get-patients.use-case';
 import { GetPatientUseCase } from '../../application/use-cases/patient/get-patient.use-case';
 import { ValidationError } from '../../domain/errors/validation.error';
@@ -17,6 +18,7 @@ export class PatientController {
     @inject('CreatePatientUseCase') private readonly createPatientUseCase: CreatePatientUseCase,
     @inject('UpdatePatientUseCase') private readonly updatePatientUseCase: UpdatePatientUseCase,
     @inject('DeletePatientUseCase') private readonly deletePatientUseCase: DeletePatientUseCase,
+    @inject('RestorePatientUseCase') private readonly restorePatientUseCase: RestorePatientUseCase,
     @inject('GetPatientsUseCase') private readonly getPatientsUseCase: GetPatientsUseCase,
     @inject('GetPatientUseCase') private readonly getPatientUseCase: GetPatientUseCase
   ) {}
@@ -53,6 +55,16 @@ export class PatientController {
     const doctorId = this.getDoctorId(req);
     await this.deletePatientUseCase.execute(id, doctorId);
     successResponse(res, null, HttpStatus.OK, SuccessMessages.DELETED);
+  }
+
+  async restore(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const id = req.params.id;
+    if (!id) {
+      throw new ValidationError('Patient ID is required');
+    }
+    const doctorId = this.getDoctorId(req);
+    await this.restorePatientUseCase.execute(id, doctorId);
+    successResponse(res, null, HttpStatus.OK, SuccessMessages.UPDATED);
   }
 
 

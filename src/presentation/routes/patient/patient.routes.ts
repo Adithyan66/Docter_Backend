@@ -19,6 +19,8 @@ export const setupPatientRoutes = (router: Router): void => {
   router.patch('/patient/:id', auth, validate(updatePatientSchema), asyncHandler(patientController.update.bind(patientController)));
 
   router.delete('/patient/:id', auth, asyncHandler(patientController.delete.bind(patientController)));
+
+  router.patch('/patient/:id/restore', auth, asyncHandler(patientController.restore.bind(patientController)));
 };
 
 

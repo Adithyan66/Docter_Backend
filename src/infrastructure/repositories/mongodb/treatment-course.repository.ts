@@ -316,5 +316,35 @@ export class MongoTreatmentCourseRepository implements ITreatmentCourseRepositor
       doc.isDeleted || false
     );
   }
+
+  async markDeletedByPatientId(patientId: string, doctorId: string, session?: any): Promise<number> {
+    const result = await TreatmentCourseModel.updateMany(
+      {
+        patient: new Types.ObjectId(patientId),
+        doctor: new Types.ObjectId(doctorId),
+        isDeleted: false,
+      },
+      {
+        isDeleted: true,
+      },
+      { session }
+    );
+    return result.modifiedCount;
+  }
+
+  async markRestoredByPatientId(patientId: string, doctorId: string, session?: any): Promise<number> {
+    const result = await TreatmentCourseModel.updateMany(
+      {
+        patient: new Types.ObjectId(patientId),
+        doctor: new Types.ObjectId(doctorId),
+        isDeleted: true,
+      },
+      {
+        isDeleted: false,
+      },
+      { session }
+    );
+    return result.modifiedCount;
+  }
 }
 

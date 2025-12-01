@@ -25,6 +25,15 @@ export class MongoPatientRepository implements IPatientRepository {
     return this.toDomain(doc);
   }
 
+  async findByIdAndDoctorIncludingDeleted(id: string, doctorId: string): Promise<Patient | null> {
+    const doc = await PatientModel.findOne({
+      _id: id,
+      doctor: new Types.ObjectId(doctorId),
+    });
+    if (!doc) return null;
+    return this.toDomain(doc);
+  }
+
   async findAll(): Promise<Patient[]> {
     const docs = await PatientModel.find({ isDeleted: false });
     return docs.map((doc) => this.toDomain(doc));

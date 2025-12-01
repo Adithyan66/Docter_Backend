@@ -219,5 +219,35 @@ export class MongoVisitRepository implements IVisitRepository {
       doc.isDeleted || false
     );
   }
+
+  async markDeletedByPatientId(patientId: string, doctorId: string, session?: any): Promise<number> {
+    const result = await VisitModel.updateMany(
+      {
+        patient: new Types.ObjectId(patientId),
+        doctor: new Types.ObjectId(doctorId),
+        isDeleted: false,
+      },
+      {
+        isDeleted: true,
+      },
+      { session }
+    );
+    return result.modifiedCount;
+  }
+
+  async markRestoredByPatientId(patientId: string, doctorId: string, session?: any): Promise<number> {
+    const result = await VisitModel.updateMany(
+      {
+        patient: new Types.ObjectId(patientId),
+        doctor: new Types.ObjectId(doctorId),
+        isDeleted: true,
+      },
+      {
+        isDeleted: false,
+      },
+      { session }
+    );
+    return result.modifiedCount;
+  }
 }
 

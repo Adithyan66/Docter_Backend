@@ -31,33 +31,7 @@ export class UpdateTreatmentCourseUseCase {
 
     const updateData: Partial<typeof treatmentCourse> = {};
 
-    if (input.patientId !== undefined) {
-      const patient = await this.patientRepository.findByIdAndDoctor(input.patientId.trim(), doctorId);
-      if (!patient) {
-        throw new ValidationError('Patient not found or does not belong to doctor');
-      }
-      updateData.patientId = input.patientId.trim();
-    }
-
-    if (input.treatmentId !== undefined) {
-      const treatment = await this.treatmentRepository.findById(input.treatmentId.trim());
-      if (!treatment || treatment.doctorId !== doctorId) {
-        throw new ValidationError('Treatment not found or does not belong to doctor');
-      }
-      updateData.treatmentId = input.treatmentId.trim();
-    }
-
-    if (input.clinicId !== undefined) {
-      if (input.clinicId === null || input.clinicId.trim().length === 0) {
-        updateData.clinicId = undefined;
-      } else {
-        const clinic = await this.clinicRepository.findById(input.clinicId.trim());
-        if (!clinic || clinic.doctorId !== doctorId || clinic.isDeleted) {
-          throw new ValidationError('Clinic not found or does not belong to doctor');
-        }
-        updateData.clinicId = input.clinicId.trim();
-      }
-    }
+ 
 
     if (input.startDate !== undefined) {
       const startDate = this.parseDate(input.startDate, 'startDate');
@@ -81,18 +55,22 @@ export class UpdateTreatmentCourseUseCase {
       }
     }
 
-    if (input.totalCost !== undefined) {
-      if (input.totalCost < 0) {
-        throw new ValidationError('totalCost must be non-negative');
-      }
-      updateData.totalCost = input.totalCost;
-    }
-
     if (input.totalPaid !== undefined) {
       if (input.totalPaid < 0) {
         throw new ValidationError('totalPaid must be non-negative');
       }
       updateData.totalPaid = input.totalPaid;
+    }
+
+    if (input.totalCost !== undefined) {
+      if (input.totalCost < 0) {
+        throw new ValidationError('totalCost must be non-negative');
+      }
+      const currentOrNewTotalPaid = input.totalPaid !== undefined ? input.totalPaid : treatmentCourse.totalPaid;
+      if (input.totalCost < currentOrNewTotalPaid) {
+        throw new ValidationError(`totalCost cannot be less than totalPaid (${currentOrNewTotalPaid})`);
+      }
+      updateData.totalCost = input.totalCost;
     }
 
     if (input.isPaymentCompleted !== undefined) {

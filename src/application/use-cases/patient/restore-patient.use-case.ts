@@ -9,7 +9,7 @@ import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { ValidationError } from '../../../domain/errors/validation.error';
 
 @injectable()
-export class DeletePatientUseCase {
+export class RestorePatientUseCase {
   constructor(
     @inject('IPatientRepository') private readonly patientRepository: IPatientRepository,
     @inject('IVisitRepository') private readonly visitRepository: IVisitRepository,
@@ -19,26 +19,26 @@ export class DeletePatientUseCase {
   ) {}
 
   async execute(id: string, doctorId: string): Promise<void> {
-    const patient = await this.patientRepository.findByIdAndDoctor(id, doctorId);
+    const patient = await this.patientRepository.findByIdAndDoctorIncludingDeleted(id, doctorId);
     if (!patient) {
       throw new NotFoundError('Patient', id);
     }
 
-    if (patient.isDeleted) {
-      throw new ValidationError('Patient is already deleted');
+    if (!patient.isDeleted) {
+      throw new ValidationError('Patient is not deleted');
     }
 
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-      patient.markDeleted();
+      patient.restore();
       await this.patientRepository.update(id, { isDeleted: patient.isDeleted, isActive: patient.isActive }, session);
 
-      await this.visitRepository.markDeletedByPatientId(id, doctorId, session);
-      await this.treatmentCourseRepository.markDeletedByPatientId(id, doctorId, session);
-      await this.paymentRepository.markDeletedByPatientId(id, doctorId, session);
-      await this.mediaRepository.markDeletedByPatientId(id, doctorId, session);
+      await this.visitRepository.markRestoredByPatientId(id, doctorId, session);
+      await this.treatmentCourseRepository.markRestoredByPatientId(id, doctorId, session);
+      await this.paymentRepository.markRestoredByPatientId(id, doctorId, session);
+      await this.mediaRepository.markRestoredByPatientId(id, doctorId, session);
 
       await session.commitTransaction();
     } catch (error) {
@@ -49,5 +49,4 @@ export class DeletePatientUseCase {
     }
   }
 }
-
 

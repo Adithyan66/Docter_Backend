@@ -28,5 +28,7 @@ export interface ITreatmentCourseRepository extends BaseRepository<TreatmentCour
   findByPatientAndTreatmentAndStatus(doctorId: string, patientId: string, treatmentId: string, statuses: TreatmentCourseStatus[]): Promise<TreatmentCourse | null>;
   incrementTotalPaid(courseId: string, amount: number, session?: any, paymentId?: string): Promise<TreatmentCourse | null>;
   decrementTotalPaid(courseId: string, amount: number, session?: any): Promise<TreatmentCourse | null>;
+  markDeletedByPatientId(patientId: string, doctorId: string, session?: any): Promise<number>;
+  markRestoredByPatientId(patientId: string, doctorId: string, session?: any): Promise<number>;
 }
 
