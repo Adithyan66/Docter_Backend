@@ -12,6 +12,7 @@ import { visitToDto } from '../../mappers/visit.mapper';
 import { MongoVisitRepository } from '../../../infrastructure/repositories/mongodb/visit.repository';
 import { MongoPaymentRepository } from '../../../infrastructure/repositories/mongodb/payment.repository';
 import { MongoTreatmentCourseRepository } from '../../../infrastructure/repositories/mongodb/treatment-course.repository';
+import { PaymentMethodVO } from '../../../domain/value-objects/payment-method.vo';
 
 @injectable()
 export class UpdateVisitUseCase {
@@ -93,7 +94,10 @@ export class UpdateVisitUseCase {
         }
       }
 
-      if (amountDifference !== 0) {
+      const needsPaymentUpdate = input.paymentMethod !== undefined || input.paymentReference !== undefined;
+      const needsTransaction = amountDifference !== 0 || (needsPaymentUpdate && input.billedAmount !== undefined);
+
+      if (needsTransaction) {
         const session = await mongoose.startSession();
         session.startTransaction();
 
@@ -113,15 +117,36 @@ export class UpdateVisitUseCase {
 
           if (payments.length > 0) {
             const firstPayment = payments[0];
-            if (input.billedAmount > 0) {
-              await mongoPaymentRepo.update(firstPayment.id, { amount: input.billedAmount }, session);
-            } else {
-              await mongoPaymentRepo.update(firstPayment.id, { isDeleted: true }, session);
+            const paymentUpdateData: any = {};
+            
+            if (input.billedAmount !== undefined) {
+              if (input.billedAmount > 0) {
+                paymentUpdateData.amount = input.billedAmount;
+              } else {
+                paymentUpdateData.isDeleted = true;
+              }
             }
 
-            for (let i = 1; i < payments.length; i++) {
-              await mongoPaymentRepo.update(payments[i].id, { isDeleted: true }, session);
+            if (input.paymentMethod !== undefined) {
+              const paymentMethod = new PaymentMethodVO(input.paymentMethod);
+              paymentUpdateData.method = paymentMethod;
             }
+
+            if (input.paymentReference !== undefined) {
+              paymentUpdateData.reference = input.paymentReference.trim() || undefined;
+            }
+
+            if (Object.keys(paymentUpdateData).length > 0) {
+              await mongoPaymentRepo.update(firstPayment.id, paymentUpdateData, session);
+            }
+
+            if (input.billedAmount !== undefined) {
+              for (let i = 1; i < payments.length; i++) {
+                await mongoPaymentRepo.update(payments[i].id, { isDeleted: true }, session);
+              }
+            }
+          } else if (needsPaymentUpdate && input.billedAmount !== undefined && input.billedAmount > 0) {
+            throw new ValidationError('Payment record not found for this visit');
           }
 
           if (amountDifference !== 0) {
@@ -146,6 +171,38 @@ export class UpdateVisitUseCase {
           throw error;
         } finally {
           session.endSession();
+        }
+      }
+    }
+
+    if (input.paymentMethod !== undefined || input.paymentReference !== undefined) {
+      const paymentsResult = await this.paymentRepository.findPaginated({
+        doctorId,
+        visitId: id,
+        page: 1,
+        limit: 100,
+      });
+
+      const payments = paymentsResult.payments;
+
+      if (payments.length > 0) {
+        const firstPayment = payments[0];
+        const paymentUpdateData: any = {};
+
+        if (input.paymentMethod !== undefined) {
+          const paymentMethod = new PaymentMethodVO(input.paymentMethod);
+          paymentUpdateData.method = paymentMethod;
+        }
+
+        if (input.paymentReference !== undefined) {
+          paymentUpdateData.reference = input.paymentReference.trim() || undefined;
+        }
+
+        const mongoPaymentRepo = this.paymentRepository as MongoPaymentRepository;
+        await mongoPaymentRepo.update(firstPayment.id, paymentUpdateData);
+      } else {
+        if (visit.billedAmount && visit.billedAmount > 0) {
+          throw new ValidationError('Payment record not found for this visit');
         }
       }
     }

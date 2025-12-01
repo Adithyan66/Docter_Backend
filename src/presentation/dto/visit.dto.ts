@@ -38,6 +38,8 @@ export interface UpdateVisitRequestDto {
   clinicId?: string;
   notes?: string;
   billedAmount?: number;
+  paymentMethod?: 'cash' | 'card' | 'upi' | 'bank' | 'insurance' | 'online';
+  paymentReference?: string;
   mediaIds?: string[];
   prescriptionId?: string;
 }

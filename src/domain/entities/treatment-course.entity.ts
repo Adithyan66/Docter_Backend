@@ -123,6 +123,10 @@ export class TreatmentCourse extends BaseEntity {
     }
   }
 
+  removeVisit(visitId: string): void {
+    this.visits = this.visits.filter(id => id !== visitId);
+  }
+
   addPaymentReference(paymentId: string): void {
     if (!this.payments.includes(paymentId)) {
       this.payments.push(paymentId);

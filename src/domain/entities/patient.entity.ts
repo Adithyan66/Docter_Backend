@@ -117,6 +117,10 @@ export class Patient extends BaseEntity {
     this.lastVisitAt = visitedAt;
   }
 
+  decrementVisitCount(): void {
+    this.visitCount = Math.max(0, (this.visitCount ?? 0) - 1);
+  }
+
   activate(): void {
     this.isActive = true;
   }

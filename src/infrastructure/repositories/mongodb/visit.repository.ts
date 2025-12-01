@@ -76,11 +76,16 @@ export class MongoVisitRepository implements IVisitRepository {
     return this.toDomain(doc);
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, session?: any): Promise<boolean> {
+    const updateOptions: any = { new: true };
+    if (session) {
+      updateOptions.session = session;
+    }
+
     const result = await VisitModel.findOneAndUpdate(
       { _id: id, isDeleted: false },
       { isDeleted: true },
-      { new: true }
+      updateOptions
     );
     return !!result;
   }
