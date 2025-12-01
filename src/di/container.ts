@@ -56,6 +56,7 @@ import { UpdateVisitUseCase } from '../application/use-cases/visit/update-visit.
 import { DeleteVisitUseCase } from '../application/use-cases/visit/delete-visit.use-case';
 import { GetVisitUseCase } from '../application/use-cases/visit/get-visit.use-case';
 import { GetAllVisitsUseCase } from '../application/use-cases/visit/get-all-visits.use-case';
+import { GetDailyActivitiesUseCase } from '../application/use-cases/daily-activity/get-daily-activities.use-case';
 import { CreatePaymentUseCase } from '../application/use-cases/payment/create-payment.use-case';
 import { GetPaymentUseCase } from '../application/use-cases/payment/get-payment.use-case';
 import { GetAllPaymentsUseCase } from '../application/use-cases/payment/get-all-payments.use-case';
@@ -81,6 +82,7 @@ import { ClinicController } from '../presentation/controllers/clinic.controller'
 import { PatientController } from '../presentation/controllers/patient.controller';
 import { TreatmentCourseController } from '../presentation/controllers/treatment-course.controller';
 import { VisitController } from '../presentation/controllers/visit.controller';
+import { DailyActivityController } from '../presentation/controllers/daily-activity.controller';
 import { PaymentController } from '../presentation/controllers/payment.controller';
 import { PrescriptionController } from '../presentation/controllers/prescription.controller';
 import { MediaController } from '../presentation/controllers/media.controller';
@@ -158,6 +160,7 @@ container.registerSingleton<UpdateVisitUseCase>('UpdateVisitUseCase', UpdateVisi
 container.registerSingleton<DeleteVisitUseCase>('DeleteVisitUseCase', DeleteVisitUseCase);
 container.registerSingleton<GetVisitUseCase>('GetVisitUseCase', GetVisitUseCase);
 container.registerSingleton<GetAllVisitsUseCase>('GetAllVisitsUseCase', GetAllVisitsUseCase);
+container.registerSingleton<GetDailyActivitiesUseCase>('GetDailyActivitiesUseCase', GetDailyActivitiesUseCase);
 
 container.registerSingleton<CreatePaymentUseCase>('CreatePaymentUseCase', CreatePaymentUseCase);
 container.registerSingleton<GetPaymentUseCase>('GetPaymentUseCase', GetPaymentUseCase);
@@ -184,6 +187,7 @@ container.registerSingleton<ClinicController>('ClinicController', ClinicControll
 container.registerSingleton<PatientController>('PatientController', PatientController);
 container.registerSingleton<TreatmentCourseController>('TreatmentCourseController', TreatmentCourseController);
 container.registerSingleton<VisitController>('VisitController', VisitController);
+container.registerSingleton<DailyActivityController>('DailyActivityController', DailyActivityController);
 container.registerSingleton<PaymentController>('PaymentController', PaymentController);
 container.registerSingleton<PrescriptionController>('PrescriptionController', PrescriptionController);
 container.registerSingleton<MediaController>('MediaController', MediaController);
