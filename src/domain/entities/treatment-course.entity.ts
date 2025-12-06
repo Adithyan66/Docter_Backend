@@ -8,6 +8,8 @@ export class TreatmentCourse extends BaseEntity {
   treatmentId: string;
   startDate: Date;
   expectedEndDate?: Date;
+  lastVisitDate?: Date;
+  nextVisitDate?: Date;
   totalCost: number;
   totalPaid: number;
   isPaymentCompleted: boolean;
@@ -29,6 +31,8 @@ export class TreatmentCourse extends BaseEntity {
     updatedAt?: Date,
     clinicId?: string,
     expectedEndDate?: Date,
+    lastVisitDate?: Date,
+    nextVisitDate?: Date,
     totalPaid?: number,
     isPaymentCompleted?: boolean,
     isMedicallyCompleted?: boolean,
@@ -46,6 +50,8 @@ export class TreatmentCourse extends BaseEntity {
     this.totalCost = totalCost;
     this.clinicId = clinicId;
     this.expectedEndDate = expectedEndDate;
+    this.lastVisitDate = lastVisitDate;
+    this.nextVisitDate = nextVisitDate;
     this.totalPaid = totalPaid || 0;
     this.isPaymentCompleted = isPaymentCompleted || false;
     this.isMedicallyCompleted = isMedicallyCompleted || false;

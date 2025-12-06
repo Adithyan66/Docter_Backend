@@ -55,7 +55,7 @@ export class CreateVisitUseCase {
       clinicId = course.clinicId;
     }
 
-    const visitDate = new Date();
+    const visitDate = input.visitDate ? new Date(input.visitDate) : new Date();
     const billedAmount = input.billedAmount !== undefined ? input.billedAmount : 0;
 
     const treatment = await this.treatmentRepository.findById(course.treatmentId);
@@ -65,8 +65,22 @@ export class CreateVisitUseCase {
 
     const isOneTime = treatment.isOneTime === true;
 
+    if (isOneTime && input.nextVisitDate) {
+      throw new ValidationError('nextVisitDate cannot be set for one-time treatments');
+    }
+
     if (!isOneTime && billedAmount > course.remaining) {
       throw new ValidationError('billedAmount cannot exceed remaining treatment course balance');
+    }
+
+    if (input.nextVisitDate) {
+      const nextVisitDate = new Date(input.nextVisitDate);
+      if (nextVisitDate <= new Date()) {
+        throw new ValidationError('nextVisitDate must be in the future');
+      }
+      if (nextVisitDate <= visitDate) {
+        throw new ValidationError('nextVisitDate must be after visitDate');
+      }
     }
 
     const visit = new Visit(
@@ -199,6 +213,15 @@ export class CreateVisitUseCase {
       }
 
       course.addVisit(created.id);
+      
+      // Update lastVisitDate to the visit date
+      course.lastVisitDate = visitDate;
+      
+      // Update nextVisitDate if provided in request
+      if (input.nextVisitDate) {
+        course.nextVisitDate = new Date(input.nextVisitDate);
+      }
+      
       await mongoCourseRepo.update(course.id, course, session);
 
       await session.commitTransaction();

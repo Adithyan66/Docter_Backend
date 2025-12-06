@@ -36,6 +36,8 @@ export class MongoTreatmentCourseRepository implements ITreatmentCourseRepositor
       treatment: new Types.ObjectId(entity.treatmentId),
       startDate: entity.startDate,
       expectedEndDate: entity.expectedEndDate,
+      lastVisitDate: entity.lastVisitDate,
+      nextVisitDate: entity.nextVisitDate,
       totalCost: entity.totalCost,
       totalPaid: entity.totalPaid,
       isPaymentCompleted: entity.isPaymentCompleted,
@@ -58,6 +60,8 @@ export class MongoTreatmentCourseRepository implements ITreatmentCourseRepositor
     if (entity.treatmentId !== undefined) updateData.treatment = new Types.ObjectId(entity.treatmentId);
     if (entity.startDate !== undefined) updateData.startDate = entity.startDate;
     if (entity.expectedEndDate !== undefined) updateData.expectedEndDate = entity.expectedEndDate;
+    if (entity.lastVisitDate !== undefined) updateData.lastVisitDate = entity.lastVisitDate;
+    if (entity.nextVisitDate !== undefined) updateData.nextVisitDate = entity.nextVisitDate;
     if (entity.totalCost !== undefined) updateData.totalCost = entity.totalCost;
     if (entity.totalPaid !== undefined) updateData.totalPaid = entity.totalPaid;
     if (entity.isPaymentCompleted !== undefined) updateData.isPaymentCompleted = entity.isPaymentCompleted;
@@ -217,6 +221,8 @@ export class MongoTreatmentCourseRepository implements ITreatmentCourseRepositor
       doc.updatedAt,
       doc.clinic ? doc.clinic.toString() : undefined,
       doc.expectedEndDate,
+      doc.lastVisitDate,
+      doc.nextVisitDate,
       doc.totalPaid,
       doc.isPaymentCompleted,
       doc.isMedicallyCompleted,
@@ -306,6 +312,8 @@ export class MongoTreatmentCourseRepository implements ITreatmentCourseRepositor
       doc.updatedAt,
       doc.clinic ? doc.clinic.toString() : undefined,
       doc.expectedEndDate,
+      doc.lastVisitDate,
+      doc.nextVisitDate,
       doc.totalPaid || 0,
       doc.isPaymentCompleted || false,
       doc.isMedicallyCompleted || false,

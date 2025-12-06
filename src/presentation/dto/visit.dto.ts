@@ -24,6 +24,8 @@ export interface CreateVisitRequestDto {
   clinicId?: string;
   notes?: string;
   billedAmount?: number;
+  nextVisitDate?: Date;
+  visitDate?: Date;
   paymentMethod?: 'cash' | 'card' | 'upi' | 'bank' | 'insurance' | 'online';
   paymentReference?: string;
   mediaIds?: string[];

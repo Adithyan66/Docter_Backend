@@ -6,6 +6,8 @@ export interface CreateTreatmentCourseRequestDto {
   treatmentId: string;
   startDate: string;
   expectedEndDate?: string;
+  lastVisitDate?: string;
+  nextVisitDate?: string;
   totalCost: number;
   totalPaid?: number;
   status?: TreatmentCourseStatus;
@@ -20,6 +22,8 @@ export interface UpdateTreatmentCourseRequestDto {
   treatmentId?: string;
   startDate?: string;
   expectedEndDate?: string;
+  lastVisitDate?: string;
+  nextVisitDate?: string;
   totalCost?: number;
   totalPaid?: number;
   isPaymentCompleted?: boolean;
@@ -38,6 +42,8 @@ export interface TreatmentCourseResponseDto {
   treatmentId: string;
   startDate: Date;
   expectedEndDate?: Date;
+  lastVisitDate?: Date;
+  nextVisitDate?: Date;
   totalCost: number;
   totalPaid: number;
   remaining: number;

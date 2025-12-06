@@ -55,6 +55,35 @@ export class UpdateTreatmentCourseUseCase {
       }
     }
 
+    if (input.lastVisitDate !== undefined) {
+      if (input.lastVisitDate === null) {
+        updateData.lastVisitDate = undefined;
+      } else {
+        const lastVisitDate = this.parseDate(input.lastVisitDate, 'lastVisitDate');
+        const currentNextVisitDate = input.nextVisitDate ? this.parseDate(input.nextVisitDate, 'nextVisitDate') : treatmentCourse.nextVisitDate;
+        if (currentNextVisitDate && lastVisitDate >= currentNextVisitDate) {
+          throw new ValidationError('nextVisitDate must be after lastVisitDate');
+        }
+        updateData.lastVisitDate = lastVisitDate;
+      }
+    }
+
+    if (input.nextVisitDate !== undefined) {
+      if (input.nextVisitDate === null) {
+        updateData.nextVisitDate = undefined;
+      } else {
+        const nextVisitDate = this.parseDate(input.nextVisitDate, 'nextVisitDate');
+        if (nextVisitDate <= new Date()) {
+          throw new ValidationError('nextVisitDate must be in the future');
+        }
+        const currentLastVisitDate = input.lastVisitDate ? this.parseDate(input.lastVisitDate, 'lastVisitDate') : treatmentCourse.lastVisitDate;
+        if (currentLastVisitDate && nextVisitDate <= currentLastVisitDate) {
+          throw new ValidationError('nextVisitDate must be after lastVisitDate');
+        }
+        updateData.nextVisitDate = nextVisitDate;
+      }
+    }
+
     if (input.totalPaid !== undefined) {
       if (input.totalPaid < 0) {
         throw new ValidationError('totalPaid must be non-negative');

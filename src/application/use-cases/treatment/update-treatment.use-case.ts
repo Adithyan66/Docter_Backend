@@ -3,6 +3,7 @@ import { ITreatmentRepository } from '../../../domain/repositories/treatment.rep
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { ConflictError } from '../../../domain/errors/conflict.error';
+import { VisitIntervalUnit } from '../../../domain/value-objects/visit-interval-unit.vo';
 
 interface UpdateTreatmentInput {
   name?: string;
@@ -21,7 +22,7 @@ interface UpdateTreatmentInput {
   images?: string[];
   isOneTime?: boolean;
   isActive?: boolean;
-  regularVisitInterval?: { interval: number; unit: string } | null;
+  regularVisitInterval?: { interval: number; unit: VisitIntervalUnit } | null;
 }
 
 @injectable()
@@ -135,8 +136,9 @@ export class UpdateTreatmentUseCase {
       if (input.regularVisitInterval.interval <= 0) {
         throw new ValidationError('regularVisitInterval.interval must be a positive number');
       }
-      if (!input.regularVisitInterval.unit || input.regularVisitInterval.unit.trim().length === 0) {
-        throw new ValidationError('regularVisitInterval.unit is required');
+      const validUnits: VisitIntervalUnit[] = ['days', 'weeks', 'months', 'years'];
+      if (!input.regularVisitInterval.unit || !validUnits.includes(input.regularVisitInterval.unit)) {
+        throw new ValidationError(`regularVisitInterval.unit must be one of: ${validUnits.join(', ')}`);
       }
     }
   }

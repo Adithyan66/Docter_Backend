@@ -23,7 +23,9 @@ export const createTreatmentSchema = z.object({
   isOneTime: z.boolean().optional(),
   regularVisitInterval: z.object({
     interval: z.number().positive('regularVisitInterval.interval must be a positive number'),
-    unit: z.string().min(1, 'regularVisitInterval.unit is required'),
+    unit: z.enum(['days', 'weeks', 'months', 'years'], {
+      message: 'regularVisitInterval.unit must be one of: days, weeks, months, years',
+    }),
   }).optional().nullable(),
 }).refine((data) => {
   if (data.minDuration !== undefined && data.maxDuration !== undefined) {
@@ -95,7 +97,9 @@ export const updateTreatmentSchema = z.object({
   isOneTime: z.boolean().optional(),
   regularVisitInterval: z.object({
     interval: z.number().positive('regularVisitInterval.interval must be a positive number'),
-    unit: z.string().min(1, 'regularVisitInterval.unit is required'),
+    unit: z.enum(['days', 'weeks', 'months', 'years'], {
+      message: 'regularVisitInterval.unit must be one of: days, weeks, months, years',
+    }),
   }).optional().nullable(),
 }).refine((data) => {
   if (data.isOneTime === true && data.regularVisitInterval !== undefined && data.regularVisitInterval !== null) {

@@ -7,6 +7,8 @@ export interface ITreatmentCourse extends Document {
   treatment: mongoose.Types.ObjectId;
   startDate: Date;
   expectedEndDate?: Date;
+  lastVisitDate?: Date;
+  nextVisitDate?: Date;
   totalCost: number;
   totalPaid: number;
   isPaymentCompleted: boolean;
@@ -28,6 +30,8 @@ const TreatmentCourseSchema = new Schema<ITreatmentCourse>(
     treatment: { type: Schema.Types.ObjectId, ref: 'Treatment', required: true },
     startDate: { type: Date, required: true },
     expectedEndDate: { type: Date },
+    lastVisitDate: { type: Date },
+    nextVisitDate: { type: Date },
     totalCost: { type: Number, default: 0, min: 0 },
     totalPaid: { type: Number, default: 0, min: 0 },
     isPaymentCompleted: { type: Boolean, default: false },
@@ -52,6 +56,8 @@ TreatmentCourseSchema.virtual('remaining').get(function (this: ITreatmentCourse)
 TreatmentCourseSchema.index({ doctor: 1, patient: 1, status: 1 });
 TreatmentCourseSchema.index({ clinic: 1, startDate: -1 });
 TreatmentCourseSchema.index({ isDeleted: 1, createdAt: -1 });
+TreatmentCourseSchema.index({ lastVisitDate: -1 });
+TreatmentCourseSchema.index({ nextVisitDate: 1 });
 
 TreatmentCourseSchema.methods.recalcPaymentStatus = async function () {
   const tc = this as ITreatmentCourse;

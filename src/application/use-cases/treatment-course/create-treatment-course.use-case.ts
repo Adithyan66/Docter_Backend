@@ -26,9 +26,19 @@ export class CreateTreatmentCourseUseCase {
 
     const startDate = this.parseDate(input.startDate, 'startDate');
     const expectedEndDate = input.expectedEndDate ? this.parseDate(input.expectedEndDate, 'expectedEndDate') : undefined;
+    const lastVisitDate = input.lastVisitDate ? this.parseDate(input.lastVisitDate, 'lastVisitDate') : undefined;
+    const nextVisitDate = input.nextVisitDate ? this.parseDate(input.nextVisitDate, 'nextVisitDate') : undefined;
 
     if (expectedEndDate && expectedEndDate <= startDate) {
       throw new ValidationError('expectedEndDate must be after startDate');
+    }
+
+    if (lastVisitDate && nextVisitDate && nextVisitDate <= lastVisitDate) {
+      throw new ValidationError('nextVisitDate must be after lastVisitDate');
+    }
+
+    if (nextVisitDate && nextVisitDate <= new Date()) {
+      throw new ValidationError('nextVisitDate must be in the future');
     }
 
     const treatmentCourse = new TreatmentCourse(
@@ -42,6 +52,8 @@ export class CreateTreatmentCourseUseCase {
       undefined,
       input.clinicId ? input.clinicId.trim() : undefined,
       expectedEndDate,
+      lastVisitDate,
+      nextVisitDate,
       input.totalPaid || 0,
       false,
       false,

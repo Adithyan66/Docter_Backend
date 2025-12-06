@@ -28,17 +28,45 @@ const visitMediaSchema = z.object({
   notes: z.string().trim().optional(),
 });
 
-export const createVisitSchema = z.object({
-  patientId: z.string().trim().min(1, 'patientId is required'),
-  courseId: z.string().trim().min(1, 'courseId is required'),
-  clinicId: z.string().trim().min(1).optional(),
-  notes: z.string().trim().optional(),
-  billedAmount: z.number().min(0, 'billedAmount must be non-negative').optional(),
-  mediaIds: z.array(z.string().trim().min(1)).optional(),
-  prescriptionId: z.string().trim().min(1).optional(),
-  prescription: visitPrescriptionSchema.optional(),
-  media: z.array(visitMediaSchema).optional(),
-});
+export const createVisitSchema = z
+  .object({
+    patientId: z.string().trim().min(1, 'patientId is required'),
+    courseId: z.string().trim().min(1, 'courseId is required'),
+    clinicId: z.string().trim().min(1).optional(),
+    notes: z.string().trim().optional(),
+    billedAmount: z.number().min(0, 'billedAmount must be non-negative').optional(),
+    visitDate: z.string().datetime('Invalid visitDate format').optional(),
+    nextVisitDate: z
+      .string()
+      .datetime('Invalid nextVisitDate format')
+      .optional()
+      .refine(
+        (val) => {
+          if (!val) return true;
+          const date = new Date(val);
+          return date > new Date();
+        },
+        { message: 'nextVisitDate must be in the future' }
+      ),
+    paymentMethod: z.enum(['cash', 'card', 'upi', 'bank', 'insurance', 'online']).optional(),
+    paymentReference: z.string().trim().optional(),
+    mediaIds: z.array(z.string().trim().min(1)).optional(),
+    prescriptionId: z.string().trim().min(1).optional(),
+    prescription: visitPrescriptionSchema.optional(),
+    media: z.array(visitMediaSchema).optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.visitDate && data.nextVisitDate) {
+        return new Date(data.nextVisitDate) > new Date(data.visitDate);
+      }
+      return true;
+    },
+    {
+      message: 'nextVisitDate must be after visitDate',
+      path: ['nextVisitDate'],
+    }
+  );
 
 export const updateVisitSchema = z.object({
   patientId: z.string().trim().min(1).optional(),

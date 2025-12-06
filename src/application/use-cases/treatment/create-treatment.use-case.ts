@@ -3,6 +3,7 @@ import { ITreatmentRepository } from '../../../domain/repositories/treatment.rep
 import { Treatment } from '../../../domain/entities/treatment.entity';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { ConflictError } from '../../../domain/errors/conflict.error';
+import { VisitIntervalUnit } from '../../../domain/value-objects/visit-interval-unit.vo';
 
 interface CreateTreatmentInput {
   name: string;
@@ -20,7 +21,7 @@ interface CreateTreatmentInput {
   risks?: string[];
   images?: string[];
   isOneTime?: boolean;
-  regularVisitInterval?: { interval: number; unit: string };
+  regularVisitInterval?: { interval: number; unit: VisitIntervalUnit };
 }
 
 @injectable()
@@ -159,8 +160,9 @@ export class CreateTreatmentUseCase {
       if (input.regularVisitInterval.interval <= 0) {
         throw new ValidationError('regularVisitInterval.interval must be a positive number');
       }
-      if (!input.regularVisitInterval.unit || input.regularVisitInterval.unit.trim().length === 0) {
-        throw new ValidationError('regularVisitInterval.unit is required');
+      const validUnits: VisitIntervalUnit[] = ['days', 'weeks', 'months', 'years'];
+      if (!input.regularVisitInterval.unit || !validUnits.includes(input.regularVisitInterval.unit)) {
+        throw new ValidationError(`regularVisitInterval.unit must be one of: ${validUnits.join(', ')}`);
       }
     }
   }

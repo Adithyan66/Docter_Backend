@@ -9,6 +9,8 @@ export const treatmentCourseToDto = (treatmentCourse: TreatmentCourse): Treatmen
   treatmentId: treatmentCourse.treatmentId,
   startDate: treatmentCourse.startDate,
   expectedEndDate: treatmentCourse.expectedEndDate,
+  lastVisitDate: treatmentCourse.lastVisitDate,
+  nextVisitDate: treatmentCourse.nextVisitDate,
   totalCost: treatmentCourse.totalCost,
   totalPaid: treatmentCourse.totalPaid,
   remaining: treatmentCourse.remaining,

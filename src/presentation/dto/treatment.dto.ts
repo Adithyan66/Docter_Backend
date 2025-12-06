@@ -1,3 +1,5 @@
+import { VisitIntervalUnit } from '../../domain/value-objects/visit-interval-unit.vo';
+
 export interface CreateTreatmentRequestDto {
   name: string;
   description?: string;
@@ -14,7 +16,7 @@ export interface CreateTreatmentRequestDto {
   risks?: string[];
   images?: string[];
   isOneTime?: boolean;
-  regularVisitInterval?: { interval: number; unit: string };
+  regularVisitInterval?: { interval: number; unit: VisitIntervalUnit };
 }
 
 export interface UpdateTreatmentRequestDto {
@@ -33,7 +35,7 @@ export interface UpdateTreatmentRequestDto {
   risks?: string[];
   images?: string[];
   isOneTime?: boolean;
-  regularVisitInterval?: { interval: number; unit: string };
+  regularVisitInterval?: { interval: number; unit: VisitIntervalUnit };
 }
 
 export interface TreatmentResponseDto {
@@ -54,7 +56,7 @@ export interface TreatmentResponseDto {
   risks?: string[];
   images?: string[];
   isOneTime?: boolean;
-  regularVisitInterval?: { interval: number; unit: string };
+  regularVisitInterval?: { interval: number; unit: VisitIntervalUnit };
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

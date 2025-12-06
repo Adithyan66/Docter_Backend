@@ -1,4 +1,5 @@
 import { BaseEntity } from './base.entity';
+import { VisitIntervalUnit } from '../value-objects/visit-interval-unit.vo';
 
 export class Treatment extends BaseEntity {
   doctorId: string;
@@ -17,7 +18,7 @@ export class Treatment extends BaseEntity {
   risks?: string[];
   images?: string[];
   isOneTime?: boolean;
-  regularVisitInterval?: { interval: number; unit: string };
+  regularVisitInterval?: { interval: number; unit: VisitIntervalUnit };
   isDeleted?: boolean;
   isActive: boolean;
 
@@ -41,7 +42,7 @@ export class Treatment extends BaseEntity {
     risks?: string[],
     images?: string[],
     isOneTime?: boolean,
-    regularVisitInterval?: { interval: number; unit: string },
+    regularVisitInterval?: { interval: number; unit: VisitIntervalUnit },
     isDeleted?: boolean,
     isActive: boolean = true
   ) {

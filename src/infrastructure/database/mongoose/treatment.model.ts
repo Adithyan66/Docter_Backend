@@ -17,7 +17,7 @@ export interface ITreatment extends Document {
   risks?: string[];
   images?: string[];
   isOneTime?: boolean;
-  regularVisitInterval?: { interval: number; unit: string };
+  regularVisitInterval?: { interval: number; unit: 'days' | 'weeks' | 'months' | 'years' };
   isDeleted?: boolean;
   isActive: boolean;
   createdAt: Date;
@@ -44,7 +44,11 @@ const TreatmentSchema = new Schema<ITreatment>(
     isOneTime: { type: Boolean, required: false },
     regularVisitInterval: {
       interval: { type: Number, required: false },
-      unit: { type: String, required: false },
+      unit: {
+        type: String,
+        enum: ['days', 'weeks', 'months', 'years'],
+        required: false,
+      },
     },
     isDeleted: { type: Boolean, required: false, default: false },
     isActive: { type: Boolean, required: false, default: true },
