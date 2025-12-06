@@ -56,6 +56,7 @@ import { UpdateVisitUseCase } from '../application/use-cases/visit/update-visit.
 import { DeleteVisitUseCase } from '../application/use-cases/visit/delete-visit.use-case';
 import { GetVisitUseCase } from '../application/use-cases/visit/get-visit.use-case';
 import { GetAllVisitsUseCase } from '../application/use-cases/visit/get-all-visits.use-case';
+import { GetVisitRemindersUseCase } from '../application/use-cases/visit/get-visit-reminders.use-case';
 import { GetDailyActivitiesUseCase } from '../application/use-cases/daily-activity/get-daily-activities.use-case';
 import { CreatePaymentUseCase } from '../application/use-cases/payment/create-payment.use-case';
 import { GetPaymentUseCase } from '../application/use-cases/payment/get-payment.use-case';
@@ -160,6 +161,7 @@ container.registerSingleton<UpdateVisitUseCase>('UpdateVisitUseCase', UpdateVisi
 container.registerSingleton<DeleteVisitUseCase>('DeleteVisitUseCase', DeleteVisitUseCase);
 container.registerSingleton<GetVisitUseCase>('GetVisitUseCase', GetVisitUseCase);
 container.registerSingleton<GetAllVisitsUseCase>('GetAllVisitsUseCase', GetAllVisitsUseCase);
+container.registerSingleton<GetVisitRemindersUseCase>('GetVisitRemindersUseCase', GetVisitRemindersUseCase);
 container.registerSingleton<GetDailyActivitiesUseCase>('GetDailyActivitiesUseCase', GetDailyActivitiesUseCase);
 
 container.registerSingleton<CreatePaymentUseCase>('CreatePaymentUseCase', CreatePaymentUseCase);

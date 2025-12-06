@@ -19,5 +19,7 @@ export const setupVisitRoutes = (router: Router): void => {
   router.patch('/visit/:id', auth, validate(updateVisitSchema), asyncHandler(visitController.update.bind(visitController)));
 
   router.delete('/visit/:id', auth, asyncHandler(visitController.delete.bind(visitController)));
+
+  router.get('/reminders/visits', auth, asyncHandler(visitController.getVisitReminders.bind(visitController)));
 };
 

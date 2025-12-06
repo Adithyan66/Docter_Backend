@@ -1,14 +1,16 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
-import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
+import { successResponse, HttpStatus, SuccessMessages, paginatedResponse } from '../../infrastructure/constants';
 import { CreateVisitUseCase } from '../../application/use-cases/visit/create-visit.use-case';
 import { UpdateVisitUseCase } from '../../application/use-cases/visit/update-visit.use-case';
 import { DeleteVisitUseCase } from '../../application/use-cases/visit/delete-visit.use-case';
 import { GetVisitUseCase } from '../../application/use-cases/visit/get-visit.use-case';
 import { GetAllVisitsUseCase } from '../../application/use-cases/visit/get-all-visits.use-case';
+import { GetVisitRemindersUseCase } from '../../application/use-cases/visit/get-visit-reminders.use-case';
 import { ValidationError } from '../../domain/errors/validation.error';
 import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
 import { CreateVisitRequestDto, UpdateVisitRequestDto, GetVisitsQueryDto } from '../dto/visit.dto';
+import { GetVisitRemindersQueryDto } from '../dto/visit-reminder.dto';
 import { AuthenticationErrors } from '../../infrastructure/constants';
 
 @injectable()
@@ -18,7 +20,8 @@ export class VisitController {
     @inject('UpdateVisitUseCase') private readonly updateVisitUseCase: UpdateVisitUseCase,
     @inject('DeleteVisitUseCase') private readonly deleteVisitUseCase: DeleteVisitUseCase,
     @inject('GetVisitUseCase') private readonly getVisitUseCase: GetVisitUseCase,
-    @inject('GetAllVisitsUseCase') private readonly getAllVisitsUseCase: GetAllVisitsUseCase
+    @inject('GetAllVisitsUseCase') private readonly getAllVisitsUseCase: GetAllVisitsUseCase,
+    @inject('GetVisitRemindersUseCase') private readonly getVisitRemindersUseCase: GetVisitRemindersUseCase
   ) {}
 
   async create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
@@ -72,6 +75,17 @@ export class VisitController {
     successResponse(res, result, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
+  async getVisitReminders(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const query = this.buildRemindersQueryDto(req);
+    const doctorId = this.getDoctorId(req);
+    const result = await this.getVisitRemindersUseCase.execute(doctorId, query);
+    paginatedResponse(res, result.reminders, {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+    }, SuccessMessages.RETRIEVED);
+  }
+
   private buildQueryDto(req: HttpRequest): GetVisitsQueryDto {
     const page = req.query.page ? parseInt(String(req.query.page), 10) : undefined;
     const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : undefined;
@@ -93,6 +107,22 @@ export class VisitController {
       sortBy,
       sortOrder,
       include: req.query.include ? String(req.query.include) : undefined,
+    };
+  }
+
+  private buildRemindersQueryDto(req: HttpRequest): GetVisitRemindersQueryDto {
+    const page = req.query.page ? parseInt(String(req.query.page), 10) : undefined;
+    const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : undefined;
+    const daysBefore = req.query.daysBefore ? parseInt(String(req.query.daysBefore), 10) : undefined;
+    const daysAfter = req.query.daysAfter ? parseInt(String(req.query.daysAfter), 10) : undefined;
+
+    return {
+      page,
+      limit,
+      daysBefore,
+      daysAfter,
+      treatmentId: req.query.treatmentId ? String(req.query.treatmentId) : undefined,
+      clinicId: req.query.clinicId ? String(req.query.clinicId) : undefined,
     };
   }
 

@@ -16,6 +16,24 @@ export interface TreatmentCourseSearchOptions {
   sortOrder?: 'asc' | 'desc';
 }
 
+export interface VisitReminderSearchOptions {
+  doctorId: string;
+  page: number;
+  limit: number;
+  daysBefore: number;
+  daysAfter: number;
+  treatmentIds?: string[];
+  clinicIds?: string[];
+}
+
+export interface VisitReminderResult {
+  treatmentCourseId: string;
+  patientName: string;
+  treatmentName: string;
+  clinicName?: string;
+  nextVisitDate: Date;
+}
+
 export interface ITreatmentCourseRepository extends BaseRepository<TreatmentCourse> {
   findByIdAndDoctor(id: string, doctorId: string): Promise<TreatmentCourse | null>;
   findPaginated(options: TreatmentCourseSearchOptions): Promise<{
@@ -30,5 +48,12 @@ export interface ITreatmentCourseRepository extends BaseRepository<TreatmentCour
   decrementTotalPaid(courseId: string, amount: number, session?: any): Promise<TreatmentCourse | null>;
   markDeletedByPatientId(patientId: string, doctorId: string, session?: any): Promise<number>;
   markRestoredByPatientId(patientId: string, doctorId: string, session?: any): Promise<number>;
+  findVisitReminders(options: VisitReminderSearchOptions): Promise<{
+    reminders: VisitReminderResult[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }>;
 }
 

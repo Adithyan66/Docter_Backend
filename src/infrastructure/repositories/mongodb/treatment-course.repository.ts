@@ -1,6 +1,6 @@
 import { injectable } from 'tsyringe';
 import { PipelineStage, Types } from 'mongoose';
-import { ITreatmentCourseRepository, TreatmentCourseSearchOptions } from '../../../domain/repositories/treatment-course.repository';
+import { ITreatmentCourseRepository, TreatmentCourseSearchOptions, VisitReminderSearchOptions, VisitReminderResult } from '../../../domain/repositories/treatment-course.repository';
 import { TreatmentCourse } from '../../../domain/entities/treatment-course.entity';
 import { TreatmentCourseStatus } from '../../../domain/value-objects/treatment-course-status.vo';
 import { TreatmentCourseModel, ITreatmentCourse } from '../../database/mongoose/treatment-course.model';
@@ -353,6 +353,159 @@ export class MongoTreatmentCourseRepository implements ITreatmentCourseRepositor
       { session }
     );
     return result.modifiedCount;
+  }
+
+  async findVisitReminders(options: VisitReminderSearchOptions): Promise<{
+    reminders: VisitReminderResult[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    const { page, limit, doctorId, daysBefore, daysAfter, treatmentIds, clinicIds } = options;
+    const skip = (page - 1) * limit;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dateFrom = new Date(today);
+    dateFrom.setDate(dateFrom.getDate() - daysBefore);
+    const dateTo = new Date(today);
+    dateTo.setDate(dateTo.getDate() + daysAfter);
+    dateTo.setHours(23, 59, 59, 999);
+
+    const baseMatch: any = {
+      isDeleted: false,
+      doctor: new Types.ObjectId(doctorId),
+      status: 'active',
+      nextVisitDate: { $ne: null, $gte: dateFrom, $lte: dateTo },
+    };
+
+    const andConditions: any[] = [baseMatch];
+
+    if (treatmentIds && treatmentIds.length > 0) {
+      const validTreatmentIds = treatmentIds
+        .map(id => id.trim())
+        .filter(id => Types.ObjectId.isValid(id))
+        .map(id => new Types.ObjectId(id));
+      if (validTreatmentIds.length > 0) {
+        andConditions.push({ treatment: { $in: validTreatmentIds } });
+      }
+    }
+
+    if (clinicIds && clinicIds.length > 0) {
+      const validClinicIds = clinicIds
+        .map(id => id.trim())
+        .filter(id => Types.ObjectId.isValid(id))
+        .map(id => new Types.ObjectId(id));
+      if (validClinicIds.length > 0) {
+        andConditions.push({ clinic: { $in: validClinicIds } });
+      }
+    }
+
+    const matchStage = andConditions.length > 1 ? { $and: andConditions } : andConditions[0];
+
+    const pipeline: PipelineStage[] = [
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: 'patients',
+          localField: 'patient',
+          foreignField: '_id',
+          as: 'patientData',
+        },
+      },
+      {
+        $lookup: {
+          from: 'treatments',
+          localField: 'treatment',
+          foreignField: '_id',
+          as: 'treatmentData',
+        },
+      },
+      {
+        $lookup: {
+          from: 'clinics',
+          localField: 'clinic',
+          foreignField: '_id',
+          as: 'clinicData',
+        },
+      },
+      {
+        $unwind: {
+          path: '$patientData',
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
+        $unwind: {
+          path: '$treatmentData',
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
+        $unwind: {
+          path: '$clinicData',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $facet: {
+          metadata: [{ $count: 'total' }],
+          data: [
+            { $sort: { nextVisitDate: 1 } },
+            { $skip: skip },
+            { $limit: limit },
+            {
+              $project: {
+                treatmentCourseId: { $toString: '$_id' },
+                patientName: '$patientData.fullName',
+                treatmentName: '$treatmentData.name',
+                clinicName: { $ifNull: ['$clinicData.name', null] },
+                nextVisitDate: '$nextVisitDate',
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          reminders: '$data',
+          total: { $ifNull: [{ $arrayElemAt: ['$metadata.total', 0] }, 0] },
+        },
+      },
+    ];
+
+    const result = await TreatmentCourseModel.aggregate(pipeline);
+
+    if (!result || result.length === 0) {
+      return {
+        reminders: [],
+        total: 0,
+        page,
+        limit,
+        totalPages: 0,
+      };
+    }
+
+    const aggregationResult = result[0];
+    const total = aggregationResult.total || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    const reminders: VisitReminderResult[] = aggregationResult.reminders.map((item: any) => ({
+      treatmentCourseId: item.treatmentCourseId,
+      patientName: item.patientName,
+      treatmentName: item.treatmentName,
+      clinicName: item.clinicName || undefined,
+      nextVisitDate: item.nextVisitDate,
+    }));
+
+    return {
+      reminders,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
   }
 }
 
