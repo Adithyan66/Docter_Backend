@@ -1,5 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { IDoctorRepository } from '../../../domain/repositories/doctor.repository';
+import { IStaffRepository } from '../../../domain/repositories/staff.repository';
 import { IJwtService } from '../../interfaces/jwt-service.interface';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { ValidationError } from '../../../domain/errors/validation.error';
@@ -9,6 +10,7 @@ import { AuthenticationErrors } from '../../../infrastructure/constants/error-me
 export class LogoutUseCase {
   constructor(
     @inject('IDoctorRepository') private doctorRepository: IDoctorRepository,
+    @inject('IStaffRepository') private staffRepository: IStaffRepository,
     @inject('IJwtService') private jwtService: IJwtService
   ) {}
 
@@ -18,6 +20,18 @@ export class LogoutUseCase {
       payload = this.jwtService.verifyRefreshToken(refreshToken);
     } catch (error) {
       throw new ValidationError(AuthenticationErrors.INVALID_REFRESH_TOKEN);
+    }
+
+    if (payload.role === 'staff') {
+      const staff = await this.staffRepository.findById(payload.id);
+      if (!staff) {
+        throw new NotFoundError('Staff');
+      }
+      if (!staff.refreshToken || staff.refreshToken !== refreshToken) {
+        throw new ValidationError(AuthenticationErrors.INVALID_REFRESH_TOKEN);
+      }
+      await this.staffRepository.updateRefreshToken(staff.id, null);
+      return;
     }
 
     const doctor = await this.doctorRepository.findById(payload.id);

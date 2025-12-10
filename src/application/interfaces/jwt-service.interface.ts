@@ -1,6 +1,9 @@
 export interface JwtPayload {
   id: string;
   email: string;
+  role: 'doctor' | 'staff';
+  clinicId?: string;
+  doctorId?: string;
 }
 
 export interface IJwtService {

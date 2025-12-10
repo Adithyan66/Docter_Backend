@@ -20,8 +20,8 @@ export class DoctorController {
     if (!req.body || typeof req.body !== 'object') {
       throw new ValidationError('Request body is required');
     }
-    const { email, password } = req.body as { email: string; password: string };
-    const result = await this.loginUseCase.execute(email, password);
+    const { email, password, role, username } = req.body as { email?: string; password: string; role?: 'doctor' | 'staff'; username?: string };
+    const result = await this.loginUseCase.execute({ role, email, username, password });
     
     const isProduction = config.nodeEnv === 'production';
     

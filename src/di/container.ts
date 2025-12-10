@@ -2,6 +2,8 @@ import 'reflect-metadata';
 import { container } from 'tsyringe';
 import { IDoctorRepository } from '../domain/repositories/doctor.repository';
 import { MongoDoctorRepository } from '../infrastructure/repositories/mongodb/doctor.repository';
+import { IStaffRepository } from '../domain/repositories/staff.repository';
+import { MongoStaffRepository } from '../infrastructure/repositories/mongodb/staff.repository';
 import { ITreatmentRepository } from '../domain/repositories/treatment.repository';
 import { MongoTreatmentRepository } from '../infrastructure/repositories/mongodb/treatment.repository';
 import { IClinicRepository } from '../domain/repositories/clinic.repository';
@@ -87,9 +89,16 @@ import { DailyActivityController } from '../presentation/controllers/daily-activ
 import { PaymentController } from '../presentation/controllers/payment.controller';
 import { PrescriptionController } from '../presentation/controllers/prescription.controller';
 import { MediaController } from '../presentation/controllers/media.controller';
+import { StaffController } from '../presentation/controllers/staff.controller';
 import { AuthMiddleware } from '../presentation/middleware/auth.middleware';
+import { CreateStaffUseCase } from '../application/use-cases/staff/create-staff.use-case';
+import { UpdateStaffUseCase } from '../application/use-cases/staff/update-staff.use-case';
+import { DeleteStaffUseCase } from '../application/use-cases/staff/delete-staff.use-case';
+import { GetStaffUseCase } from '../application/use-cases/staff/get-staff.use-case';
+import { GetAllStaffUseCase } from '../application/use-cases/staff/get-all-staff.use-case';
 
 container.registerSingleton<IDoctorRepository>('IDoctorRepository', MongoDoctorRepository);
+container.registerSingleton<IStaffRepository>('IStaffRepository', MongoStaffRepository);
 
 container.registerSingleton<ITreatmentRepository>('ITreatmentRepository', MongoTreatmentRepository);
 
@@ -116,6 +125,11 @@ container.registerSingleton<LoginUseCase>('LoginUseCase', LoginUseCase);
 container.registerSingleton<RefreshTokenUseCase>('RefreshTokenUseCase', RefreshTokenUseCase);
 
 container.registerSingleton<LogoutUseCase>('LogoutUseCase', LogoutUseCase);
+container.registerSingleton<CreateStaffUseCase>('CreateStaffUseCase', CreateStaffUseCase);
+container.registerSingleton<UpdateStaffUseCase>('UpdateStaffUseCase', UpdateStaffUseCase);
+container.registerSingleton<DeleteStaffUseCase>('DeleteStaffUseCase', DeleteStaffUseCase);
+container.registerSingleton<GetStaffUseCase>('GetStaffUseCase', GetStaffUseCase);
+container.registerSingleton<GetAllStaffUseCase>('GetAllStaffUseCase', GetAllStaffUseCase);
 
 container.registerSingleton<IGenerateImageUploadUrlUseCase>('IGenerateImageUploadUrlUseCase', GenerateImageUploadUrlUseCase);
 
@@ -193,6 +207,7 @@ container.registerSingleton<DailyActivityController>('DailyActivityController', 
 container.registerSingleton<PaymentController>('PaymentController', PaymentController);
 container.registerSingleton<PrescriptionController>('PrescriptionController', PrescriptionController);
 container.registerSingleton<MediaController>('MediaController', MediaController);
+container.registerSingleton<StaffController>('StaffController', StaffController);
 
 container.registerSingleton<AuthMiddleware>('AuthMiddleware', AuthMiddleware);
 

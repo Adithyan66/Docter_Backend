@@ -127,9 +127,15 @@ export class VisitController {
   }
 
   private getDoctorId(req: HttpRequest): string {
-    const user = req.user as { id?: string } | undefined;
-    if (!user || !user.id) {
+    const user = req.user as { id?: string; role?: string; doctorId?: string } | undefined;
+    if (!user || !user.id || !user.role) {
       throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
+    }
+    if (user.role === 'staff') {
+      if (!user.doctorId) {
+        throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
+      }
+      return user.doctorId;
     }
     return user.id;
   }

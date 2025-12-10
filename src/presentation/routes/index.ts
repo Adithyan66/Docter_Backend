@@ -10,6 +10,7 @@ import { setupPaymentRoutes } from './payment/payment.routes';
 import { setupPrescriptionRoutes } from './prescription/prescription.routes';
 import { setupMediaRoutes } from './media/media.routes';
 import { setupDailyActivityRoutes } from './daily-activity/daily-activity.routes';
+import { setupStaffRoutes } from './staff/staff.routes';
 
 export const setupRoutes = (router: Router): void => {
   setupAuthRoutes(router);
@@ -23,5 +24,6 @@ export const setupRoutes = (router: Router): void => {
   setupPrescriptionRoutes(router);
   setupMediaRoutes(router);
   setupDailyActivityRoutes(router);
+  setupStaffRoutes(router);
 };
 
