@@ -7,9 +7,8 @@ import { DeleteMediaUseCase } from '../../application/use-cases/media/delete-med
 import { GetMediaUseCase } from '../../application/use-cases/media/get-media.use-case';
 import { GetAllMediaUseCase } from '../../application/use-cases/media/get-all-media.use-case';
 import { ValidationError } from '../../domain/errors/validation.error';
-import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
 import { CreateMediaRequestDto, UpdateMediaRequestDto, GetMediaQueryDto } from '../dto/media.dto';
-import { AuthenticationErrors } from '../../infrastructure/constants';
+import { getUserId, getUserContext } from '../utils/user-context.util';
 
 @injectable()
 export class MediaController {
@@ -25,7 +24,7 @@ export class MediaController {
     if (!req.body || typeof req.body !== 'object') {
       throw new ValidationError('Request body is required');
     }
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const input = req.body as CreateMediaRequestDto;
     const media = await this.createMediaUseCase.execute(doctorId, input);
     successResponse(res, media, HttpStatus.CREATED, SuccessMessages.CREATED);
@@ -39,7 +38,7 @@ export class MediaController {
     if (!id) {
       throw new ValidationError('Media ID is required');
     }
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const input = req.body as UpdateMediaRequestDto;
     const media = await this.updateMediaUseCase.execute(id, doctorId, input);
     successResponse(res, media, HttpStatus.OK, SuccessMessages.UPDATED);
@@ -50,7 +49,7 @@ export class MediaController {
     if (!id) {
       throw new ValidationError('Media ID is required');
     }
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     await this.deleteMediaUseCase.execute(id, doctorId);
     successResponse(res, null, HttpStatus.OK, SuccessMessages.DELETED);
   }
@@ -60,15 +59,20 @@ export class MediaController {
     if (!id) {
       throw new ValidationError('Media ID is required');
     }
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const media = await this.getMediaUseCase.execute(id, doctorId);
     successResponse(res, media, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
   async getAll(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const context = getUserContext(req);
     const query = this.buildQueryDto(req);
-    const doctorId = this.getDoctorId(req);
-    const result = await this.getAllMediaUseCase.execute(doctorId, query);
+    
+    if (context.role === 'staff' && context.clinicId) {
+      query.clinicId = context.clinicId;
+    }
+    
+    const result = await this.getAllMediaUseCase.execute(context.doctorId, query);
     successResponse(res, result, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
@@ -92,20 +96,6 @@ export class MediaController {
       sortBy,
       sortOrder,
     };
-  }
-
-  private getDoctorId(req: HttpRequest): string {
-    const user = req.user as { id?: string; role?: string; doctorId?: string } | undefined;
-    if (!user || !user.id || !user.role) {
-      throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-    }
-    if (user.role === 'staff') {
-      if (!user.doctorId) {
-        throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-      }
-      return user.doctorId;
-    }
-    return user.id;
   }
 }
 

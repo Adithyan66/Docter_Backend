@@ -1,6 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
-import { successResponse, HttpStatus, SuccessMessages, AuthenticationErrors } from '../../infrastructure/constants';
+import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
 import { CreateClinicUseCase } from '../../application/use-cases/clinic/create-clinic.use-case';
 import { UpdateClinicUseCase } from '../../application/use-cases/clinic/update-clinic.use-case';
 import { DeleteClinicUseCase } from '../../application/use-cases/clinic/delete-clinic.use-case';
@@ -11,7 +11,7 @@ import { ValidationError } from '../../domain/errors/validation.error';
 import { CreateClinicRequestDto, UpdateClinicRequestDto, ClinicResponseDto, PaginatedClinicsResponseDto, ClinicListDto } from '../dto/clinic.dto';
 import { GetClinicsParams } from '../../application/use-cases/clinic/get-all-clinics.use-case';
 import { Clinic } from '../../domain/entities/clinic.entity';
-import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
+import { getUserId } from '../utils/user-context.util';
 
 @injectable()
 export class ClinicController {
@@ -29,7 +29,7 @@ export class ClinicController {
       throw new ValidationError('Request body is required');
     }
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const input = req.body as CreateClinicRequestDto;
     await this.createClinicUseCase.execute(doctorId, input);
     
@@ -46,7 +46,7 @@ export class ClinicController {
       throw new ValidationError('Clinic ID is required');
     }
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const input = req.body as UpdateClinicRequestDto;
     await this.updateClinicUseCase.execute(id, doctorId, input);
     
@@ -59,7 +59,7 @@ export class ClinicController {
       throw new ValidationError('Clinic ID is required');
     }
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     await this.deleteClinicUseCase.execute(id, doctorId);
     
     successResponse(res, null, HttpStatus.OK, SuccessMessages.DELETED);
@@ -71,7 +71,7 @@ export class ClinicController {
       throw new ValidationError('Clinic ID is required');
     }
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     
     const includeStatistics = req.query.includeStatistics === 'true' || req.query.includeStatistics === '1';
     const startDateFrom = req.query.startDateFrom ? new Date(String(req.query.startDateFrom)) : undefined;
@@ -110,7 +110,7 @@ export class ClinicController {
       sortOrder: req.query.sortOrder as 'asc' | 'desc' | undefined,
     };
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const result = await this.getAllClinicsUseCase.execute(doctorId, params);
     const response: PaginatedClinicsResponseDto = {
       clinics: result.clinics as ClinicListDto[],
@@ -124,7 +124,7 @@ export class ClinicController {
   }
 
   async getNames(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const search = req.query.search ? String(req.query.search) : undefined;
     const names = await this.getClinicNamesUseCase.execute(doctorId, search);
     successResponse(res, names, HttpStatus.OK, SuccessMessages.RETRIEVED);
@@ -159,20 +159,6 @@ export class ClinicController {
     }
 
     return dto;
-  }
-
-  private getDoctorId(req: HttpRequest): string {
-    const user = req.user as { id?: string; role?: string; doctorId?: string } | undefined;
-    if (!user || !user.id || !user.role) {
-      throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-    }
-    if (user.role === 'staff') {
-      if (!user.doctorId) {
-        throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-      }
-      return user.doctorId;
-    }
-    return user.id;
   }
 }
 

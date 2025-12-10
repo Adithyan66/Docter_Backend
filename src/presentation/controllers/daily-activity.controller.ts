@@ -3,9 +3,8 @@ import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
 import { GetDailyActivitiesUseCase } from '../../application/use-cases/daily-activity/get-daily-activities.use-case';
 import { ValidationError } from '../../domain/errors/validation.error';
-import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
 import { GetDailyActivitiesQueryDto } from '../dto/daily-activity.dto';
-import { AuthenticationErrors } from '../../infrastructure/constants';
+import { getUserId, getUserContext } from '../utils/user-context.util';
 
 @injectable()
 export class DailyActivityController {
@@ -14,9 +13,14 @@ export class DailyActivityController {
   ) {}
 
   async getAll(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const context = getUserContext(req);
     const query = this.buildQueryDto(req);
-    const doctorId = this.getDoctorId(req);
-    const result = await this.getDailyActivitiesUseCase.execute(doctorId, query);
+    
+    if (context.role === 'staff' && context.clinicId) {
+      query.clinicId = context.clinicId;
+    }
+    
+    const result = await this.getDailyActivitiesUseCase.execute(context.doctorId, query);
     successResponse(res, result, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
@@ -27,20 +31,6 @@ export class DailyActivityController {
       limit: req.query.limit ? parseInt(String(req.query.limit), 10) : undefined,
       clinicId: req.query.clinicId ? String(req.query.clinicId) : undefined,
     };
-  }
-
-  private getDoctorId(req: HttpRequest): string {
-    const user = req.user as { id?: string; role?: string; doctorId?: string } | undefined;
-    if (!user || !user.id || !user.role) {
-      throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-    }
-    if (user.role === 'staff') {
-      if (!user.doctorId) {
-        throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-      }
-      return user.doctorId;
-    }
-    return user.id;
   }
 }
 

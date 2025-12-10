@@ -1,6 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
-import { successResponse, HttpStatus, SuccessMessages, AuthenticationErrors } from '../../infrastructure/constants';
+import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
 import { CreatePrescriptionUseCase } from '../../application/use-cases/prescription/create-prescription.use-case';
 import { GetPrescriptionUseCase } from '../../application/use-cases/prescription/get-prescription.use-case';
 import { GetAllPrescriptionsUseCase } from '../../application/use-cases/prescription/get-all-prescriptions.use-case';
@@ -14,7 +14,7 @@ import {
   PaginatedPrescriptionsResponseDto,
   UpdatePrescriptionRequestDto,
 } from '../dto/prescription.dto';
-import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
+import { getUserId, getUserContext } from '../utils/user-context.util';
 
 @injectable()
 export class PrescriptionController {
@@ -31,7 +31,7 @@ export class PrescriptionController {
       throw new ValidationError('Request body is required');
     }
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const input = req.body as CreatePrescriptionRequestDto;
     const prescription = await this.createPrescriptionUseCase.execute(doctorId, input);
 
@@ -44,13 +44,14 @@ export class PrescriptionController {
       throw new ValidationError('Prescription ID is required');
     }
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const prescription = await this.getPrescriptionUseCase.execute(id, doctorId);
 
     successResponse(res, prescription, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
   async getAll(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const context = getUserContext(req);
     const query: GetPrescriptionsQueryDto = {
       page: req.query.page ? parseInt(String(req.query.page), 10) : undefined,
       limit: req.query.limit ? parseInt(String(req.query.limit), 10) : undefined,
@@ -64,8 +65,11 @@ export class PrescriptionController {
       sortOrder: req.query.sortOrder as any,
     };
 
-    const doctorId = this.getDoctorId(req);
-    const result = await this.getAllPrescriptionsUseCase.execute(doctorId, query);
+    if (context.role === 'staff' && context.clinicId) {
+      query.clinicId = context.clinicId;
+    }
+
+    const result = await this.getAllPrescriptionsUseCase.execute(context.doctorId, query);
 
     successResponse(res, result, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
@@ -80,7 +84,7 @@ export class PrescriptionController {
       throw new ValidationError('Prescription ID is required');
     }
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const input = req.body as UpdatePrescriptionRequestDto;
     const prescription = await this.updatePrescriptionUseCase.execute(id, doctorId, input);
 
@@ -93,24 +97,10 @@ export class PrescriptionController {
       throw new ValidationError('Prescription ID is required');
     }
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     await this.deletePrescriptionUseCase.execute(id, doctorId);
 
     successResponse(res, { message: 'Prescription deleted successfully' }, HttpStatus.OK, SuccessMessages.DELETED);
-  }
-
-  private getDoctorId(req: HttpRequest): string {
-    const user = req.user as { id?: string; role?: string; doctorId?: string } | undefined;
-    if (!user || !user.id || !user.role) {
-      throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-    }
-    if (user.role === 'staff') {
-      if (!user.doctorId) {
-        throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-      }
-      return user.doctorId;
-    }
-    return user.id;
   }
 }
 

@@ -7,9 +7,7 @@ import { DeleteStaffUseCase } from '../../application/use-cases/staff/delete-sta
 import { GetStaffUseCase } from '../../application/use-cases/staff/get-staff.use-case';
 import { GetAllStaffUseCase } from '../../application/use-cases/staff/get-all-staff.use-case';
 import { ValidationError } from '../../domain/errors/validation.error';
-import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
-import { JwtPayload } from '../../application/interfaces/jwt-service.interface';
-import { AuthenticationErrors } from '../../infrastructure/constants/error-messages';
+import { getUserContext } from '../utils/user-context.util';
 
 @injectable()
 export class StaffController {
@@ -25,7 +23,7 @@ export class StaffController {
     if (!req.body || typeof req.body !== 'object') {
       throw new ValidationError('Request body is required');
     }
-    const user = this.getRequestUser(req);
+    const user = getUserContext(req);
     const result = await this.createStaffUseCase.execute(user.doctorId, req.body as any);
     successResponse(res, result, HttpStatus.CREATED, SuccessMessages.CREATED);
   }
@@ -38,7 +36,7 @@ export class StaffController {
     if (!id) {
       throw new ValidationError('Staff ID is required');
     }
-    const user = this.getRequestUser(req);
+    const user = getUserContext(req);
     const result = await this.updateStaffUseCase.execute(id, user.doctorId, req.body as any);
     successResponse(res, result, HttpStatus.OK, SuccessMessages.UPDATED);
   }
@@ -48,7 +46,7 @@ export class StaffController {
     if (!id) {
       throw new ValidationError('Staff ID is required');
     }
-    const user = this.getRequestUser(req);
+    const user = getUserContext(req);
     await this.deleteStaffUseCase.execute(id, user.doctorId);
     successResponse(res, null, HttpStatus.OK, SuccessMessages.DELETED);
   }
@@ -58,13 +56,13 @@ export class StaffController {
     if (!id) {
       throw new ValidationError('Staff ID is required');
     }
-    const user = this.getRequestUser(req);
+    const user = getUserContext(req);
     const result = await this.getStaffUseCase.execute(id, user.doctorId);
     successResponse(res, result, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
   async getAll(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
-    const user = this.getRequestUser(req);
+    const user = getUserContext(req);
     const params = {
       page: req.query.page ? parseInt(String(req.query.page), 10) : undefined,
       limit: req.query.limit ? parseInt(String(req.query.limit), 10) : undefined,
@@ -74,22 +72,6 @@ export class StaffController {
     };
     const result = await this.getAllStaffUseCase.execute(user.doctorId, params);
     successResponse(res, result, HttpStatus.OK, SuccessMessages.RETRIEVED);
-  }
-
-  private getRequestUser(req: HttpRequest): { id: string; role: 'doctor' | 'staff'; clinicId?: string; doctorId: string } {
-    const user = req.user as JwtPayload | undefined;
-    if (!user || !user.id || !user.role) {
-      throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-    }
-    if (user.role === 'staff' && !user.doctorId) {
-      throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-    }
-    return {
-      id: user.id,
-      role: user.role,
-      clinicId: user.clinicId,
-      doctorId: user.role === 'doctor' ? user.id : (user.doctorId as string),
-    };
   }
 }
 

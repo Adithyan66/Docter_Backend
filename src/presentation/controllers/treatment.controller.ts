@@ -1,6 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
-import { successResponse, HttpStatus, SuccessMessages, AuthenticationErrors } from '../../infrastructure/constants';
+import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
 import { CreateTreatmentUseCase } from '../../application/use-cases/treatment/create-treatment.use-case';
 import { UpdateTreatmentUseCase } from '../../application/use-cases/treatment/update-treatment.use-case';
 import { DeleteTreatmentUseCase } from '../../application/use-cases/treatment/delete-treatment.use-case';
@@ -10,7 +10,7 @@ import { GetTreatmentNamesUseCase } from '../../application/use-cases/treatment/
 import { ValidationError } from '../../domain/errors/validation.error';
 import { CreateTreatmentRequestDto, UpdateTreatmentRequestDto, TreatmentResponseDto, PaginatedTreatmentsResponseDto, TreatmentList } from '../dto/treatment.dto';
 import { Treatment } from '../../domain/entities/treatment.entity';
-import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
+import { getUserId, getUserContext } from '../utils/user-context.util';
 
 @injectable()
 export class TreatmentController {
@@ -28,7 +28,7 @@ export class TreatmentController {
       throw new ValidationError('Request body is required');
     }
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const input = req.body as CreateTreatmentRequestDto;
     await this.createTreatmentUseCase.execute(doctorId, input);
     
@@ -45,7 +45,7 @@ export class TreatmentController {
       throw new ValidationError('Treatment ID is required');
     }
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const input = req.body as UpdateTreatmentRequestDto;
     await this.updateTreatmentUseCase.execute(id, doctorId, input);
     
@@ -58,7 +58,7 @@ export class TreatmentController {
       throw new ValidationError('Treatment ID is required');
     }
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     await this.deleteTreatmentUseCase.execute(id, doctorId);
     
     successResponse(res, null, HttpStatus.OK, SuccessMessages.DELETED);
@@ -70,14 +70,18 @@ export class TreatmentController {
       throw new ValidationError('Treatment ID is required');
     }
 
-    const doctorId = this.getDoctorId(req);
+    const context = getUserContext(req);
     
     const includeStatistics = req.query.includeStatistics === 'true' || req.query.includeStatistics === '1';
     const startDateFrom = req.query.startDateFrom ? new Date(String(req.query.startDateFrom)) : undefined;
     const startDateTo = req.query.startDateTo ? new Date(String(req.query.startDateTo)) : undefined;
-    const clinicId = req.query.clinicId ? String(req.query.clinicId) : undefined;
+    let clinicId = req.query.clinicId ? String(req.query.clinicId) : undefined;
     const include = req.query.include ? String(req.query.include).split(',').map(s => s.trim()) : undefined;
     const exclude = req.query.exclude ? String(req.query.exclude).split(',').map(s => s.trim()) : undefined;
+
+    if (context.role === 'staff' && context.clinicId) {
+      clinicId = context.clinicId;
+    }
 
     if (startDateFrom && isNaN(startDateFrom.getTime())) {
       throw new ValidationError('Invalid startDateFrom format. Use ISO date string.');
@@ -86,7 +90,7 @@ export class TreatmentController {
       throw new ValidationError('Invalid startDateTo format. Use ISO date string.');
     }
 
-    const result = await this.getTreatmentUseCase.execute(id, doctorId, {
+    const result = await this.getTreatmentUseCase.execute(id, context.doctorId, {
       includeStatistics,
       startDateFrom,
       startDateTo,
@@ -110,7 +114,7 @@ export class TreatmentController {
     const validSortBy = sortBy && ['averageAmount', 'averageDuration', 'numberOfPatients', 'ongoing', 'completed', ''].includes(sortBy) ? sortBy : '';
     const validSortOrder = sortOrder && ['asc', 'desc'].includes(sortOrder) ? sortOrder : undefined;
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const result = await this.getAllTreatmentsUseCase.execute(doctorId, page, limit, validSortBy, validSortOrder, search);
     
     const response: PaginatedTreatmentsResponseDto = {
@@ -125,7 +129,7 @@ export class TreatmentController {
   }
 
   async getNames(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const search = req.query.search ? String(req.query.search) : undefined;
     const names = await this.getTreatmentNamesUseCase.execute(doctorId, search);
     successResponse(res, names, HttpStatus.OK, SuccessMessages.RETRIEVED);
@@ -161,20 +165,6 @@ export class TreatmentController {
     }
 
     return dto;
-  }
-
-  private getDoctorId(req: HttpRequest): string {
-    const user = req.user as { id?: string; role?: string; doctorId?: string } | undefined;
-    if (!user || !user.id || !user.role) {
-      throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-    }
-    if (user.role === 'staff') {
-      if (!user.doctorId) {
-        throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-      }
-      return user.doctorId;
-    }
-    return user.id;
   }
 }
 

@@ -7,10 +7,9 @@ import { DeleteTreatmentCourseUseCase } from '../../application/use-cases/treatm
 import { GetTreatmentCourseUseCase } from '../../application/use-cases/treatment-course/get-treatment-course.use-case';
 import { GetAllTreatmentCoursesUseCase } from '../../application/use-cases/treatment-course/get-all-treatment-courses.use-case';
 import { ValidationError } from '../../domain/errors/validation.error';
-import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
 import { CreateTreatmentCourseRequestDto, UpdateTreatmentCourseRequestDto, GetTreatmentCoursesQueryDto } from '../dto/treatment-course.dto';
 import { TreatmentCourseStatus } from '../../domain/value-objects/treatment-course-status.vo';
-import { AuthenticationErrors } from '../../infrastructure/constants';
+import { getUserId, getUserContext } from '../utils/user-context.util';
 
 @injectable()
 export class TreatmentCourseController {
@@ -26,7 +25,7 @@ export class TreatmentCourseController {
     if (!req.body || typeof req.body !== 'object') {
       throw new ValidationError('Request body is required');
     }
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const input = req.body as CreateTreatmentCourseRequestDto;
     const treatmentCourse = await this.createTreatmentCourseUseCase.execute(doctorId, input);
     successResponse(res, treatmentCourse, HttpStatus.CREATED, SuccessMessages.CREATED);
@@ -40,7 +39,7 @@ export class TreatmentCourseController {
     if (!id) {
       throw new ValidationError('TreatmentCourse ID is required');
     }
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const input = req.body as UpdateTreatmentCourseRequestDto;
     const treatmentCourse = await this.updateTreatmentCourseUseCase.execute(id, doctorId, input);
     successResponse(res, treatmentCourse, HttpStatus.OK, SuccessMessages.UPDATED);
@@ -51,7 +50,7 @@ export class TreatmentCourseController {
     if (!id) {
       throw new ValidationError('TreatmentCourse ID is required');
     }
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     await this.deleteTreatmentCourseUseCase.execute(id, doctorId);
     successResponse(res, null, HttpStatus.OK, SuccessMessages.DELETED);
   }
@@ -61,15 +60,20 @@ export class TreatmentCourseController {
     if (!id) {
       throw new ValidationError('TreatmentCourse ID is required');
     }
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const treatmentCourse = await this.getTreatmentCourseUseCase.execute(id, doctorId);
     successResponse(res, treatmentCourse, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
   async getAll(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const context = getUserContext(req);
     const query = this.buildQueryDto(req);
-    const doctorId = this.getDoctorId(req);
-    const result = await this.getAllTreatmentCoursesUseCase.execute(doctorId, query);
+    
+    if (context.role === 'staff' && context.clinicId) {
+      query.clinicId = context.clinicId;
+    }
+    
+    const result = await this.getAllTreatmentCoursesUseCase.execute(context.doctorId, query);
     successResponse(res, result, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
@@ -97,20 +101,6 @@ export class TreatmentCourseController {
       sortBy,
       sortOrder,
     };
-  }
-
-  private getDoctorId(req: HttpRequest): string {
-    const user = req.user as { id?: string; role?: string; doctorId?: string } | undefined;
-    if (!user || !user.id || !user.role) {
-      throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-    }
-    if (user.role === 'staff') {
-      if (!user.doctorId) {
-        throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-      }
-      return user.doctorId;
-    }
-    return user.id;
   }
 }
 

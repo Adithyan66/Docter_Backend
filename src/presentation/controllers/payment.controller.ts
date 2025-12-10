@@ -1,6 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
-import { successResponse, HttpStatus, SuccessMessages, AuthenticationErrors } from '../../infrastructure/constants';
+import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
 import { CreatePaymentUseCase } from '../../application/use-cases/payment/create-payment.use-case';
 import { GetPaymentUseCase } from '../../application/use-cases/payment/get-payment.use-case';
 import { GetAllPaymentsUseCase } from '../../application/use-cases/payment/get-all-payments.use-case';
@@ -13,7 +13,7 @@ import {
   PaginatedPaymentsResponseDto,
   RefundPaymentRequestDto,
 } from '../dto/payment.dto';
-import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
+import { getUserId, getUserContext } from '../utils/user-context.util';
 
 @injectable()
 export class PaymentController {
@@ -29,7 +29,7 @@ export class PaymentController {
       throw new ValidationError('Request body is required');
     }
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const input = req.body as CreatePaymentRequestDto;
     const payment = await this.createPaymentUseCase.execute(doctorId, input);
 
@@ -42,13 +42,14 @@ export class PaymentController {
       throw new ValidationError('Payment ID is required');
     }
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const payment = await this.getPaymentUseCase.execute(id, doctorId);
 
     successResponse(res, payment, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
   async getAll(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const context = getUserContext(req);
     const query: GetPaymentsQueryDto = {
       page: req.query.page ? parseInt(String(req.query.page), 10) : undefined,
       limit: req.query.limit ? parseInt(String(req.query.limit), 10) : undefined,
@@ -64,8 +65,11 @@ export class PaymentController {
       sortOrder: req.query.sortOrder as any,
     };
 
-    const doctorId = this.getDoctorId(req);
-    const result = await this.getAllPaymentsUseCase.execute(doctorId, query);
+    if (context.role === 'staff' && context.clinicId) {
+      query.clinicId = context.clinicId;
+    }
+
+    const result = await this.getAllPaymentsUseCase.execute(context.doctorId, query);
 
     successResponse(res, result, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
@@ -80,25 +84,11 @@ export class PaymentController {
       throw new ValidationError('Payment ID is required');
     }
 
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const input = req.body as RefundPaymentRequestDto;
     const payment = await this.refundPaymentUseCase.execute(id, doctorId, input);
 
     successResponse(res, payment, HttpStatus.OK, SuccessMessages.UPDATED);
-  }
-
-  private getDoctorId(req: HttpRequest): string {
-    const user = req.user as { id?: string; role?: string; doctorId?: string } | undefined;
-    if (!user || !user.id || !user.role) {
-      throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-    }
-    if (user.role === 'staff') {
-      if (!user.doctorId) {
-        throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-      }
-      return user.doctorId;
-    }
-    return user.id;
   }
 }
 

@@ -8,10 +8,9 @@ import { GetVisitUseCase } from '../../application/use-cases/visit/get-visit.use
 import { GetAllVisitsUseCase } from '../../application/use-cases/visit/get-all-visits.use-case';
 import { GetVisitRemindersUseCase } from '../../application/use-cases/visit/get-visit-reminders.use-case';
 import { ValidationError } from '../../domain/errors/validation.error';
-import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
 import { CreateVisitRequestDto, UpdateVisitRequestDto, GetVisitsQueryDto } from '../dto/visit.dto';
 import { GetVisitRemindersQueryDto } from '../dto/visit-reminder.dto';
-import { AuthenticationErrors } from '../../infrastructure/constants';
+import { getUserId, getUserContext } from '../utils/user-context.util';
 
 @injectable()
 export class VisitController {
@@ -28,7 +27,7 @@ export class VisitController {
     if (!req.body || typeof req.body !== 'object') {
       throw new ValidationError('Request body is required');
     }
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const input = req.body as CreateVisitRequestDto;
     const visit = await this.createVisitUseCase.execute(doctorId, input);
     successResponse(res, visit, HttpStatus.CREATED, SuccessMessages.CREATED);
@@ -42,7 +41,7 @@ export class VisitController {
     if (!id) {
       throw new ValidationError('Visit ID is required');
     }
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const input = req.body as UpdateVisitRequestDto;
     const visit = await this.updateVisitUseCase.execute(id, doctorId, input);
     successResponse(res, visit, HttpStatus.OK, SuccessMessages.UPDATED);
@@ -53,7 +52,7 @@ export class VisitController {
     if (!id) {
       throw new ValidationError('Visit ID is required');
     }
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     await this.deleteVisitUseCase.execute(id, doctorId);
     successResponse(res, null, HttpStatus.OK, SuccessMessages.DELETED);
   }
@@ -63,22 +62,32 @@ export class VisitController {
     if (!id) {
       throw new ValidationError('Visit ID is required');
     }
-    const doctorId = this.getDoctorId(req);
+    const doctorId = getUserId(req);
     const visit = await this.getVisitUseCase.execute(id, doctorId);
     successResponse(res, visit, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
   async getAll(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const context = getUserContext(req);
     const query = this.buildQueryDto(req);
-    const doctorId = this.getDoctorId(req);
-    const result = await this.getAllVisitsUseCase.execute(doctorId, query);
+    
+    if (context.role === 'staff' && context.clinicId) {
+      query.clinicId = context.clinicId;
+    }
+    
+    const result = await this.getAllVisitsUseCase.execute(context.doctorId, query);
     successResponse(res, result, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 
   async getVisitReminders(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const context = getUserContext(req);
     const query = this.buildRemindersQueryDto(req);
-    const doctorId = this.getDoctorId(req);
-    const result = await this.getVisitRemindersUseCase.execute(doctorId, query);
+    
+    if (context.role === 'staff' && context.clinicId) {
+      query.clinicId = context.clinicId;
+    }
+    
+    const result = await this.getVisitRemindersUseCase.execute(context.doctorId, query);
     paginatedResponse(res, result.reminders, {
       page: result.page,
       limit: result.limit,
@@ -124,20 +133,6 @@ export class VisitController {
       treatmentId: req.query.treatmentId ? String(req.query.treatmentId) : undefined,
       clinicId: req.query.clinicId ? String(req.query.clinicId) : undefined,
     };
-  }
-
-  private getDoctorId(req: HttpRequest): string {
-    const user = req.user as { id?: string; role?: string; doctorId?: string } | undefined;
-    if (!user || !user.id || !user.role) {
-      throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-    }
-    if (user.role === 'staff') {
-      if (!user.doctorId) {
-        throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-      }
-      return user.doctorId;
-    }
-    return user.id;
   }
 }
 
