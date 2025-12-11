@@ -2,6 +2,8 @@ import { injectable, inject } from 'tsyringe';
 import { IClinicRepository, ClinicStatisticsOptions } from '../../../domain/repositories/clinic.repository';
 import { Clinic } from '../../../domain/entities/clinic.entity';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
+import { UnauthorizedError } from '../../../domain/errors/unauthorized.error';
+import { AuthenticationErrors } from '../../../infrastructure/constants/error-messages';
 
 export interface GetClinicOptions {
   includeStatistics?: boolean;
@@ -23,10 +25,20 @@ export class GetClinicUseCase {
     @inject('IClinicRepository') private clinicRepository: IClinicRepository
   ) {}
 
-  async execute(id: string, doctorId: string, options?: GetClinicOptions): Promise<GetClinicResult> {
+  async execute(
+    id: string,
+    requester: { doctorId: string; role: 'doctor' | 'staff'; clinicId?: string },
+    options?: GetClinicOptions
+  ): Promise<GetClinicResult> {
+    const { doctorId, role, clinicId } = requester;
     const clinic = await this.clinicRepository.findById(id);
     if (!clinic || clinic.doctorId !== doctorId) {
       throw new NotFoundError('Clinic', id);
+    }
+    if (role === 'staff') {
+      if (!clinicId || clinicId !== clinic.id) {
+        throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
+      }
     }
 
     const result: GetClinicResult = { clinic };

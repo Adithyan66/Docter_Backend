@@ -367,10 +367,28 @@ export class MongoTreatmentCourseRepository implements ITreatmentCourseRepositor
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const dateFrom = new Date(today);
-    dateFrom.setDate(dateFrom.getDate() - daysBefore);
-    const dateTo = new Date(today);
-    dateTo.setDate(dateTo.getDate() + daysAfter);
+    
+    let dateFrom: Date;
+    let dateTo: Date;
+    
+    if (daysBefore >= 0 && daysAfter >= 0) {
+      dateFrom = new Date(today);
+      dateFrom.setDate(dateFrom.getDate() - daysBefore);
+      dateTo = new Date(today);
+      dateTo.setDate(dateTo.getDate() + daysAfter);
+    } else {
+      dateFrom = new Date(today);
+      dateFrom.setDate(dateFrom.getDate() + daysBefore);
+      dateTo = new Date(today);
+      dateTo.setDate(dateTo.getDate() + daysAfter);
+      
+      if (dateFrom > dateTo) {
+        const temp = new Date(dateFrom);
+        dateFrom = new Date(dateTo);
+        dateTo = temp;
+      }
+    }
+    
     dateTo.setHours(23, 59, 59, 999);
 
     const baseMatch: any = {

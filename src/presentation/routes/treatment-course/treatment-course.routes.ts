@@ -5,12 +5,13 @@ import { createTreatmentCourseSchema, updateTreatmentCourseSchema } from '../../
 import { asyncHandler } from '../../utils/async-handler';
 import { container } from '../../../di/container';
 import { authMiddleware } from '../../middleware/auth.middleware';
+import { doctorOnly } from '../../middleware/role.middleware';
 
 export const setupTreatmentCourseRoutes = (router: Router): void => {
   const treatmentCourseController = container.resolve(TreatmentCourseController);
   const auth = authMiddleware();
 
-  router.post('/treatment-course/add', auth, validate(createTreatmentCourseSchema), asyncHandler(treatmentCourseController.create.bind(treatmentCourseController)));
+  router.post('/treatment-course/add', auth,doctorOnly, validate(createTreatmentCourseSchema), asyncHandler(treatmentCourseController.create.bind(treatmentCourseController)));
 
   router.get('/treatment-course/all', auth, asyncHandler(treatmentCourseController.getAll.bind(treatmentCourseController)));
 
@@ -18,6 +19,6 @@ export const setupTreatmentCourseRoutes = (router: Router): void => {
 
   router.patch('/treatment-course/:id', auth, validate(updateTreatmentCourseSchema), asyncHandler(treatmentCourseController.update.bind(treatmentCourseController)));
 
-  router.delete('/treatment-course/:id', auth, asyncHandler(treatmentCourseController.delete.bind(treatmentCourseController)));
+  router.delete('/treatment-course/:id', auth,doctorOnly, asyncHandler(treatmentCourseController.delete.bind(treatmentCourseController)));
 };
 

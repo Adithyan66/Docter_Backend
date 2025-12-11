@@ -1,6 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import { IDoctorRepository } from '../../../domain/repositories/doctor.repository';
 import { IStaffRepository } from '../../../domain/repositories/staff.repository';
+import { IClinicRepository } from '../../../domain/repositories/clinic.repository';
 import { IPasswordService } from '../../interfaces/password-service.interface';
 import { IJwtService } from '../../interfaces/jwt-service.interface';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
@@ -12,6 +13,7 @@ export class LoginUseCase {
   constructor(
     @inject('IDoctorRepository') private doctorRepository: IDoctorRepository,
     @inject('IStaffRepository') private staffRepository: IStaffRepository,
+    @inject('IClinicRepository') private clinicRepository: IClinicRepository,
     @inject('IPasswordService') private passwordService: IPasswordService,
     @inject('IJwtService') private jwtService: IJwtService
   ) {}
@@ -24,7 +26,7 @@ export class LoginUseCase {
   }): Promise<{
     accessToken: string;
     refreshToken: string;
-    user: { id: string; email: string; role: 'doctor' | 'staff'; clinicId?: string; doctorId?: string };
+    user: { id: string; email: string; role: 'doctor' | 'staff'; clinicId?: string; doctorId?: string; clinicName?: string };
   }> {
     const role = params.role || 'doctor';
     if (role === 'staff') {
@@ -42,6 +44,8 @@ export class LoginUseCase {
       if (!isPasswordValid) {
         throw new ValidationError(AuthenticationErrors.INVALID_CREDENTIALS);
       }
+      const clinic = staff.clinicId ? await this.clinicRepository.findById(staff.clinicId) : null;
+      const clinicName = clinic?.name;
       const payload = {
         id: staff.id,
         email: staff.username,
@@ -61,6 +65,7 @@ export class LoginUseCase {
           role: 'staff',
           clinicId: staff.clinicId,
           doctorId: staff.doctorId,
+          clinicName,
         },
       };
     }

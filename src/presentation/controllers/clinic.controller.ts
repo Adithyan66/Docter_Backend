@@ -11,7 +11,9 @@ import { ValidationError } from '../../domain/errors/validation.error';
 import { CreateClinicRequestDto, UpdateClinicRequestDto, ClinicResponseDto, PaginatedClinicsResponseDto, ClinicListDto } from '../dto/clinic.dto';
 import { GetClinicsParams } from '../../application/use-cases/clinic/get-all-clinics.use-case';
 import { Clinic } from '../../domain/entities/clinic.entity';
-import { getUserId } from '../utils/user-context.util';
+import { getUserContext, getClinicId, getUserId } from '../utils/user-context.util';
+import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
+import { AuthenticationErrors } from '../../infrastructure/constants/error-messages';
 
 @injectable()
 export class ClinicController {
@@ -29,7 +31,14 @@ export class ClinicController {
       throw new ValidationError('Request body is required');
     }
 
-    const doctorId = getUserId(req);
+    const userContext = getUserContext(req);
+    const doctorId = userContext.doctorId;
+    const staffClinicId = getClinicId(req);
+    if (userContext.role === 'staff') {
+      if (!staffClinicId || staffClinicId !== id) {
+        throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
+      }
+    }
     const input = req.body as CreateClinicRequestDto;
     await this.createClinicUseCase.execute(doctorId, input);
     
@@ -71,8 +80,15 @@ export class ClinicController {
       throw new ValidationError('Clinic ID is required');
     }
 
-    const doctorId = getUserId(req);
-    
+    const userContext = getUserContext(req);
+    const doctorId = userContext.doctorId;
+    const staffClinicId = getClinicId(req);
+    if (userContext.role === 'staff') {
+      if (!staffClinicId || staffClinicId !== id) {
+        throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
+      }
+    }
+
     const includeStatistics = req.query.includeStatistics === 'true' || req.query.includeStatistics === '1';
     const startDateFrom = req.query.startDateFrom ? new Date(String(req.query.startDateFrom)) : undefined;
     const startDateTo = req.query.startDateTo ? new Date(String(req.query.startDateTo)) : undefined;
@@ -87,7 +103,11 @@ export class ClinicController {
       throw new ValidationError('Invalid startDateTo format. Use ISO date string.');
     }
 
-    const result = await this.getClinicUseCase.execute(id, doctorId, {
+    const result = await this.getClinicUseCase.execute(id, {
+      doctorId,
+      role: userContext.role,
+      clinicId: staffClinicId,
+    }, {
       includeStatistics,
       startDateFrom,
       startDateTo,

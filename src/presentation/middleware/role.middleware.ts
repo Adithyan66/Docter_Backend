@@ -15,6 +15,8 @@ export const requireRole = (roles: Array<'doctor' | 'staff'>): HttpHandler => {
   };
 };
 
+export const doctorOnly = requireRole(['doctor']);
+
 export const requireClinicAccess = (paramName: string): HttpHandler => {
   return (req: HttpRequest, res: HttpResponse, next?: HttpNext): void => {
     const user = req.user as JwtPayload | undefined;

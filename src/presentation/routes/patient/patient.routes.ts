@@ -5,6 +5,7 @@ import { createPatientSchema, updatePatientSchema } from '../../validators/patie
 import { asyncHandler } from '../../utils/async-handler';
 import { container } from '../../../di/container';
 import { authMiddleware } from '../../middleware/auth.middleware';
+import { doctorOnly } from '../../middleware/role.middleware';
 
 export const setupPatientRoutes = (router: Router): void => {
   const patientController = container.resolve(PatientController);
@@ -18,7 +19,7 @@ export const setupPatientRoutes = (router: Router): void => {
 
   router.patch('/patient/:id', auth, validate(updatePatientSchema), asyncHandler(patientController.update.bind(patientController)));
 
-  router.delete('/patient/:id', auth, asyncHandler(patientController.delete.bind(patientController)));
+  router.delete('/patient/:id', auth, doctorOnly, asyncHandler(patientController.delete.bind(patientController)));
 
   router.patch('/patient/:id/restore', auth, asyncHandler(patientController.restore.bind(patientController)));
 };

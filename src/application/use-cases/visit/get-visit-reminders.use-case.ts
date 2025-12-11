@@ -1,7 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { ITreatmentCourseRepository, VisitReminderSearchOptions } from '../../../domain/repositories/treatment-course.repository';
 import { GetVisitRemindersQueryDto, PaginatedVisitRemindersResponseDto } from '../../../presentation/dto/visit-reminder.dto';
-import { ValidationError } from '../../../domain/errors/validation.error';
 
 @injectable()
 export class GetVisitRemindersUseCase {
@@ -15,10 +14,6 @@ export class GetVisitRemindersUseCase {
 
     const daysBefore = input.daysBefore !== undefined ? input.daysBefore : 5;
     const daysAfter = input.daysAfter !== undefined ? input.daysAfter : 5;
-
-    if (daysBefore < 0 || daysAfter < 0) {
-      throw new ValidationError('daysBefore and daysAfter must be non-negative');
-    }
 
     const treatmentIds = input.treatmentId
       ? input.treatmentId.split(',').map(id => id.trim()).filter(id => id.length > 0)
