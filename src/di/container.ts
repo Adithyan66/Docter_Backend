@@ -42,6 +42,8 @@ import { DeleteClinicUseCase } from '../application/use-cases/clinic/delete-clin
 import { GetClinicUseCase } from '../application/use-cases/clinic/get-clinic.use-case';
 import { GetAllClinicsUseCase } from '../application/use-cases/clinic/get-all-clinics.use-case';
 import { GetClinicNamesUseCase } from '../application/use-cases/clinic/get-clinic-names.use-case';
+import { GetClinicImagesUseCase } from '../application/use-cases/clinic/get-clinic-images.use-case';
+import { DeleteClinicImageUseCase } from '../application/use-cases/clinic/delete-clinic-image.use-case';
 import { CreatePatientUseCase } from '../application/use-cases/patient/create-patient.use-case';
 import { UpdatePatientUseCase } from '../application/use-cases/patient/update-patient.use-case';
 import { DeletePatientUseCase } from '../application/use-cases/patient/delete-patient.use-case';
@@ -156,6 +158,10 @@ container.registerSingleton<GetClinicUseCase>('GetClinicUseCase', GetClinicUseCa
 container.registerSingleton<GetAllClinicsUseCase>('GetAllClinicsUseCase', GetAllClinicsUseCase);
 
 container.registerSingleton<GetClinicNamesUseCase>('GetClinicNamesUseCase', GetClinicNamesUseCase);
+
+container.registerSingleton<GetClinicImagesUseCase>('GetClinicImagesUseCase', GetClinicImagesUseCase);
+
+container.registerSingleton<DeleteClinicImageUseCase>('DeleteClinicImageUseCase', DeleteClinicImageUseCase);
 
 container.registerSingleton<CreatePatientUseCase>('CreatePatientUseCase', CreatePatientUseCase);
 container.registerSingleton<UpdatePatientUseCase>('UpdatePatientUseCase', UpdatePatientUseCase);

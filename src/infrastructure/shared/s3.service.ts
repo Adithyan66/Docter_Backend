@@ -39,6 +39,16 @@ export class S3Service implements IS3Service {
     await this.s3Client.send(command);
   }
 
+  extractS3KeyFromUrl(url: string): string {
+    try {
+      const urlObj = new URL(url);
+      const pathname = urlObj.pathname;
+      return pathname.startsWith('/') ? pathname.substring(1) : pathname;
+    } catch (error) {
+      throw new Error(`Invalid image URL format: ${url}`);
+    }
+  }
+
   getPublicUrl(key: string): string {
     return `https://${this.bucketName}.s3.${config.aws.region}.amazonaws.com/${key}`;
   }

@@ -1,6 +1,6 @@
 import { injectable } from 'tsyringe';
 import { PipelineStage, Types } from 'mongoose';
-import { IClinicRepository, FindAllPaginatedOptions, ClinicListResult, ClinicStatisticsOptions, ClinicStatistics } from '../../../domain/repositories/clinic.repository';
+import { IClinicRepository, FindAllPaginatedOptions, ClinicListResult, ClinicStatisticsOptions, ClinicStatistics, GetClinicImagesOptions } from '../../../domain/repositories/clinic.repository';
 import { Clinic } from '../../../domain/entities/clinic.entity';
 import { ClinicModel, IClinic } from '../../database/mongoose/clinic.model';
 import { TreatmentCourseModel } from '../../database/mongoose/treatment-course.model';
@@ -10,9 +10,68 @@ import { WorkingDay } from '../../../domain/value-objects/working-day.vo';
 @injectable()
 export class MongoClinicRepository implements IClinicRepository {
   async findById(id: string): Promise<Clinic | null> {
-    const clinicDoc = await ClinicModel.findOne({ _id: id, isDeleted: false }).populate('treatments', 'name');
-    if (!clinicDoc) return null;
-    return this.toDomain(clinicDoc);
+    const pipeline: PipelineStage[] = [
+      {
+        $match: {
+          _id: new Types.ObjectId(id),
+          isDeleted: false,
+        },
+      },
+      {
+        $lookup: {
+          from: 'treatments',
+          localField: 'treatments',
+          foreignField: '_id',
+          as: 'populatedTreatments',
+          pipeline: [
+            {
+              $match: { isDeleted: false },
+            },
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          clinicId: 1,
+          doctor: 1,
+          name: 1,
+          address: 1,
+          city: 1,
+          state: 1,
+          pincode: 1,
+          phone: 1,
+          email: 1,
+          website: 1,
+          locationUrl: 1,
+          workingDays: 1,
+          treatments: 1,
+          populatedTreatments: 1,
+          images: {
+            $cond: {
+              if: { $and: [{ $isArray: '$images' }, { $gt: [{ $size: '$images' }, 0] }] },
+              then: [{ $arrayElemAt: ['$images', 0] }],
+              else: '$$REMOVE',
+            },
+          },
+          notes: 1,
+          isActive: 1,
+          isDeleted: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    ];
+
+    const result = await ClinicModel.aggregate(pipeline);
+    if (!result || result.length === 0) return null;
+    return this.toDomainFromPlainObject(result[0]);
   }
 
   async findAll(): Promise<Clinic[]> {
@@ -21,15 +80,135 @@ export class MongoClinicRepository implements IClinicRepository {
   }
 
   async findByName(name: string, doctorId: string): Promise<Clinic | null> {
-    const clinicDoc = await ClinicModel.findOne({ name: name.trim(), doctor: new Types.ObjectId(doctorId), isDeleted: false }).populate('treatments', 'name');
-    if (!clinicDoc) return null;
-    return this.toDomain(clinicDoc);
+    const pipeline: PipelineStage[] = [
+      {
+        $match: {
+          name: name.trim(),
+          doctor: new Types.ObjectId(doctorId),
+          isDeleted: false,
+        },
+      },
+      {
+        $lookup: {
+          from: 'treatments',
+          localField: 'treatments',
+          foreignField: '_id',
+          as: 'populatedTreatments',
+          pipeline: [
+            {
+              $match: { isDeleted: false },
+            },
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          clinicId: 1,
+          doctor: 1,
+          name: 1,
+          address: 1,
+          city: 1,
+          state: 1,
+          pincode: 1,
+          phone: 1,
+          email: 1,
+          website: 1,
+          locationUrl: 1,
+          workingDays: 1,
+          treatments: 1,
+          populatedTreatments: 1,
+          images: {
+            $cond: {
+              if: { $and: [{ $isArray: '$images' }, { $gt: [{ $size: '$images' }, 0] }] },
+              then: [{ $arrayElemAt: ['$images', 0] }],
+              else: '$$REMOVE',
+            },
+          },
+          notes: 1,
+          isActive: 1,
+          isDeleted: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    ];
+
+    const result = await ClinicModel.aggregate(pipeline);
+    if (!result || result.length === 0) return null;
+    return this.toDomainFromPlainObject(result[0]);
   }
 
   async findByClinicId(clinicId: string, doctorId: string): Promise<Clinic | null> {
-    const clinicDoc = await ClinicModel.findOne({ clinicId: clinicId.toUpperCase(), doctor: new Types.ObjectId(doctorId), isDeleted: false }).populate('treatments', 'name');
-    if (!clinicDoc) return null;
-    return this.toDomain(clinicDoc);
+    const pipeline: PipelineStage[] = [
+      {
+        $match: {
+          clinicId: clinicId.toUpperCase(),
+          doctor: new Types.ObjectId(doctorId),
+          isDeleted: false,
+        },
+      },
+      {
+        $lookup: {
+          from: 'treatments',
+          localField: 'treatments',
+          foreignField: '_id',
+          as: 'populatedTreatments',
+          pipeline: [
+            {
+              $match: { isDeleted: false },
+            },
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          clinicId: 1,
+          doctor: 1,
+          name: 1,
+          address: 1,
+          city: 1,
+          state: 1,
+          pincode: 1,
+          phone: 1,
+          email: 1,
+          website: 1,
+          locationUrl: 1,
+          workingDays: 1,
+          treatments: 1,
+          populatedTreatments: 1,
+          images: {
+            $cond: {
+              if: { $and: [{ $isArray: '$images' }, { $gt: [{ $size: '$images' }, 0] }] },
+              then: [{ $arrayElemAt: ['$images', 0] }],
+              else: '$$REMOVE',
+            },
+          },
+          notes: 1,
+          isActive: 1,
+          isDeleted: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    ];
+
+    const result = await ClinicModel.aggregate(pipeline);
+    if (!result || result.length === 0) return null;
+    return this.toDomainFromPlainObject(result[0]);
   }
 
   async findNames(doctorId: string, search?: string): Promise<Array<{ id: string; name: string }>> {
@@ -965,6 +1144,104 @@ export class MongoClinicRepository implements IClinicRepository {
       doc.isActive,
       doc.isDeleted
     );
+  }
+
+  async getClinicImages(clinicId: string, options: { page: number; limit: number }): Promise<{ images: string[]; total: number; page: number; limit: number; totalPages: number }> {
+    const { page, limit } = options;
+    const skip = (page - 1) * limit;
+
+    const pipeline: PipelineStage[] = [
+      {
+        $match: {
+          _id: new Types.ObjectId(clinicId),
+          isDeleted: false,
+        },
+      },
+      {
+        $facet: {
+          metadata: [
+            {
+              $project: {
+                total: {
+                  $cond: {
+                    if: { $isArray: '$images' },
+                    then: { $size: '$images' },
+                    else: 0,
+                  },
+                },
+              },
+            },
+          ],
+          data: [
+            {
+              $project: {
+                images: {
+                  $cond: {
+                    if: {
+                      $and: [
+                        { $isArray: '$images' },
+                        { $gt: [{ $size: { $ifNull: ['$images', []] } }, 0] },
+                      ],
+                    },
+                    then: {
+                      $slice: ['$images', skip, limit],
+                    },
+                    else: [],
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          images: { $arrayElemAt: ['$data.images', 0] },
+          total: { $arrayElemAt: ['$metadata.total', 0] },
+        },
+      },
+    ];
+
+    const result = await ClinicModel.aggregate(pipeline);
+
+    if (!result || result.length === 0 || !result[0].total) {
+      return {
+        images: [],
+        total: 0,
+        page,
+        limit,
+        totalPages: 0,
+      };
+    }
+
+    const aggregationResult = result[0];
+    const total = aggregationResult.total || 0;
+    const images = aggregationResult.images || [];
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      images,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
+  }
+
+  async deleteClinicImage(clinicId: string, imageIndex: number): Promise<boolean> {
+    const clinicDoc = await ClinicModel.findOne({ _id: clinicId, isDeleted: false });
+    if (!clinicDoc || !clinicDoc.images || clinicDoc.images.length === 0) {
+      return false;
+    }
+
+    if (imageIndex < 0 || imageIndex >= clinicDoc.images.length) {
+      return false;
+    }
+
+    clinicDoc.images.splice(imageIndex, 1);
+    await clinicDoc.save();
+
+    return true;
   }
 }
 

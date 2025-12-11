@@ -21,6 +21,11 @@ export const setupClinicRoutes = (router: Router): void => {
   
   router.delete('/clinic/:id', auth, doctorOnly, asyncHandler(clinicController.delete.bind(clinicController)));
   
+  
+  router.get('/clinic/:id/images', auth, asyncHandler(clinicController.getImages.bind(clinicController)));
+  
+  router.delete('/clinic/:id/images/:imageIndex', auth, asyncHandler(clinicController.deleteImage.bind(clinicController)));
+  
   router.get('/clinic/:id', auth, asyncHandler(clinicController.getById.bind(clinicController)));
 };
 

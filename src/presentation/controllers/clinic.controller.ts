@@ -7,6 +7,8 @@ import { DeleteClinicUseCase } from '../../application/use-cases/clinic/delete-c
 import { GetClinicUseCase } from '../../application/use-cases/clinic/get-clinic.use-case';
 import { GetAllClinicsUseCase } from '../../application/use-cases/clinic/get-all-clinics.use-case';
 import { GetClinicNamesUseCase } from '../../application/use-cases/clinic/get-clinic-names.use-case';
+import { GetClinicImagesUseCase } from '../../application/use-cases/clinic/get-clinic-images.use-case';
+import { DeleteClinicImageUseCase } from '../../application/use-cases/clinic/delete-clinic-image.use-case';
 import { ValidationError } from '../../domain/errors/validation.error';
 import { CreateClinicRequestDto, UpdateClinicRequestDto, ClinicResponseDto, PaginatedClinicsResponseDto, ClinicListDto } from '../dto/clinic.dto';
 import { GetClinicsParams } from '../../application/use-cases/clinic/get-all-clinics.use-case';
@@ -23,7 +25,9 @@ export class ClinicController {
     @inject('DeleteClinicUseCase') private readonly deleteClinicUseCase: DeleteClinicUseCase,
     @inject('GetClinicUseCase') private readonly getClinicUseCase: GetClinicUseCase,
     @inject('GetAllClinicsUseCase') private readonly getAllClinicsUseCase: GetAllClinicsUseCase,
-    @inject('GetClinicNamesUseCase') private readonly getClinicNamesUseCase: GetClinicNamesUseCase
+    @inject('GetClinicNamesUseCase') private readonly getClinicNamesUseCase: GetClinicNamesUseCase,
+    @inject('GetClinicImagesUseCase') private readonly getClinicImagesUseCase: GetClinicImagesUseCase,
+    @inject('DeleteClinicImageUseCase') private readonly deleteClinicImageUseCase: DeleteClinicImageUseCase
   ) {}
 
   async create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
@@ -33,12 +37,6 @@ export class ClinicController {
 
     const userContext = getUserContext(req);
     const doctorId = userContext.doctorId;
-    const staffClinicId = getClinicId(req);
-    if (userContext.role === 'staff') {
-      if (!staffClinicId || staffClinicId !== id) {
-        throw new UnauthorizedError(AuthenticationErrors.UNAUTHORIZED);
-      }
-    }
     const input = req.body as CreateClinicRequestDto;
     await this.createClinicUseCase.execute(doctorId, input);
     
@@ -148,6 +146,68 @@ export class ClinicController {
     const search = req.query.search ? String(req.query.search) : undefined;
     const names = await this.getClinicNamesUseCase.execute(doctorId, search);
     successResponse(res, names, HttpStatus.OK, SuccessMessages.RETRIEVED);
+  }
+
+  async getImages(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const id = req.params.id;
+    if (!id) {
+      throw new ValidationError('Clinic ID is required');
+    }
+
+    const userContext = getUserContext(req);
+    const doctorId = userContext.doctorId;
+    const staffClinicId = getClinicId(req);
+
+    const page = req.query.page ? parseInt(String(req.query.page), 10) : undefined;
+    const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : undefined;
+
+    const result = await this.getClinicImagesUseCase.execute(id, {
+      doctorId,
+      role: userContext.role,
+      clinicId: staffClinicId,
+    }, {
+      page,
+      limit,
+    });
+
+    const response = {
+      images: result.images,
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
+    };
+
+    successResponse(res, response, HttpStatus.OK, SuccessMessages.RETRIEVED);
+  }
+
+  async deleteImage(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const id = req.params.id;
+    if (!id) {
+      throw new ValidationError('Clinic ID is required');
+    }
+
+    const imageIndexParam = req.params.imageIndex;
+    if (!imageIndexParam) {
+      throw new ValidationError('Image index is required');
+    }
+
+    const imageIndex = parseInt(imageIndexParam, 10);
+    if (isNaN(imageIndex) || imageIndex < 0) {
+      throw new ValidationError('Invalid image index');
+    }
+
+    const userContext = getUserContext(req);
+    const doctorId = userContext.doctorId;
+    const staffClinicId = getClinicId(req);
+
+    await this.deleteClinicImageUseCase.execute(id, imageIndex, {
+      doctorId,
+      role: userContext.role,
+      clinicId: staffClinicId,
+    });
+
+    successResponse(res, null, HttpStatus.OK, SuccessMessages.DELETED);
   }
 
   private toResponseDto(clinic: Clinic, statistics?: any): ClinicResponseDto {
