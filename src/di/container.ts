@@ -30,6 +30,7 @@ import { LoginUseCase } from '../application/use-cases/auth/login.use-case';
 import { RefreshTokenUseCase } from '../application/use-cases/auth/refresh-token.use-case';
 import { LogoutUseCase } from '../application/use-cases/auth/logout.use-case';
 import { GenerateImageUploadUrlUseCase } from '../application/use-cases/image/generate-image-upload-url.use-case';
+import { GenerateImageDownloadUrlUseCase } from '../application/use-cases/image/generate-image-download-url.use-case';
 import { CreateTreatmentUseCase } from '../application/use-cases/treatment/create-treatment.use-case';
 import { UpdateTreatmentUseCase } from '../application/use-cases/treatment/update-treatment.use-case';
 import { DeleteTreatmentUseCase } from '../application/use-cases/treatment/delete-treatment.use-case';
@@ -137,6 +138,8 @@ container.registerSingleton<GetStaffUseCase>('GetStaffUseCase', GetStaffUseCase)
 container.registerSingleton<GetAllStaffUseCase>('GetAllStaffUseCase', GetAllStaffUseCase);
 
 container.registerSingleton<IGenerateImageUploadUrlUseCase>('IGenerateImageUploadUrlUseCase', GenerateImageUploadUrlUseCase);
+
+container.registerSingleton<GenerateImageDownloadUrlUseCase>('GenerateImageDownloadUrlUseCase', GenerateImageDownloadUrlUseCase);
 
 container.registerSingleton<CreateTreatmentUseCase>('CreateTreatmentUseCase', CreateTreatmentUseCase);
 

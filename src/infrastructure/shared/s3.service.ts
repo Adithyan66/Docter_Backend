@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { injectable } from 'tsyringe';
 import { config } from '../config';
@@ -25,6 +25,15 @@ export class S3Service implements IS3Service {
       Bucket: this.bucketName,
       Key: key,
       ContentType: contentType,
+    });
+
+    return getSignedUrl(this.s3Client, command, { expiresIn: 300 });
+  }
+
+  async generateDownloadPresignedUrl(key: string): Promise<string> {
+    const command = new GetObjectCommand({
+      Bucket: this.bucketName,
+      Key: key,
     });
 
     return getSignedUrl(this.s3Client, command, { expiresIn: 300 });
