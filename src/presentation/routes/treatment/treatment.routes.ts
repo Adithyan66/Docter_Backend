@@ -1,7 +1,7 @@
 import { Router } from '../../interfaces';
 import { TreatmentController } from '../../controllers/treatment.controller';
 import { validate } from '../../middleware/validation.middleware';
-import { createTreatmentSchema, updateTreatmentSchema } from '../../validators/treatment.validator';
+import { createTreatmentSchema, updateTreatmentSchema, addTreatmentImagesSchema } from '../../validators/treatment.validator';
 import { asyncHandler } from '../../utils/async-handler';
 import { container } from '../../../di/container';
 import { authMiddleware } from '../../middleware/auth.middleware';
@@ -20,6 +20,10 @@ export const setupTreatmentRoutes = (router: Router): void => {
   router.patch('/treatment/:id', auth, doctorOnly, validate(updateTreatmentSchema), asyncHandler(treatmentController.update.bind(treatmentController)));
   
   router.delete('/treatment/:id', auth, doctorOnly, asyncHandler(treatmentController.delete.bind(treatmentController)));
+  
+  router.get('/treatment/:id/images', auth, doctorOnly, asyncHandler(treatmentController.getImages.bind(treatmentController)));
+  
+  router.post('/treatment/:id/images', auth, doctorOnly, validate(addTreatmentImagesSchema), asyncHandler(treatmentController.addImages.bind(treatmentController)));
   
   router.get('/treatment/:id', auth, doctorOnly, asyncHandler(treatmentController.getById.bind(treatmentController)));
 };

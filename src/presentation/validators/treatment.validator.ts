@@ -111,3 +111,7 @@ export const updateTreatmentSchema = z.object({
   path: ['regularVisitInterval'],
 });
 
+export const addTreatmentImagesSchema = z.object({
+  images: z.array(z.string().url('Invalid image URL format')).min(1, 'At least one image URL is required'),
+});
+

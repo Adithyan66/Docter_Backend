@@ -22,7 +22,6 @@ interface UpdateClinicInput {
     endTime: string;
   }>;
   treatments?: string[];
-  images?: string[];
   notes?: string;
   isActive?: boolean;
 }
@@ -83,7 +82,6 @@ export class UpdateClinicUseCase {
         : undefined;
     }
     if (trimmedInput.treatments !== undefined) updateData.treatments = trimmedInput.treatments;
-    if (trimmedInput.images !== undefined) updateData.images = trimmedInput.images;
     if (trimmedInput.notes !== undefined) updateData.notes = trimmedInput.notes;
     if (trimmedInput.isActive !== undefined) updateData.isActive = trimmedInput.isActive;
 

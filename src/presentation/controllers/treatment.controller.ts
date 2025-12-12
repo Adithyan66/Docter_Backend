@@ -7,6 +7,8 @@ import { DeleteTreatmentUseCase } from '../../application/use-cases/treatment/de
 import { GetTreatmentUseCase } from '../../application/use-cases/treatment/get-treatment.use-case';
 import { GetAllTreatmentsUseCase } from '../../application/use-cases/treatment/get-all-treatments.use-case';
 import { GetTreatmentNamesUseCase } from '../../application/use-cases/treatment/get-treatment-names.use-case';
+import { AddTreatmentImagesUseCase } from '../../application/use-cases/treatment/add-treatment-images.use-case';
+import { GetTreatmentImagesUseCase } from '../../application/use-cases/treatment/get-treatment-images.use-case';
 import { ValidationError } from '../../domain/errors/validation.error';
 import { CreateTreatmentRequestDto, UpdateTreatmentRequestDto, TreatmentResponseDto, PaginatedTreatmentsResponseDto, TreatmentList } from '../dto/treatment.dto';
 import { Treatment } from '../../domain/entities/treatment.entity';
@@ -20,7 +22,9 @@ export class TreatmentController {
     @inject('DeleteTreatmentUseCase') private readonly deleteTreatmentUseCase: DeleteTreatmentUseCase,
     @inject('GetTreatmentUseCase') private readonly getTreatmentUseCase: GetTreatmentUseCase,
     @inject('GetAllTreatmentsUseCase') private readonly getAllTreatmentsUseCase: GetAllTreatmentsUseCase,
-    @inject('GetTreatmentNamesUseCase') private readonly getTreatmentNamesUseCase: GetTreatmentNamesUseCase
+    @inject('GetTreatmentNamesUseCase') private readonly getTreatmentNamesUseCase: GetTreatmentNamesUseCase,
+    @inject('AddTreatmentImagesUseCase') private readonly addTreatmentImagesUseCase: AddTreatmentImagesUseCase,
+    @inject('GetTreatmentImagesUseCase') private readonly getTreatmentImagesUseCase: GetTreatmentImagesUseCase
   ) {}
 
   async create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
@@ -133,6 +137,54 @@ export class TreatmentController {
     const search = req.query.search ? String(req.query.search) : undefined;
     const names = await this.getTreatmentNamesUseCase.execute(doctorId, search);
     successResponse(res, names, HttpStatus.OK, SuccessMessages.RETRIEVED);
+  }
+
+  async getImages(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const id = req.params.id;
+    if (!id) {
+      throw new ValidationError('Treatment ID is required');
+    }
+
+    const doctorId = getUserId(req);
+    const page = req.query.page ? parseInt(String(req.query.page), 10) : undefined;
+    const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : undefined;
+
+    const result = await this.getTreatmentImagesUseCase.execute(id, doctorId, {
+      page,
+      limit,
+    });
+
+    const response = {
+      images: result.images,
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
+    };
+
+    successResponse(res, response, HttpStatus.OK, SuccessMessages.RETRIEVED);
+  }
+
+  async addImages(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const id = req.params.id;
+    if (!id) {
+      throw new ValidationError('Treatment ID is required');
+    }
+
+    if (!req.body || typeof req.body !== 'object') {
+      throw new ValidationError('Request body is required');
+    }
+
+    const doctorId = getUserId(req);
+    const body = req.body as { images: string[] };
+
+    if (!body.images || !Array.isArray(body.images)) {
+      throw new ValidationError('images must be an array of image URLs');
+    }
+
+    await this.addTreatmentImagesUseCase.execute(id, doctorId, body.images);
+
+    successResponse(res, null, HttpStatus.OK, SuccessMessages.UPDATED);
   }
 
   private toResponseDto(treatment: Treatment, statistics?: any): TreatmentResponseDto {

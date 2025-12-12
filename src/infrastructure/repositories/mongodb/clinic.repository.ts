@@ -1243,5 +1243,21 @@ export class MongoClinicRepository implements IClinicRepository {
 
     return true;
   }
+
+  async addClinicImages(clinicId: string, imageUrls: string[]): Promise<boolean> {
+    const clinicDoc = await ClinicModel.findOne({ _id: clinicId, isDeleted: false });
+    if (!clinicDoc) {
+      return false;
+    }
+
+    if (!clinicDoc.images) {
+      clinicDoc.images = [];
+    }
+
+    clinicDoc.images.push(...imageUrls);
+    await clinicDoc.save();
+
+    return true;
+  }
 }
 

@@ -48,3 +48,7 @@ export const updateClinicSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+export const addClinicImagesSchema = z.object({
+  images: z.array(z.string().url('Invalid image URL format')).min(1, 'At least one image URL is required'),
+});
+

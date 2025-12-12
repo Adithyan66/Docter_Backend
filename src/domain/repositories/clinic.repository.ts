@@ -104,5 +104,6 @@ export interface IClinicRepository extends BaseRepository<Clinic> {
   getStatistics(clinicId: string, options: ClinicStatisticsOptions): Promise<ClinicStatistics>;
   getClinicImages(clinicId: string, options: GetClinicImagesOptions): Promise<{ images: string[]; total: number; page: number; limit: number; totalPages: number }>;
   deleteClinicImage(clinicId: string, imageIndex: number): Promise<boolean>;
+  addClinicImages(clinicId: string, imageUrls: string[]): Promise<boolean>;
 }
 

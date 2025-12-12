@@ -23,7 +23,6 @@ interface CreateClinicInput {
     endTime: string;
   }>;
   treatments?: string[];
-  images?: string[];
   notes?: string;
   isActive?: boolean;
 }
@@ -89,7 +88,7 @@ export class CreateClinicUseCase {
       workingDays,
       trimmedInput.treatments,
       undefined,
-      trimmedInput.images,
+      undefined,
       trimmedInput.notes,
       trimmedInput.isActive
     );

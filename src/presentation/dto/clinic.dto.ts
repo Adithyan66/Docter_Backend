@@ -17,7 +17,6 @@ export interface CreateClinicRequestDto {
     endTime: string;
   }>;
   treatments?: string[];
-  images?: string[];
   notes?: string;
   isActive?: boolean;
 }
@@ -38,7 +37,6 @@ export interface UpdateClinicRequestDto {
     endTime: string;
   }>;
   treatments?: string[];
-  images?: string[];
   notes?: string;
   isActive?: boolean;
 }

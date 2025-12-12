@@ -1,7 +1,7 @@
 import { Router } from '../../interfaces';
 import { ClinicController } from '../../controllers/clinic.controller';
 import { validate } from '../../middleware/validation.middleware';
-import { createClinicSchema, updateClinicSchema } from '../../validators/clinic.validator';
+import { createClinicSchema, updateClinicSchema, addClinicImagesSchema } from '../../validators/clinic.validator';
 import { asyncHandler } from '../../utils/async-handler';
 import { container } from '../../../di/container';
 import { authMiddleware } from '../../middleware/auth.middleware';
@@ -21,8 +21,9 @@ export const setupClinicRoutes = (router: Router): void => {
   
   router.delete('/clinic/:id', auth, doctorOnly, asyncHandler(clinicController.delete.bind(clinicController)));
   
-  
   router.get('/clinic/:id/images', auth, asyncHandler(clinicController.getImages.bind(clinicController)));
+  
+  router.post('/clinic/:id/images', auth, doctorOnly, validate(addClinicImagesSchema), asyncHandler(clinicController.addImages.bind(clinicController)));
   
   router.delete('/clinic/:id/images/:imageIndex', auth, asyncHandler(clinicController.deleteImage.bind(clinicController)));
   

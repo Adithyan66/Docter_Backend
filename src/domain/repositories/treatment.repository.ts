@@ -92,12 +92,19 @@ export interface TreatmentStatistics {
   };
 }
 
+export interface GetTreatmentImagesOptions {
+  page: number;
+  limit: number;
+}
+
 export interface ITreatmentRepository extends BaseRepository<Treatment> {
   findAllPaginated(options: FindAllPaginatedOptions): Promise<{ treatments: TreatmentListResult[]; total: number; page: number; limit: number; totalPages: number }>;
   findAllActive(doctorId: string): Promise<Treatment[]>;
   findByName(name: string, doctorId: string): Promise<Treatment | null>;
   findNames(doctorId: string, search?: string): Promise<Array<{ id: string; name: string }>>;
   getStatistics(treatmentId: string, options: TreatmentStatisticsOptions): Promise<TreatmentStatistics>;
+  addTreatmentImages(treatmentId: string, imageUrls: string[]): Promise<boolean>;
+  getTreatmentImages(treatmentId: string, options: GetTreatmentImagesOptions): Promise<{ images: string[]; total: number; page: number; limit: number; totalPages: number }>;
 }
 
  

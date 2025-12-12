@@ -1,6 +1,6 @@
 import { injectable } from 'tsyringe';
 import { PipelineStage, Types } from 'mongoose';
-import { ITreatmentRepository, FindAllPaginatedOptions, TreatmentListResult, TreatmentStatisticsOptions, TreatmentStatistics } from '../../../domain/repositories/treatment.repository';
+import { ITreatmentRepository, FindAllPaginatedOptions, TreatmentListResult, TreatmentStatisticsOptions, TreatmentStatistics, GetTreatmentImagesOptions } from '../../../domain/repositories/treatment.repository';
 import { Treatment } from '../../../domain/entities/treatment.entity';
 import { TreatmentModel, ITreatment } from '../../database/mongoose/treatment.model';
 import { TreatmentCourseModel } from '../../database/mongoose/treatment-course.model';
@@ -11,9 +11,50 @@ import { ClinicModel } from '../../database/mongoose/clinic.model';
 @injectable()
 export class MongoTreatmentRepository implements ITreatmentRepository {
   async findById(id: string): Promise<Treatment | null> {
-    const treatmentDoc = await TreatmentModel.findOne({ _id: id, isDeleted: false });
-    if (!treatmentDoc) return null;
-    return this.toDomain(treatmentDoc);
+    const pipeline: PipelineStage[] = [
+      {
+        $match: {
+          _id: new Types.ObjectId(id),
+          isDeleted: false,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          doctor: 1,
+          name: 1,
+          description: 1,
+          minDuration: 1,
+          maxDuration: 1,
+          avgDuration: 1,
+          minFees: 1,
+          maxFees: 1,
+          avgFees: 1,
+          steps: 1,
+          aftercare: 1,
+          followUpRequired: 1,
+          followUpAfterDays: 1,
+          risks: 1,
+          images: {
+            $cond: {
+              if: { $and: [{ $isArray: '$images' }, { $gt: [{ $size: '$images' }, 0] }] },
+              then: [{ $arrayElemAt: ['$images', 0] }],
+              else: '$$REMOVE',
+            },
+          },
+          isOneTime: 1,
+          regularVisitInterval: 1,
+          isActive: 1,
+          isDeleted: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    ];
+
+    const result = await TreatmentModel.aggregate(pipeline);
+    if (!result || result.length === 0) return null;
+    return this.toDomainFromPlainObject(result[0]);
   }
 
   async findAll(): Promise<Treatment[]> {
@@ -896,6 +937,104 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
       doc.isDeleted,
       doc.isActive
     );
+  }
+
+  async addTreatmentImages(treatmentId: string, imageUrls: string[]): Promise<boolean> {
+    const treatmentDoc = await TreatmentModel.findOne({ _id: treatmentId, isDeleted: false });
+    if (!treatmentDoc) {
+      return false;
+    }
+
+    if (!treatmentDoc.images) {
+      treatmentDoc.images = [];
+    }
+
+    treatmentDoc.images.push(...imageUrls);
+    await treatmentDoc.save();
+
+    return true;
+  }
+
+  async getTreatmentImages(treatmentId: string, options: GetTreatmentImagesOptions): Promise<{ images: string[]; total: number; page: number; limit: number; totalPages: number }> {
+    const { page, limit } = options;
+    const skip = (page - 1) * limit;
+
+    const pipeline: PipelineStage[] = [
+      {
+        $match: {
+          _id: new Types.ObjectId(treatmentId),
+          isDeleted: false,
+        },
+      },
+      {
+        $facet: {
+          metadata: [
+            {
+              $project: {
+                total: {
+                  $cond: {
+                    if: { $isArray: '$images' },
+                    then: { $size: '$images' },
+                    else: 0,
+                  },
+                },
+              },
+            },
+          ],
+          data: [
+            {
+              $project: {
+                images: {
+                  $cond: {
+                    if: {
+                      $and: [
+                        { $isArray: '$images' },
+                        { $gt: [{ $size: { $ifNull: ['$images', []] } }, 0] },
+                      ],
+                    },
+                    then: {
+                      $slice: ['$images', skip, limit],
+                    },
+                    else: [],
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          images: { $arrayElemAt: ['$data.images', 0] },
+          total: { $arrayElemAt: ['$metadata.total', 0] },
+        },
+      },
+    ];
+
+    const result = await TreatmentModel.aggregate(pipeline);
+
+    if (!result || result.length === 0 || !result[0].total) {
+      return {
+        images: [],
+        total: 0,
+        page,
+        limit,
+        totalPages: 0,
+      };
+    }
+
+    const aggregationResult = result[0];
+    const total = aggregationResult.total || 0;
+    const images = aggregationResult.images || [];
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      images,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
   }
 }
 

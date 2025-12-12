@@ -9,6 +9,7 @@ import { GetAllClinicsUseCase } from '../../application/use-cases/clinic/get-all
 import { GetClinicNamesUseCase } from '../../application/use-cases/clinic/get-clinic-names.use-case';
 import { GetClinicImagesUseCase } from '../../application/use-cases/clinic/get-clinic-images.use-case';
 import { DeleteClinicImageUseCase } from '../../application/use-cases/clinic/delete-clinic-image.use-case';
+import { AddClinicImagesUseCase } from '../../application/use-cases/clinic/add-clinic-images.use-case';
 import { ValidationError } from '../../domain/errors/validation.error';
 import { CreateClinicRequestDto, UpdateClinicRequestDto, ClinicResponseDto, PaginatedClinicsResponseDto, ClinicListDto } from '../dto/clinic.dto';
 import { GetClinicsParams } from '../../application/use-cases/clinic/get-all-clinics.use-case';
@@ -27,7 +28,8 @@ export class ClinicController {
     @inject('GetAllClinicsUseCase') private readonly getAllClinicsUseCase: GetAllClinicsUseCase,
     @inject('GetClinicNamesUseCase') private readonly getClinicNamesUseCase: GetClinicNamesUseCase,
     @inject('GetClinicImagesUseCase') private readonly getClinicImagesUseCase: GetClinicImagesUseCase,
-    @inject('DeleteClinicImageUseCase') private readonly deleteClinicImageUseCase: DeleteClinicImageUseCase
+    @inject('DeleteClinicImageUseCase') private readonly deleteClinicImageUseCase: DeleteClinicImageUseCase,
+    @inject('AddClinicImagesUseCase') private readonly addClinicImagesUseCase: AddClinicImagesUseCase
   ) {}
 
   async create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
@@ -208,6 +210,28 @@ export class ClinicController {
     });
 
     successResponse(res, null, HttpStatus.OK, SuccessMessages.DELETED);
+  }
+
+  async addImages(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const id = req.params.id;
+    if (!id) {
+      throw new ValidationError('Clinic ID is required');
+    }
+
+    if (!req.body || typeof req.body !== 'object') {
+      throw new ValidationError('Request body is required');
+    }
+
+    const doctorId = getUserId(req);
+    const body = req.body as { images: string[] };
+
+    if (!body.images || !Array.isArray(body.images)) {
+      throw new ValidationError('images must be an array of image URLs');
+    }
+
+    await this.addClinicImagesUseCase.execute(id, doctorId, body.images);
+
+    successResponse(res, null, HttpStatus.OK, SuccessMessages.UPDATED);
   }
 
   private toResponseDto(clinic: Clinic, statistics?: any): ClinicResponseDto {
