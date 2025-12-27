@@ -1,5 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
+import { IStaffController } from '../interfaces/controllers/staff-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
 import { CreateStaffUseCase } from '../../application/use-cases/staff/create-staff.use-case';
 import { UpdateStaffUseCase } from '../../application/use-cases/staff/update-staff.use-case';
@@ -10,7 +11,7 @@ import { ValidationError } from '../../domain/errors/validation.error';
 import { getUserContext } from '../utils/user-context.util';
 
 @injectable()
-export class StaffController {
+export class StaffController implements IStaffController {
   constructor(
     @inject('CreateStaffUseCase') private readonly createStaffUseCase: CreateStaffUseCase,
     @inject('UpdateStaffUseCase') private readonly updateStaffUseCase: UpdateStaffUseCase,

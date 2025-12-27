@@ -1,5 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
+import { IPaymentController } from '../interfaces/controllers/payment-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
 import { CreatePaymentUseCase } from '../../application/use-cases/payment/create-payment.use-case';
 import { GetPaymentUseCase } from '../../application/use-cases/payment/get-payment.use-case';
@@ -16,7 +17,7 @@ import {
 import { getUserId, getUserContext } from '../utils/user-context.util';
 
 @injectable()
-export class PaymentController {
+export class PaymentController implements IPaymentController {
   constructor(
     @inject('CreatePaymentUseCase') private readonly createPaymentUseCase: CreatePaymentUseCase,
     @inject('GetPaymentUseCase') private readonly getPaymentUseCase: GetPaymentUseCase,

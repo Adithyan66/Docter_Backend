@@ -1,5 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
+import { IClinicController } from '../interfaces/controllers/clinic-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
 import { CreateClinicUseCase } from '../../application/use-cases/clinic/create-clinic.use-case';
 import { UpdateClinicUseCase } from '../../application/use-cases/clinic/update-clinic.use-case';
@@ -19,7 +20,7 @@ import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
 import { AuthenticationErrors } from '../../infrastructure/constants/error-messages';
 
 @injectable()
-export class ClinicController {
+export class ClinicController implements IClinicController {
   constructor(
     @inject('CreateClinicUseCase') private readonly createClinicUseCase: CreateClinicUseCase,
     @inject('UpdateClinicUseCase') private readonly updateClinicUseCase: UpdateClinicUseCase,

@@ -1,5 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
+import { ITreatmentCourseController } from '../interfaces/controllers/treatment-course-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
 import { CreateTreatmentCourseUseCase } from '../../application/use-cases/treatment-course/create-treatment-course.use-case';
 import { UpdateTreatmentCourseUseCase } from '../../application/use-cases/treatment-course/update-treatment-course.use-case';
@@ -12,7 +13,7 @@ import { TreatmentCourseStatus } from '../../domain/value-objects/treatment-cour
 import { getUserId, getUserContext } from '../utils/user-context.util';
 
 @injectable()
-export class TreatmentCourseController {
+export class TreatmentCourseController implements ITreatmentCourseController {
   constructor(
     @inject('CreateTreatmentCourseUseCase') private readonly createTreatmentCourseUseCase: CreateTreatmentCourseUseCase,
     @inject('UpdateTreatmentCourseUseCase') private readonly updateTreatmentCourseUseCase: UpdateTreatmentCourseUseCase,

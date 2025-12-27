@@ -1,5 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
+import { IAuthController } from '../interfaces/controllers/auth-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
 import { LoginUseCase } from '../../application/use-cases/auth/login.use-case';
 import { RefreshTokenUseCase } from '../../application/use-cases/auth/refresh-token.use-case';
@@ -8,7 +9,7 @@ import { ValidationError } from '../../domain/errors/validation.error';
 import { config } from '../../infrastructure/config';
 
 @injectable()
-export class DoctorController {
+export class AuthController implements IAuthController {
   constructor(
     @inject('LoginUseCase') private readonly loginUseCase: LoginUseCase,
     @inject('RefreshTokenUseCase') private readonly refreshTokenUseCase: RefreshTokenUseCase,
@@ -84,5 +85,3 @@ export class DoctorController {
     successResponse(res, null, HttpStatus.OK, SuccessMessages.LOGOUT_SUCCESS);
   }
 }
- 
- 

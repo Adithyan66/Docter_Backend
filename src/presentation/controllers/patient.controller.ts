@@ -1,5 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
+import { IPatientController } from '../interfaces/controllers/patient-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
 import { CreatePatientUseCase } from '../../application/use-cases/patient/create-patient.use-case';
 import { UpdatePatientUseCase } from '../../application/use-cases/patient/update-patient.use-case';
@@ -13,7 +14,7 @@ import { PatientConsultationType, PatientGender } from '../../domain/entities/pa
 import { getUserId, getUserContext } from '../utils/user-context.util';
 
 @injectable()
-export class PatientController {
+export class PatientController implements IPatientController {
   constructor(
     @inject('CreatePatientUseCase') private readonly createPatientUseCase: CreatePatientUseCase,
     @inject('UpdatePatientUseCase') private readonly updatePatientUseCase: UpdatePatientUseCase,

@@ -1,14 +1,14 @@
 import { Router } from '../../interfaces';
-import { DoctorController } from '../../controllers/doctor.controller';
+import { AuthController } from '../../controllers/auth.controller';
 import { validate } from '../../middleware/validation.middleware';
-import { loginSchema, refreshTokenSchema, logoutSchema } from '../../validators/doctor.validator';
+import { loginSchema, refreshTokenSchema, logoutSchema } from '../../validators/auth.validator';
 import { asyncHandler } from '../../utils/async-handler';
 import { container } from '../../../di/container';
 
 export const setupAuthRoutes = (router: Router): void => {
-  const doctorController = container.resolve(DoctorController);
+  const authController = container.resolve(AuthController);
 
-  router.post('/auth/login', validate(loginSchema), asyncHandler(doctorController.login.bind(doctorController)));
-  router.post('/auth/refresh', validate(refreshTokenSchema), asyncHandler(doctorController.refreshToken.bind(doctorController)));
-  router.post('/auth/logout', validate(logoutSchema), asyncHandler(doctorController.logout.bind(doctorController)));
+  router.post('/auth/login', validate(loginSchema), asyncHandler(authController.login.bind(authController)));
+  router.post('/auth/refresh', validate(refreshTokenSchema), asyncHandler(authController.refreshToken.bind(authController)));
+  router.post('/auth/logout', validate(logoutSchema), asyncHandler(authController.logout.bind(authController)));
 };

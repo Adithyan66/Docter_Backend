@@ -96,6 +96,7 @@ import { PaymentController } from '../presentation/controllers/payment.controlle
 import { PrescriptionController } from '../presentation/controllers/prescription.controller';
 import { MediaController } from '../presentation/controllers/media.controller';
 import { StaffController } from '../presentation/controllers/staff.controller';
+import { AuthController } from '../presentation/controllers/auth.controller';
 import { AuthMiddleware } from '../presentation/middleware/auth.middleware';
 import { CreateStaffUseCase } from '../application/use-cases/staff/create-staff.use-case';
 import { UpdateStaffUseCase } from '../application/use-cases/staff/update-staff.use-case';
@@ -226,6 +227,7 @@ container.registerSingleton<PaymentController>('PaymentController', PaymentContr
 container.registerSingleton<PrescriptionController>('PrescriptionController', PrescriptionController);
 container.registerSingleton<MediaController>('MediaController', MediaController);
 container.registerSingleton<StaffController>('StaffController', StaffController);
+container.registerSingleton<AuthController>('AuthController', AuthController);
 
 container.registerSingleton<AuthMiddleware>('AuthMiddleware', AuthMiddleware);
 

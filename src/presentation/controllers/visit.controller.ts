@@ -1,5 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
+import { IVisitController } from '../interfaces/controllers/visit-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages, paginatedResponse } from '../../infrastructure/constants';
 import { CreateVisitUseCase } from '../../application/use-cases/visit/create-visit.use-case';
 import { UpdateVisitUseCase } from '../../application/use-cases/visit/update-visit.use-case';
@@ -13,7 +14,7 @@ import { GetVisitRemindersQueryDto } from '../dto/visit-reminder.dto';
 import { getUserId, getUserContext } from '../utils/user-context.util';
 
 @injectable()
-export class VisitController {
+export class VisitController implements IVisitController {
   constructor(
     @inject('CreateVisitUseCase') private readonly createVisitUseCase: CreateVisitUseCase,
     @inject('UpdateVisitUseCase') private readonly updateVisitUseCase: UpdateVisitUseCase,

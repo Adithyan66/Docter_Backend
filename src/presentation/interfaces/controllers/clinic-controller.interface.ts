@@ -1,0 +1,15 @@
+import { HttpRequest } from '../http-request.interface';
+import { HttpResponse } from '../http-response.interface';
+import { HttpNext } from '../http-handler.interface';
+
+export interface IClinicController {
+  create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
+  update(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
+  delete(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
+  getById(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
+  getAll(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
+  getNames(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
+  getImages(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
+  deleteImage(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
+  addImages(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
+}

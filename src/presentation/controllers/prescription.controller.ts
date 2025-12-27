@@ -1,5 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
+import { IPrescriptionController } from '../interfaces/controllers/prescription-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
 import { CreatePrescriptionUseCase } from '../../application/use-cases/prescription/create-prescription.use-case';
 import { GetPrescriptionUseCase } from '../../application/use-cases/prescription/get-prescription.use-case';
@@ -17,7 +18,7 @@ import {
 import { getUserId, getUserContext } from '../utils/user-context.util';
 
 @injectable()
-export class PrescriptionController {
+export class PrescriptionController implements IPrescriptionController {
   constructor(
     @inject('CreatePrescriptionUseCase') private readonly createPrescriptionUseCase: CreatePrescriptionUseCase,
     @inject('GetPrescriptionUseCase') private readonly getPrescriptionUseCase: GetPrescriptionUseCase,

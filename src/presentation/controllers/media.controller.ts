@@ -1,5 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
+import { IMediaController } from '../interfaces/controllers/media-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
 import { CreateMediaUseCase } from '../../application/use-cases/media/create-media.use-case';
 import { UpdateMediaUseCase } from '../../application/use-cases/media/update-media.use-case';
@@ -11,7 +12,7 @@ import { CreateMediaRequestDto, UpdateMediaRequestDto, GetMediaQueryDto } from '
 import { getUserId, getUserContext } from '../utils/user-context.util';
 
 @injectable()
-export class MediaController {
+export class MediaController implements IMediaController {
   constructor(
     @inject('CreateMediaUseCase') private readonly createMediaUseCase: CreateMediaUseCase,
     @inject('UpdateMediaUseCase') private readonly updateMediaUseCase: UpdateMediaUseCase,

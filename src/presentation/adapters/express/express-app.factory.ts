@@ -14,6 +14,7 @@ export interface AppConfig {
 }
 
 export const createExpressApp = (config: AppConfig): ExpressApp => {
+  
   const app = express();
 
   app.use(cors({ origin: appConfig.corsOrigin || '*', credentials: true }));

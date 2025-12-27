@@ -1,12 +1,13 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
+import { IImageServiceController } from '../interfaces/controllers/image-service-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
 import { IGenerateImageUploadUrlUseCase } from '../../application/interfaces/generate-image-upload-url-use-case.interface';
 import { GenerateImageDownloadUrlUseCase } from '../../application/use-cases/image/generate-image-download-url.use-case';
 import { BadRequestError } from '../../domain/errors/bad-request.error';
 
 @injectable()
-export class ImageServiceController {
+export class ImageServiceController implements IImageServiceController {
   constructor(
     @inject('IGenerateImageUploadUrlUseCase') private generateUploadUrlUseCase: IGenerateImageUploadUrlUseCase,
     @inject('GenerateImageDownloadUrlUseCase') private generateDownloadUrlUseCase: GenerateImageDownloadUrlUseCase
