@@ -1,5 +1,5 @@
 import { injectable, inject } from 'tsyringe';
-import { IS3Service } from '../../interfaces/s3-service.interface';
+import { IFileStorageService } from '../../interfaces/file-storage-service.interface';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { IGenerateImageDownloadUrlUseCase, DownloadUrlResponseDto } from '../../interfaces/use-cases/image/image-use-cases.interface';
 
@@ -8,7 +8,7 @@ export { DownloadUrlResponseDto };
 @injectable()
 export class GenerateImageDownloadUrlUseCase implements IGenerateImageDownloadUrlUseCase {
   constructor(
-    @inject('IS3Service') private s3Service: IS3Service
+    @inject('IFileStorageService') private fileStorageService: IFileStorageService
   ) {}
 
   async execute(imageUrl: string): Promise<DownloadUrlResponseDto> {
@@ -17,12 +17,12 @@ export class GenerateImageDownloadUrlUseCase implements IGenerateImageDownloadUr
     }
 
     try {
-      const key = this.s3Service.extractS3KeyFromUrl(imageUrl);
+      const key = this.fileStorageService.extractKeyFromUrl(imageUrl);
       if (!key || key.trim().length === 0) {
         throw new ValidationError('Invalid image URL format');
       }
 
-      const downloadUrl = await this.s3Service.generateDownloadPresignedUrl(key);
+      const downloadUrl = await this.fileStorageService.generateDownloadUrl(key);
       
       return {
         downloadUrl,

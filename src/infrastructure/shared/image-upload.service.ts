@@ -1,11 +1,11 @@
 import { injectable, inject } from 'tsyringe';
-import { IS3Service } from '../../application/interfaces/s3-service.interface';
+import { IFileStorageService } from '../../application/interfaces/file-storage-service.interface';
 import { IImageUploadService } from '../../application/interfaces/image-upload-service.interface';
 
 @injectable()
 export class ImageUploadService implements IImageUploadService {
   constructor(
-    @inject('IS3Service') private s3Service: IS3Service
+    @inject('IFileStorageService') private fileStorageService: IFileStorageService
   ) {}
 
   async generateUploadUrl(type: string, fileExtension: string): Promise<{ uploadUrl: string; publicUrl: string; key: string }> {
@@ -14,8 +14,8 @@ export class ImageUploadService implements IImageUploadService {
     const key = `${type}/${timestamp}-${random}.${fileExtension}`;
     
     const contentType = this.getContentType(fileExtension);
-    const uploadUrl = await this.s3Service.generatePresignedUrl(key, contentType);
-    const publicUrl = this.s3Service.getPublicUrl(key);
+    const uploadUrl = await this.fileStorageService.generateUploadUrl(key, contentType);
+    const publicUrl = await this.fileStorageService.getPublicUrl(key);
 
     return {
       uploadUrl,

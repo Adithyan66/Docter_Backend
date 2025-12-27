@@ -24,7 +24,7 @@ import { IMediaRepository } from '../domain/repositories/media.repository';
 import { MongoMediaRepository } from '../infrastructure/repositories/mongodb/media.repository';
 import { PasswordService } from '../infrastructure/shared/password.service';
 import { JwtService } from '../infrastructure/shared/jwt.service';
-import { S3Service } from '../infrastructure/shared/s3.service';
+import { S3StorageAdapter } from '../infrastructure/shared/adapters/s3-storage.adapter';
 import { ImageUploadService } from '../infrastructure/shared/image-upload.service';
 import { LoginUseCase } from '../application/use-cases/auth/login.use-case';
 import { RefreshTokenUseCase } from '../application/use-cases/auth/refresh-token.use-case';
@@ -149,7 +149,7 @@ import {
 } from '../application/interfaces/use-cases/media/media-use-cases.interface';
 import { IPasswordService } from '../application/interfaces/password-service.interface';
 import { IJwtService } from '../application/interfaces/jwt-service.interface';
-import { IS3Service } from '../application/interfaces/s3-service.interface';
+import { IFileStorageService } from '../application/interfaces/file-storage-service.interface';
 import { IImageUploadService } from '../application/interfaces/image-upload-service.interface';
 import { ImageServiceController } from '../presentation/controllers/image-service.controller';
 import { TreatmentController } from '../presentation/controllers/treatment.controller';
@@ -196,7 +196,7 @@ container.registerSingleton<IPasswordService>('IPasswordService', PasswordServic
 
 container.registerSingleton<IJwtService>('IJwtService', JwtService);
 
-container.registerSingleton<IS3Service>('IS3Service', S3Service);
+container.registerSingleton<IFileStorageService>('IFileStorageService', S3StorageAdapter);
 
 container.registerSingleton<IImageUploadService>('IImageUploadService', ImageUploadService);
 

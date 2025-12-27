@@ -1,6 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { IClinicRepository } from '../../../domain/repositories/clinic.repository';
-import { IS3Service } from '../../interfaces/s3-service.interface';
+import { IFileStorageService } from '../../interfaces/file-storage-service.interface';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { UnauthorizedError } from '../../../domain/errors/unauthorized.error';
 import { AuthenticationErrors } from '../../../infrastructure/constants/error-messages';
@@ -10,7 +10,7 @@ import { IDeleteClinicImageUseCase } from '../../interfaces/use-cases/clinic/cli
 export class DeleteClinicImageUseCase implements IDeleteClinicImageUseCase {
   constructor(
     @inject('IClinicRepository') private clinicRepository: IClinicRepository,
-    @inject('IS3Service') private s3Service: IS3Service
+    @inject('IFileStorageService') private fileStorageService: IFileStorageService
   ) {}
 
   async execute(
@@ -40,10 +40,10 @@ export class DeleteClinicImageUseCase implements IDeleteClinicImageUseCase {
     }
 
     const imageUrl = clinic.images[imageIndex];
-    const s3Key = this.s3Service.extractS3KeyFromUrl(imageUrl);
+    const fileKey = this.fileStorageService.extractKeyFromUrl(imageUrl);
 
     try {
-      await this.s3Service.deleteObject(s3Key);
+      await this.fileStorageService.deleteFile(fileKey);
     } catch (error) {
       throw new Error(`Failed to delete image from cloud storage: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }

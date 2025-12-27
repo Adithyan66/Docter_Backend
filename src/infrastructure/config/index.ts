@@ -11,11 +11,14 @@ interface Config {
   jwtRefreshSecret?: string;
   jwtRefreshExpiresIn?: string;
   corsOrigin?: string;
-  aws: {
-    accessKeyId: string;
-    secretAccessKey: string;
-    region: string;
-    s3BucketName: string;
+  storage: {
+    provider: 's3' | 'gcp' | 'azure';
+    s3: {
+      accessKeyId: string;
+      secretAccessKey: string;
+      region: string;
+      bucketName: string;
+    };
   };
   allowedImageTypes: string[];
 }
@@ -30,11 +33,14 @@ const getConfig = (): Config => {
     jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
     jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     corsOrigin: process.env.CORS_ORIGIN,
-    aws: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-      region: process.env.AWS_REGION || '',
-      s3BucketName: process.env.AWS_S3_BUCKET_NAME || '',
+    storage: {
+      provider: (process.env.STORAGE_PROVIDER || 's3') as 's3' | 'gcp' | 'azure',
+      s3: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+        region: process.env.AWS_REGION || '',
+        bucketName: process.env.AWS_S3_BUCKET_NAME || '',
+      },
     },
     allowedImageTypes: process.env.ALLOWED_IMAGE_TYPES
       ? process.env.ALLOWED_IMAGE_TYPES.split(',').map(type => type.trim())
