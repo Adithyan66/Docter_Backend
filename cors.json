@@ -1,0 +1,21 @@
+[
+  {
+    "origin": [
+      "http://localhost:5173",
+      "https://doctor.koodecode.online"
+    ],
+    "method": [
+      "GET",
+      "PUT",
+      "POST",
+      "DELETE",
+      "OPTIONS"
+    ],
+    "responseHeader": [
+      "Content-Type",
+      "x-goog-resumable",
+      "Authorization"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]

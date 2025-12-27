@@ -19,6 +19,11 @@ interface Config {
       region: string;
       bucketName: string;
     };
+    gcp: {
+      projectId: string;
+      keyFilename?: string;
+      bucketName: string;
+    };
   };
   allowedImageTypes: string[];
 }
@@ -34,12 +39,17 @@ const getConfig = (): Config => {
     jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     corsOrigin: process.env.CORS_ORIGIN,
     storage: {
-      provider: (process.env.STORAGE_PROVIDER || 's3') as 's3' | 'gcp' | 'azure',
+      provider: (process.env.STORAGE_PROVIDER || 'gcp') as 's3' | 'gcp' | 'azure',
       s3: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
         region: process.env.AWS_REGION || '',
         bucketName: process.env.AWS_S3_BUCKET_NAME || '',
+      },
+      gcp: {
+        projectId: process.env.GCP_PROJECT_ID || '',
+        keyFilename: process.env.GCP_KEY_FILENAME,
+        bucketName: process.env.GCP_BUCKET_NAME || '',
       },
     },
     allowedImageTypes: process.env.ALLOWED_IMAGE_TYPES

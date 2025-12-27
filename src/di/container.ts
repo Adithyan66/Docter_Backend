@@ -24,7 +24,7 @@ import { IMediaRepository } from '../domain/repositories/media.repository';
 import { MongoMediaRepository } from '../infrastructure/repositories/mongodb/media.repository';
 import { PasswordService } from '../infrastructure/shared/password.service';
 import { JwtService } from '../infrastructure/shared/jwt.service';
-import { S3StorageAdapter } from '../infrastructure/shared/adapters/s3-storage.adapter';
+import { GcpStorageAdapter } from '../infrastructure/shared/adapters/gcp-storage.adapter';
 import { ImageUploadService } from '../infrastructure/shared/image-upload.service';
 import { LoginUseCase } from '../application/use-cases/auth/login.use-case';
 import { RefreshTokenUseCase } from '../application/use-cases/auth/refresh-token.use-case';
@@ -196,7 +196,7 @@ container.registerSingleton<IPasswordService>('IPasswordService', PasswordServic
 
 container.registerSingleton<IJwtService>('IJwtService', JwtService);
 
-container.registerSingleton<IFileStorageService>('IFileStorageService', S3StorageAdapter);
+container.registerSingleton<IFileStorageService>('IFileStorageService', GcpStorageAdapter);
 
 container.registerSingleton<IImageUploadService>('IImageUploadService', ImageUploadService);
 
