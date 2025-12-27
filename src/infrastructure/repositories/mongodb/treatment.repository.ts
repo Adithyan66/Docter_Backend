@@ -4,9 +4,6 @@ import { ITreatmentRepository, FindAllPaginatedOptions, TreatmentListResult, Tre
 import { Treatment } from '../../../domain/entities/treatment.entity';
 import { TreatmentModel, ITreatment } from '../../database/mongoose/treatment.model';
 import { TreatmentCourseModel } from '../../database/mongoose/treatment-course.model';
-import { VisitModel } from '../../database/mongoose/visit.model';
-import { PaymentModel } from '../../database/mongoose/payment.model';
-import { ClinicModel } from '../../database/mongoose/clinic.model';
 
 @injectable()
 export class MongoTreatmentRepository implements ITreatmentRepository {
@@ -940,19 +937,23 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
   }
 
   async addTreatmentImages(treatmentId: string, imageUrls: string[]): Promise<boolean> {
-    const treatmentDoc = await TreatmentModel.findOne({ _id: treatmentId, isDeleted: false });
-    if (!treatmentDoc) {
+    if (!imageUrls || imageUrls.length === 0) {
       return false;
     }
 
-    if (!treatmentDoc.images) {
-      treatmentDoc.images = [];
-    }
+    const result = await TreatmentModel.findOneAndUpdate(
+      { _id: treatmentId, isDeleted: false },
+      {
+        $push: {
+          images: {
+            $each: imageUrls
+          }
+        }
+      },
+      { new: false }
+    );
 
-    treatmentDoc.images.push(...imageUrls);
-    await treatmentDoc.save();
-
-    return true;
+    return result !== null;
   }
 
   async getTreatmentImages(treatmentId: string, options: GetTreatmentImagesOptions): Promise<{ images: string[]; total: number; page: number; limit: number; totalPages: number }> {

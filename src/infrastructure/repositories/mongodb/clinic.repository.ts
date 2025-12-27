@@ -1229,35 +1229,64 @@ export class MongoClinicRepository implements IClinicRepository {
   }
 
   async deleteClinicImage(clinicId: string, imageIndex: number): Promise<boolean> {
-    const clinicDoc = await ClinicModel.findOne({ _id: clinicId, isDeleted: false });
-    if (!clinicDoc || !clinicDoc.images || clinicDoc.images.length === 0) {
+    if (imageIndex < 0) {
       return false;
     }
 
-    if (imageIndex < 0 || imageIndex >= clinicDoc.images.length) {
-      return false;
-    }
+    const result = await ClinicModel.findOneAndUpdate(
+      { 
+        _id: clinicId, 
+        isDeleted: false,
+        images: { $exists: true, $ne: [] },
+        $expr: { 
+          $and: [
+            { $gte: [{ $size: '$images' }, imageIndex + 1] },
+            { $gt: [imageIndex, -1] }
+          ]
+        }
+      },
+      [
+        {
+          $set: {
+            images: {
+              $concatArrays: [
+                { $slice: ['$images', imageIndex] },
+                { 
+                  $slice: [
+                    '$images', 
+                    { $add: [imageIndex, 1] }, 
+                    { $size: '$images' }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      { new: false }
+    );
 
-    clinicDoc.images.splice(imageIndex, 1);
-    await clinicDoc.save();
-
-    return true;
+    return result !== null;
   }
 
   async addClinicImages(clinicId: string, imageUrls: string[]): Promise<boolean> {
-    const clinicDoc = await ClinicModel.findOne({ _id: clinicId, isDeleted: false });
-    if (!clinicDoc) {
+    if (!imageUrls || imageUrls.length === 0) {
       return false;
     }
 
-    if (!clinicDoc.images) {
-      clinicDoc.images = [];
-    }
+    const result = await ClinicModel.findOneAndUpdate(
+      { _id: clinicId, isDeleted: false },
+      {
+        $push: {
+          images: {
+            $each: imageUrls
+          }
+        }
+      },
+      { new: false }
+    );
 
-    clinicDoc.images.push(...imageUrls);
-    await clinicDoc.save();
-
-    return true;
+    return result !== null;
   }
 }
 
