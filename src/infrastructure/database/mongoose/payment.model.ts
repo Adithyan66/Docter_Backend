@@ -26,7 +26,7 @@ const PaymentSchema = new Schema<IPayment>(
   {
     doctor: { type: Schema.Types.ObjectId, ref: 'Doctor', required: true, index: true },
     patient: { type: Schema.Types.ObjectId, ref: 'Patient', required: true, index: true },
-    course: { type: Schema.Types.ObjectId, ref: 'TreatmentCourse', required: true, index: true },
+    course: { type: Schema.Types.ObjectId, ref: 'TreatmentCourse', required: true },
     visit: { type: Schema.Types.ObjectId, ref: 'Visit' },
     clinic: { type: Schema.Types.ObjectId, ref: 'Clinic' },
     amount: { type: Number, required: true, min: 0 },

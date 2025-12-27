@@ -19,7 +19,7 @@ const VisitSchema = new Schema<IVisit>(
   {
     doctor: { type: Schema.Types.ObjectId, ref: 'Doctor', required: true, index: true },
     patient: { type: Schema.Types.ObjectId, ref: 'Patient', required: true, index: true },
-    course: { type: Schema.Types.ObjectId, ref: 'TreatmentCourse', required: true, index: true },
+    course: { type: Schema.Types.ObjectId, ref: 'TreatmentCourse', required: true },
     clinic: { type: Schema.Types.ObjectId, ref: 'Clinic' },
     visitDate: { type: Date, required: true, default: Date.now },
     notes: { type: String },
