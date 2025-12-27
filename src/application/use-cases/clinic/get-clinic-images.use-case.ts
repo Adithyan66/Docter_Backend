@@ -3,9 +3,10 @@ import { IClinicRepository, GetClinicImagesOptions } from '../../../domain/repos
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { UnauthorizedError } from '../../../domain/errors/unauthorized.error';
 import { AuthenticationErrors } from '../../../infrastructure/constants/error-messages';
+import { IGetClinicImagesUseCase } from '../../interfaces/use-cases/clinic/clinic-use-cases.interface';
 
 @injectable()
-export class GetClinicImagesUseCase {
+export class GetClinicImagesUseCase implements IGetClinicImagesUseCase {
   constructor(
     @inject('IClinicRepository') private clinicRepository: IClinicRepository
   ) {}

@@ -4,12 +4,13 @@ import { IStaffRepository } from '../../../domain/repositories/staff.repository'
 import { IClinicRepository } from '../../../domain/repositories/clinic.repository';
 import { IPasswordService } from '../../interfaces/password-service.interface';
 import { IJwtService } from '../../interfaces/jwt-service.interface';
+import { ILoginUseCase } from '../../interfaces/use-cases/auth/auth-use-cases.interface';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { AuthenticationErrors } from '../../../infrastructure/constants/error-messages';
 
 @injectable()
-export class LoginUseCase {
+export class LoginUseCase implements ILoginUseCase {
   constructor(
     @inject('IDoctorRepository') private doctorRepository: IDoctorRepository,
     @inject('IStaffRepository') private staffRepository: IStaffRepository,

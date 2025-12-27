@@ -4,30 +4,11 @@ import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { ConflictError } from '../../../domain/errors/conflict.error';
 import { Email } from '../../../domain/value-objects/email.vo';
-import { WorkingDay, DayOfWeek } from '../../../domain/value-objects/working-day.vo';
-
-interface UpdateClinicInput {
-  name?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  pincode?: string;
-  phone?: string;
-  email?: string;
-  website?: string;
-  locationUrl?: string;
-  workingDays?: Array<{
-    day: DayOfWeek;
-    startTime: string;
-    endTime: string;
-  }>;
-  treatments?: string[];
-  notes?: string;
-  isActive?: boolean;
-}
+import { WorkingDay } from '../../../domain/value-objects/working-day.vo';
+import { IUpdateClinicUseCase, UpdateClinicInput } from '../../interfaces/use-cases/clinic/clinic-use-cases.interface';
 
 @injectable()
-export class UpdateClinicUseCase {
+export class UpdateClinicUseCase implements IUpdateClinicUseCase {
   constructor(
     @inject('IClinicRepository') private clinicRepository: IClinicRepository
   ) {}

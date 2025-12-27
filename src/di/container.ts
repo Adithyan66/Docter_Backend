@@ -29,6 +29,7 @@ import { ImageUploadService } from '../infrastructure/shared/image-upload.servic
 import { LoginUseCase } from '../application/use-cases/auth/login.use-case';
 import { RefreshTokenUseCase } from '../application/use-cases/auth/refresh-token.use-case';
 import { LogoutUseCase } from '../application/use-cases/auth/logout.use-case';
+import { ILoginUseCase, IRefreshTokenUseCase, ILogoutUseCase } from '../application/interfaces/use-cases/auth/auth-use-cases.interface';
 import { GenerateImageUploadUrlUseCase } from '../application/use-cases/image/generate-image-upload-url.use-case';
 import { GenerateImageDownloadUrlUseCase } from '../application/use-cases/image/generate-image-download-url.use-case';
 import { CreateTreatmentUseCase } from '../application/use-cases/treatment/create-treatment.use-case';
@@ -48,6 +49,17 @@ import { GetClinicNamesUseCase } from '../application/use-cases/clinic/get-clini
 import { GetClinicImagesUseCase } from '../application/use-cases/clinic/get-clinic-images.use-case';
 import { DeleteClinicImageUseCase } from '../application/use-cases/clinic/delete-clinic-image.use-case';
 import { AddClinicImagesUseCase } from '../application/use-cases/clinic/add-clinic-images.use-case';
+import {
+  ICreateClinicUseCase,
+  IUpdateClinicUseCase,
+  IDeleteClinicUseCase,
+  IGetClinicUseCase,
+  IGetAllClinicsUseCase,
+  IGetClinicNamesUseCase,
+  IGetClinicImagesUseCase,
+  IAddClinicImagesUseCase,
+  IDeleteClinicImageUseCase,
+} from '../application/interfaces/use-cases/clinic/clinic-use-cases.interface';
 import { CreatePatientUseCase } from '../application/use-cases/patient/create-patient.use-case';
 import { UpdatePatientUseCase } from '../application/use-cases/patient/update-patient.use-case';
 import { DeletePatientUseCase } from '../application/use-cases/patient/delete-patient.use-case';
@@ -127,11 +139,11 @@ container.registerSingleton<IS3Service>('IS3Service', S3Service);
 
 container.registerSingleton<IImageUploadService>('IImageUploadService', ImageUploadService);
 
-container.registerSingleton<LoginUseCase>('LoginUseCase', LoginUseCase);
+container.registerSingleton<ILoginUseCase>('ILoginUseCase', LoginUseCase);
 
-container.registerSingleton<RefreshTokenUseCase>('RefreshTokenUseCase', RefreshTokenUseCase);
+container.registerSingleton<IRefreshTokenUseCase>('IRefreshTokenUseCase', RefreshTokenUseCase);
 
-container.registerSingleton<LogoutUseCase>('LogoutUseCase', LogoutUseCase);
+container.registerSingleton<ILogoutUseCase>('ILogoutUseCase', LogoutUseCase);
 container.registerSingleton<CreateStaffUseCase>('CreateStaffUseCase', CreateStaffUseCase);
 container.registerSingleton<UpdateStaffUseCase>('UpdateStaffUseCase', UpdateStaffUseCase);
 container.registerSingleton<DeleteStaffUseCase>('DeleteStaffUseCase', DeleteStaffUseCase);
@@ -158,23 +170,23 @@ container.registerSingleton<AddTreatmentImagesUseCase>('AddTreatmentImagesUseCas
 
 container.registerSingleton<GetTreatmentImagesUseCase>('GetTreatmentImagesUseCase', GetTreatmentImagesUseCase);
 
-container.registerSingleton<CreateClinicUseCase>('CreateClinicUseCase', CreateClinicUseCase);
+container.registerSingleton<ICreateClinicUseCase>('ICreateClinicUseCase', CreateClinicUseCase);
 
-container.registerSingleton<UpdateClinicUseCase>('UpdateClinicUseCase', UpdateClinicUseCase);
+container.registerSingleton<IUpdateClinicUseCase>('IUpdateClinicUseCase', UpdateClinicUseCase);
 
-container.registerSingleton<DeleteClinicUseCase>('DeleteClinicUseCase', DeleteClinicUseCase);
+container.registerSingleton<IDeleteClinicUseCase>('IDeleteClinicUseCase', DeleteClinicUseCase);
 
-container.registerSingleton<GetClinicUseCase>('GetClinicUseCase', GetClinicUseCase);
+container.registerSingleton<IGetClinicUseCase>('IGetClinicUseCase', GetClinicUseCase);
 
-container.registerSingleton<GetAllClinicsUseCase>('GetAllClinicsUseCase', GetAllClinicsUseCase);
+container.registerSingleton<IGetAllClinicsUseCase>('IGetAllClinicsUseCase', GetAllClinicsUseCase);
 
-container.registerSingleton<GetClinicNamesUseCase>('GetClinicNamesUseCase', GetClinicNamesUseCase);
+container.registerSingleton<IGetClinicNamesUseCase>('IGetClinicNamesUseCase', GetClinicNamesUseCase);
 
-container.registerSingleton<GetClinicImagesUseCase>('GetClinicImagesUseCase', GetClinicImagesUseCase);
+container.registerSingleton<IGetClinicImagesUseCase>('IGetClinicImagesUseCase', GetClinicImagesUseCase);
 
-container.registerSingleton<DeleteClinicImageUseCase>('DeleteClinicImageUseCase', DeleteClinicImageUseCase);
+container.registerSingleton<IDeleteClinicImageUseCase>('IDeleteClinicImageUseCase', DeleteClinicImageUseCase);
 
-container.registerSingleton<AddClinicImagesUseCase>('AddClinicImagesUseCase', AddClinicImagesUseCase);
+container.registerSingleton<IAddClinicImagesUseCase>('IAddClinicImagesUseCase', AddClinicImagesUseCase);
 
 container.registerSingleton<CreatePatientUseCase>('CreatePatientUseCase', CreatePatientUseCase);
 container.registerSingleton<UpdatePatientUseCase>('UpdatePatientUseCase', UpdatePatientUseCase);

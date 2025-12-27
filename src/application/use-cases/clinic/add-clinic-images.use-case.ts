@@ -2,9 +2,10 @@ import { injectable, inject } from 'tsyringe';
 import { IClinicRepository } from '../../../domain/repositories/clinic.repository';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { ValidationError } from '../../../domain/errors/validation.error';
+import { IAddClinicImagesUseCase } from '../../interfaces/use-cases/clinic/clinic-use-cases.interface';
 
 @injectable()
-export class AddClinicImagesUseCase {
+export class AddClinicImagesUseCase implements IAddClinicImagesUseCase {
   constructor(
     @inject('IClinicRepository') private clinicRepository: IClinicRepository
   ) {}

@@ -2,18 +2,20 @@ import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
 import { IClinicController } from '../interfaces/controllers/clinic-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
-import { CreateClinicUseCase } from '../../application/use-cases/clinic/create-clinic.use-case';
-import { UpdateClinicUseCase } from '../../application/use-cases/clinic/update-clinic.use-case';
-import { DeleteClinicUseCase } from '../../application/use-cases/clinic/delete-clinic.use-case';
-import { GetClinicUseCase } from '../../application/use-cases/clinic/get-clinic.use-case';
-import { GetAllClinicsUseCase } from '../../application/use-cases/clinic/get-all-clinics.use-case';
-import { GetClinicNamesUseCase } from '../../application/use-cases/clinic/get-clinic-names.use-case';
-import { GetClinicImagesUseCase } from '../../application/use-cases/clinic/get-clinic-images.use-case';
-import { DeleteClinicImageUseCase } from '../../application/use-cases/clinic/delete-clinic-image.use-case';
-import { AddClinicImagesUseCase } from '../../application/use-cases/clinic/add-clinic-images.use-case';
+import {
+  ICreateClinicUseCase,
+  IUpdateClinicUseCase,
+  IDeleteClinicUseCase,
+  IGetClinicUseCase,
+  IGetAllClinicsUseCase,
+  IGetClinicNamesUseCase,
+  IGetClinicImagesUseCase,
+  IAddClinicImagesUseCase,
+  IDeleteClinicImageUseCase,
+  GetClinicsParams,
+} from '../../application/interfaces/use-cases/clinic/clinic-use-cases.interface';
 import { ValidationError } from '../../domain/errors/validation.error';
 import { CreateClinicRequestDto, UpdateClinicRequestDto, ClinicResponseDto, PaginatedClinicsResponseDto, ClinicListDto } from '../dto/clinic.dto';
-import { GetClinicsParams } from '../../application/use-cases/clinic/get-all-clinics.use-case';
 import { Clinic } from '../../domain/entities/clinic.entity';
 import { getUserContext, getClinicId, getUserId } from '../utils/user-context.util';
 import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
@@ -22,15 +24,15 @@ import { AuthenticationErrors } from '../../infrastructure/constants/error-messa
 @injectable()
 export class ClinicController implements IClinicController {
   constructor(
-    @inject('CreateClinicUseCase') private readonly createClinicUseCase: CreateClinicUseCase,
-    @inject('UpdateClinicUseCase') private readonly updateClinicUseCase: UpdateClinicUseCase,
-    @inject('DeleteClinicUseCase') private readonly deleteClinicUseCase: DeleteClinicUseCase,
-    @inject('GetClinicUseCase') private readonly getClinicUseCase: GetClinicUseCase,
-    @inject('GetAllClinicsUseCase') private readonly getAllClinicsUseCase: GetAllClinicsUseCase,
-    @inject('GetClinicNamesUseCase') private readonly getClinicNamesUseCase: GetClinicNamesUseCase,
-    @inject('GetClinicImagesUseCase') private readonly getClinicImagesUseCase: GetClinicImagesUseCase,
-    @inject('DeleteClinicImageUseCase') private readonly deleteClinicImageUseCase: DeleteClinicImageUseCase,
-    @inject('AddClinicImagesUseCase') private readonly addClinicImagesUseCase: AddClinicImagesUseCase
+    @inject('ICreateClinicUseCase') private readonly createClinicUseCase: ICreateClinicUseCase,
+    @inject('IUpdateClinicUseCase') private readonly updateClinicUseCase: IUpdateClinicUseCase,
+    @inject('IDeleteClinicUseCase') private readonly deleteClinicUseCase: IDeleteClinicUseCase,
+    @inject('IGetClinicUseCase') private readonly getClinicUseCase: IGetClinicUseCase,
+    @inject('IGetAllClinicsUseCase') private readonly getAllClinicsUseCase: IGetAllClinicsUseCase,
+    @inject('IGetClinicNamesUseCase') private readonly getClinicNamesUseCase: IGetClinicNamesUseCase,
+    @inject('IGetClinicImagesUseCase') private readonly getClinicImagesUseCase: IGetClinicImagesUseCase,
+    @inject('IDeleteClinicImageUseCase') private readonly deleteClinicImageUseCase: IDeleteClinicImageUseCase,
+    @inject('IAddClinicImagesUseCase') private readonly addClinicImagesUseCase: IAddClinicImagesUseCase
   ) {}
 
   async create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {

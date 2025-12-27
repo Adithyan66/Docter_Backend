@@ -1,16 +1,11 @@
 import { injectable, inject } from 'tsyringe';
 import { IClinicRepository, FindAllPaginatedOptions } from '../../../domain/repositories/clinic.repository';
+import { IGetAllClinicsUseCase, GetClinicsParams } from '../../interfaces/use-cases/clinic/clinic-use-cases.interface';
 
-export type GetClinicsParams = {
-  page?: number;
-  limit?: number;
-  sortBy?: 'createdAt' | 'numOfPatients' | 'onGoingTreatments' | 'completedTreatments';
-  sortOrder?: 'asc' | 'desc';
-  search?: string;
-};
+export { GetClinicsParams };
 
 @injectable()
-export class GetAllClinicsUseCase {
+export class GetAllClinicsUseCase implements IGetAllClinicsUseCase {
   constructor(
     @inject('IClinicRepository') private clinicRepository: IClinicRepository
   ) {}

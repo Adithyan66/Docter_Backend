@@ -4,9 +4,10 @@ import { IS3Service } from '../../interfaces/s3-service.interface';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { UnauthorizedError } from '../../../domain/errors/unauthorized.error';
 import { AuthenticationErrors } from '../../../infrastructure/constants/error-messages';
+import { IDeleteClinicImageUseCase } from '../../interfaces/use-cases/clinic/clinic-use-cases.interface';
 
 @injectable()
-export class DeleteClinicImageUseCase {
+export class DeleteClinicImageUseCase implements IDeleteClinicImageUseCase {
   constructor(
     @inject('IClinicRepository') private clinicRepository: IClinicRepository,
     @inject('IS3Service') private s3Service: IS3Service

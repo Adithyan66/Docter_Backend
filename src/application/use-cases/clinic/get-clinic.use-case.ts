@@ -1,26 +1,14 @@
 import { injectable, inject } from 'tsyringe';
 import { IClinicRepository, ClinicStatisticsOptions } from '../../../domain/repositories/clinic.repository';
-import { Clinic } from '../../../domain/entities/clinic.entity';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { UnauthorizedError } from '../../../domain/errors/unauthorized.error';
 import { AuthenticationErrors } from '../../../infrastructure/constants/error-messages';
+import { IGetClinicUseCase, GetClinicOptions, GetClinicResult } from '../../interfaces/use-cases/clinic/clinic-use-cases.interface';
 
-export interface GetClinicOptions {
-  includeStatistics?: boolean;
-  startDateFrom?: Date;
-  startDateTo?: Date;
-  treatmentId?: string;
-  include?: string[];
-  exclude?: string[];
-}
-
-export interface GetClinicResult {
-  clinic: Clinic;
-  statistics?: any;
-}
+export { GetClinicOptions, GetClinicResult };
 
 @injectable()
-export class GetClinicUseCase {
+export class GetClinicUseCase implements IGetClinicUseCase {
   constructor(
     @inject('IClinicRepository') private clinicRepository: IClinicRepository
   ) {}
