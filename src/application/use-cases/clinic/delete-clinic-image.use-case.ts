@@ -3,8 +3,10 @@ import { IClinicRepository } from '../../../domain/repositories/clinic.repositor
 import { IFileStorageService } from '../../interfaces/file-storage-service.interface';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { UnauthorizedError } from '../../../domain/errors/unauthorized.error';
+import { ValidationError } from '../../../domain/errors/validation.error';
 import { AuthenticationErrors } from '../../../infrastructure/constants/error-messages';
 import { IDeleteClinicImageUseCase } from '../../interfaces/use-cases/clinic/clinic-use-cases.interface';
+import { normalizeUrl } from '../../../presentation/utils/url.util';
 
 @injectable()
 export class DeleteClinicImageUseCase implements IDeleteClinicImageUseCase {
@@ -16,8 +18,13 @@ export class DeleteClinicImageUseCase implements IDeleteClinicImageUseCase {
   async execute(
     clinicId: string,
     imageIndex: number,
+    imageUrl: string,
     requester: { doctorId: string; role: 'doctor' | 'staff'; clinicId?: string }
   ): Promise<boolean> {
+    if (!imageUrl || typeof imageUrl !== 'string' || imageUrl.trim().length === 0) {
+      throw new ValidationError('Image URL is required');
+    }
+
     const { doctorId, role, clinicId: staffClinicId } = requester;
 
     const clinic = await this.clinicRepository.findById(clinicId);
@@ -39,8 +46,15 @@ export class DeleteClinicImageUseCase implements IDeleteClinicImageUseCase {
       throw new NotFoundError('Image', imageIndex.toString());
     }
 
-    const imageUrl = clinic.images[imageIndex];
-    const fileKey = this.fileStorageService.extractKeyFromUrl(imageUrl);
+    const storedImageUrl = clinic.images[imageIndex];
+    const normalizedStoredUrl = normalizeUrl(storedImageUrl);
+    const normalizedProvidedUrl = normalizeUrl(imageUrl);
+
+    if (normalizedStoredUrl !== normalizedProvidedUrl) {
+      throw new ValidationError('Image URL does not match the image at the specified index');
+    }
+
+    const fileKey = this.fileStorageService.extractKeyFromUrl(storedImageUrl);
 
     try {
       await this.fileStorageService.deleteFile(fileKey);

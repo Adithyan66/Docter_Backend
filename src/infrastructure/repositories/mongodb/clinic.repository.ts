@@ -53,13 +53,7 @@ export class MongoClinicRepository implements IClinicRepository {
           workingDays: 1,
           treatments: 1,
           populatedTreatments: 1,
-          images: {
-            $cond: {
-              if: { $and: [{ $isArray: '$images' }, { $gt: [{ $size: '$images' }, 0] }] },
-              then: [{ $arrayElemAt: ['$images', 0] }],
-              else: '$$REMOVE',
-            },
-          },
+          images: 1,
           notes: 1,
           isActive: 1,
           isDeleted: 1,
@@ -1237,11 +1231,10 @@ export class MongoClinicRepository implements IClinicRepository {
       { 
         _id: clinicId, 
         isDeleted: false,
-        images: { $exists: true, $ne: [] },
         $expr: { 
           $and: [
-            { $gte: [{ $size: '$images' }, imageIndex + 1] },
-            { $gt: [imageIndex, -1] }
+            { $isArray: '$images' },
+            { $gte: [{ $size: '$images' }, { $add: [imageIndex, 1] }] }
           ]
         }
       },

@@ -202,11 +202,16 @@ export class ClinicController implements IClinicController {
       throw new ValidationError('Invalid image index');
     }
 
+    const body = req.body as { imageUrl?: string };
+    if (!body || !body.imageUrl || typeof body.imageUrl !== 'string' || body.imageUrl.trim().length === 0) {
+      throw new ValidationError('Image URL is required in request body');
+    }
+
     const userContext = getUserContext(req);
     const doctorId = userContext.doctorId;
     const staffClinicId = getClinicId(req);
 
-    await this.deleteClinicImageUseCase.execute(id, imageIndex, {
+    await this.deleteClinicImageUseCase.execute(id, imageIndex, body.imageUrl, {
       doctorId,
       role: userContext.role,
       clinicId: staffClinicId,

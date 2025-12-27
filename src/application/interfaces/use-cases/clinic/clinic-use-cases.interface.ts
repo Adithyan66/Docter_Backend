@@ -111,6 +111,7 @@ export interface IDeleteClinicImageUseCase {
   execute(
     clinicId: string,
     imageIndex: number,
+    imageUrl: string,
     requester: { doctorId: string; role: 'doctor' | 'staff'; clinicId?: string }
   ): Promise<boolean>;
 }
