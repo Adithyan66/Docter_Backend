@@ -5,9 +5,10 @@ import { ValidationError } from '../../../domain/errors/validation.error';
 import { CreateStaffRequestDto, StaffResponseDto } from '../../../presentation/dto/staff.dto';
 import { IClinicRepository } from '../../../domain/repositories/clinic.repository';
 import { IPasswordService } from '../../interfaces/password-service.interface';
+import { ICreateStaffUseCase } from '../../interfaces/use-cases/staff/staff-use-cases.interface';
 
 @injectable()
-export class CreateStaffUseCase {
+export class CreateStaffUseCase implements ICreateStaffUseCase {
   constructor(
     @inject('IStaffRepository') private readonly staffRepository: IStaffRepository,
     @inject('IClinicRepository') private readonly clinicRepository: IClinicRepository,

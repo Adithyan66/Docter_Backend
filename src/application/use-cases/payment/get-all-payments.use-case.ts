@@ -3,9 +3,10 @@ import { IPaymentRepository, PaymentSearchOptions } from '../../../domain/reposi
 import { PaymentMethod } from '../../../domain/value-objects/payment-method.vo';
 import { GetPaymentsQueryDto, PaginatedPaymentsResponseDto } from '../../../presentation/dto/payment.dto';
 import { paymentToDto } from '../../mappers/payment.mapper';
+import { IGetAllPaymentsUseCase } from '../../interfaces/use-cases/payment/payment-use-cases.interface';
 
 @injectable()
-export class GetAllPaymentsUseCase {
+export class GetAllPaymentsUseCase implements IGetAllPaymentsUseCase {
   constructor(@inject('IPaymentRepository') private readonly paymentRepository: IPaymentRepository) {}
 
   async execute(doctorId: string, query: GetPaymentsQueryDto): Promise<PaginatedPaymentsResponseDto> {

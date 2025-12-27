@@ -4,9 +4,10 @@ import { ValidationError } from '../../../domain/errors/validation.error';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { UpdateStaffRequestDto, StaffResponseDto } from '../../../presentation/dto/staff.dto';
 import { IClinicRepository } from '../../../domain/repositories/clinic.repository';
+import { IUpdateStaffUseCase } from '../../interfaces/use-cases/staff/staff-use-cases.interface';
 
 @injectable()
-export class UpdateStaffUseCase {
+export class UpdateStaffUseCase implements IUpdateStaffUseCase {
   constructor(
     @inject('IStaffRepository') private readonly staffRepository: IStaffRepository,
     @inject('IClinicRepository') private readonly clinicRepository: IClinicRepository

@@ -2,14 +2,16 @@ import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
 import { ITreatmentController } from '../interfaces/controllers/treatment-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
-import { CreateTreatmentUseCase } from '../../application/use-cases/treatment/create-treatment.use-case';
-import { UpdateTreatmentUseCase } from '../../application/use-cases/treatment/update-treatment.use-case';
-import { DeleteTreatmentUseCase } from '../../application/use-cases/treatment/delete-treatment.use-case';
-import { GetTreatmentUseCase } from '../../application/use-cases/treatment/get-treatment.use-case';
-import { GetAllTreatmentsUseCase } from '../../application/use-cases/treatment/get-all-treatments.use-case';
-import { GetTreatmentNamesUseCase } from '../../application/use-cases/treatment/get-treatment-names.use-case';
-import { AddTreatmentImagesUseCase } from '../../application/use-cases/treatment/add-treatment-images.use-case';
-import { GetTreatmentImagesUseCase } from '../../application/use-cases/treatment/get-treatment-images.use-case';
+import {
+  ICreateTreatmentUseCase,
+  IUpdateTreatmentUseCase,
+  IDeleteTreatmentUseCase,
+  IGetTreatmentUseCase,
+  IGetAllTreatmentsUseCase,
+  IGetTreatmentNamesUseCase,
+  IAddTreatmentImagesUseCase,
+  IGetTreatmentImagesUseCase,
+} from '../../application/interfaces/use-cases/treatment/treatment-use-cases.interface';
 import { ValidationError } from '../../domain/errors/validation.error';
 import { CreateTreatmentRequestDto, UpdateTreatmentRequestDto, TreatmentResponseDto, PaginatedTreatmentsResponseDto, TreatmentList } from '../dto/treatment.dto';
 import { Treatment } from '../../domain/entities/treatment.entity';
@@ -18,14 +20,14 @@ import { getUserId, getUserContext } from '../utils/user-context.util';
 @injectable()
 export class TreatmentController implements ITreatmentController {
   constructor(
-    @inject('CreateTreatmentUseCase') private readonly createTreatmentUseCase: CreateTreatmentUseCase,
-    @inject('UpdateTreatmentUseCase') private readonly updateTreatmentUseCase: UpdateTreatmentUseCase,
-    @inject('DeleteTreatmentUseCase') private readonly deleteTreatmentUseCase: DeleteTreatmentUseCase,
-    @inject('GetTreatmentUseCase') private readonly getTreatmentUseCase: GetTreatmentUseCase,
-    @inject('GetAllTreatmentsUseCase') private readonly getAllTreatmentsUseCase: GetAllTreatmentsUseCase,
-    @inject('GetTreatmentNamesUseCase') private readonly getTreatmentNamesUseCase: GetTreatmentNamesUseCase,
-    @inject('AddTreatmentImagesUseCase') private readonly addTreatmentImagesUseCase: AddTreatmentImagesUseCase,
-    @inject('GetTreatmentImagesUseCase') private readonly getTreatmentImagesUseCase: GetTreatmentImagesUseCase
+    @inject('ICreateTreatmentUseCase') private readonly createTreatmentUseCase: ICreateTreatmentUseCase,
+    @inject('IUpdateTreatmentUseCase') private readonly updateTreatmentUseCase: IUpdateTreatmentUseCase,
+    @inject('IDeleteTreatmentUseCase') private readonly deleteTreatmentUseCase: IDeleteTreatmentUseCase,
+    @inject('IGetTreatmentUseCase') private readonly getTreatmentUseCase: IGetTreatmentUseCase,
+    @inject('IGetAllTreatmentsUseCase') private readonly getAllTreatmentsUseCase: IGetAllTreatmentsUseCase,
+    @inject('IGetTreatmentNamesUseCase') private readonly getTreatmentNamesUseCase: IGetTreatmentNamesUseCase,
+    @inject('IAddTreatmentImagesUseCase') private readonly addTreatmentImagesUseCase: IAddTreatmentImagesUseCase,
+    @inject('IGetTreatmentImagesUseCase') private readonly getTreatmentImagesUseCase: IGetTreatmentImagesUseCase
   ) {}
 
   async create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {

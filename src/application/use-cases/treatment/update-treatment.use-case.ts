@@ -4,34 +4,15 @@ import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { ConflictError } from '../../../domain/errors/conflict.error';
 import { VisitIntervalUnit } from '../../../domain/value-objects/visit-interval-unit.vo';
-
-interface UpdateTreatmentInput {
-  name?: string;
-  description?: string;
-  minDuration?: number;
-  maxDuration?: number;
-  avgDuration?: number;
-  minFees?: number;
-  maxFees?: number;
-  avgFees?: number;
-  steps?: string[];
-  aftercare?: string[];
-  followUpRequired?: boolean;
-  followUpAfterDays?: number;
-  risks?: string[];
-  images?: string[];
-  isOneTime?: boolean;
-  isActive?: boolean;
-  regularVisitInterval?: { interval: number; unit: VisitIntervalUnit } | null;
-}
+import { IUpdateTreatmentUseCase, UpdateTreatmentRequestDto } from '../../interfaces/use-cases/treatment/treatment-use-cases.interface';
 
 @injectable()
-export class UpdateTreatmentUseCase {
+export class UpdateTreatmentUseCase implements IUpdateTreatmentUseCase {
   constructor(
     @inject('ITreatmentRepository') private treatmentRepository: ITreatmentRepository
   ) {}
 
-  async execute(id: string, doctorId: string, input: UpdateTreatmentInput): Promise<void> {
+  async execute(id: string, doctorId: string, input: UpdateTreatmentRequestDto): Promise<void> {
     const existingTreatment = await this.treatmentRepository.findById(id);
     if (!existingTreatment || existingTreatment.doctorId !== doctorId) {
       throw new NotFoundError('Treatment', id);
@@ -84,7 +65,7 @@ export class UpdateTreatmentUseCase {
     }
   }
 
-  private validateInput(input: UpdateTreatmentInput, existingTreatment: any): void {
+  private validateInput(input: UpdateTreatmentRequestDto, existingTreatment: any): void {
     if (input.name !== undefined && input.name.trim().length === 0) {
       throw new ValidationError('Name cannot be empty');
     }
@@ -128,7 +109,7 @@ export class UpdateTreatmentUseCase {
     }
   }
 
-  private validateVisitType(input: UpdateTreatmentInput, existingTreatment: any): void {
+  private validateVisitType(input: UpdateTreatmentRequestDto, existingTreatment: any): void {
     if (input.isOneTime === true && input.regularVisitInterval !== undefined && input.regularVisitInterval !== null) {
       throw new ValidationError('Cannot set regularVisitInterval when isOneTime is true');
     }

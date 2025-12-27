@@ -7,9 +7,10 @@ import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { MongoVisitRepository } from '../../../infrastructure/repositories/mongodb/visit.repository';
 import { MongoPatientRepository } from '../../../infrastructure/repositories/mongodb/patient.repository';
 import { MongoTreatmentCourseRepository } from '../../../infrastructure/repositories/mongodb/treatment-course.repository';
+import { IDeleteVisitUseCase } from '../../interfaces/use-cases/visit/visit-use-cases.interface';
 
 @injectable()
-export class DeleteVisitUseCase {
+export class DeleteVisitUseCase implements IDeleteVisitUseCase {
   constructor(
     @inject('IVisitRepository') private readonly visitRepository: IVisitRepository,
     @inject('IPatientRepository') private readonly patientRepository: IPatientRepository,

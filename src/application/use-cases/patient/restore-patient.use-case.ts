@@ -7,9 +7,10 @@ import { IPaymentRepository } from '../../../domain/repositories/payment.reposit
 import { IMediaRepository } from '../../../domain/repositories/media.repository';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { ValidationError } from '../../../domain/errors/validation.error';
+import { IRestorePatientUseCase } from '../../interfaces/use-cases/patient/patient-use-cases.interface';
 
 @injectable()
-export class RestorePatientUseCase {
+export class RestorePatientUseCase implements IRestorePatientUseCase {
   constructor(
     @inject('IPatientRepository') private readonly patientRepository: IPatientRepository,
     @inject('IVisitRepository') private readonly visitRepository: IVisitRepository,

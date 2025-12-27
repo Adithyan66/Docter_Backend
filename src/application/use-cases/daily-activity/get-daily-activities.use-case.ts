@@ -3,9 +3,10 @@ import { IVisitRepository } from '../../../domain/repositories/visit.repository'
 import { GetDailyActivitiesQueryDto, PaginatedDailyActivitiesResponseDto } from '../../../presentation/dto/daily-activity.dto';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { mapToDailyActivityResponse } from '../../mappers/daily-activity.mapper';
+import { IGetDailyActivitiesUseCase } from '../../interfaces/use-cases/daily-activity/daily-activity-use-cases.interface';
 
 @injectable()
-export class GetDailyActivitiesUseCase {
+export class GetDailyActivitiesUseCase implements IGetDailyActivitiesUseCase {
   constructor(
     @inject('IVisitRepository') private readonly visitRepository: IVisitRepository
   ) {}

@@ -1,9 +1,10 @@
 import { injectable, inject } from 'tsyringe';
 import { ITreatmentCourseRepository } from '../../../domain/repositories/treatment-course.repository';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
+import { IDeleteTreatmentCourseUseCase } from '../../interfaces/use-cases/treatment-course/treatment-course-use-cases.interface';
 
 @injectable()
-export class DeleteTreatmentCourseUseCase {
+export class DeleteTreatmentCourseUseCase implements IDeleteTreatmentCourseUseCase {
   constructor(
     @inject('ITreatmentCourseRepository') private readonly treatmentCourseRepository: ITreatmentCourseRepository
   ) {}

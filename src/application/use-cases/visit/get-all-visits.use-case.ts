@@ -5,9 +5,10 @@ import { IMediaRepository } from '../../../domain/repositories/media.repository'
 import { GetVisitsQueryDto, PaginatedVisitsResponseDto } from '../../../presentation/dto/visit.dto';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { visitToDto } from '../../mappers/visit.mapper';
+import { IGetAllVisitsUseCase } from '../../interfaces/use-cases/visit/visit-use-cases.interface';
 
 @injectable()
-export class GetAllVisitsUseCase {
+export class GetAllVisitsUseCase implements IGetAllVisitsUseCase {
   constructor(
     @inject('IVisitRepository') private readonly visitRepository: IVisitRepository,
     @inject('IPrescriptionRepository') private readonly prescriptionRepository: IPrescriptionRepository,

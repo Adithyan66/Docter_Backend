@@ -1,17 +1,12 @@
 import { injectable, inject } from 'tsyringe';
 import { IStaffRepository } from '../../../domain/repositories/staff.repository';
 import { PaginatedStaffResponseDto } from '../../../presentation/dto/staff.dto';
+import { IGetAllStaffUseCase, GetAllStaffParams } from '../../interfaces/use-cases/staff/staff-use-cases.interface';
 
-export type GetAllStaffParams = {
-  page?: number;
-  limit?: number;
-  username?: string;
-  clinicId?: string;
-  isActive?: boolean;
-};
+export { GetAllStaffParams };
 
 @injectable()
-export class GetAllStaffUseCase {
+export class GetAllStaffUseCase implements IGetAllStaffUseCase {
   constructor(@inject('IStaffRepository') private readonly staffRepository: IStaffRepository) {}
 
   async execute(doctorId: string, params: GetAllStaffParams = {}): Promise<PaginatedStaffResponseDto> {

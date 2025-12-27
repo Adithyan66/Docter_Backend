@@ -8,9 +8,10 @@ import { TreatmentCourse } from '../../../domain/entities/treatment-course.entit
 import { CreateTreatmentCourseRequestDto, TreatmentCourseResponseDto } from '../../../presentation/dto/treatment-course.dto';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { treatmentCourseToDto } from '../../mappers/treatment-course.mapper';
+import { ICreateTreatmentCourseUseCase } from '../../interfaces/use-cases/treatment-course/treatment-course-use-cases.interface';
 
 @injectable()
-export class CreateTreatmentCourseUseCase {
+export class CreateTreatmentCourseUseCase implements ICreateTreatmentCourseUseCase {
   constructor(
     @inject('ITreatmentCourseRepository') private readonly treatmentCourseRepository: ITreatmentCourseRepository,
     @inject('IDoctorRepository') private readonly doctorRepository: IDoctorRepository,

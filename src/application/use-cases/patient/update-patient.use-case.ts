@@ -9,9 +9,10 @@ import { Phone } from '../../../domain/value-objects/phone.vo';
 import { PatientId } from '../../../domain/value-objects/patient-id.vo';
 import { Patient } from '../../../domain/entities/patient.entity';
 import { patientToDto } from '../../mappers/patient.mapper';
+import { IUpdatePatientUseCase } from '../../interfaces/use-cases/patient/patient-use-cases.interface';
 
 @injectable()
-export class UpdatePatientUseCase {
+export class UpdatePatientUseCase implements IUpdatePatientUseCase {
   constructor(
     @inject('IPatientRepository') private readonly patientRepository: IPatientRepository
   ) {}

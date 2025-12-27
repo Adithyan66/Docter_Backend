@@ -2,12 +2,14 @@ import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
 import { IPatientController } from '../interfaces/controllers/patient-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
-import { CreatePatientUseCase } from '../../application/use-cases/patient/create-patient.use-case';
-import { UpdatePatientUseCase } from '../../application/use-cases/patient/update-patient.use-case';
-import { DeletePatientUseCase } from '../../application/use-cases/patient/delete-patient.use-case';
-import { RestorePatientUseCase } from '../../application/use-cases/patient/restore-patient.use-case';
-import { GetPatientsUseCase } from '../../application/use-cases/patient/get-patients.use-case';
-import { GetPatientUseCase } from '../../application/use-cases/patient/get-patient.use-case';
+import {
+  ICreatePatientUseCase,
+  IUpdatePatientUseCase,
+  IDeletePatientUseCase,
+  IRestorePatientUseCase,
+  IGetPatientsUseCase,
+  IGetPatientUseCase,
+} from '../../application/interfaces/use-cases/patient/patient-use-cases.interface';
 import { ValidationError } from '../../domain/errors/validation.error';
 import { CreatePatientRequestDto, UpdatePatientRequestDto, GetPatientsQueryDto } from '../dto/patient.dto';
 import { PatientConsultationType, PatientGender } from '../../domain/entities/patient.entity';
@@ -16,12 +18,12 @@ import { getUserId, getUserContext } from '../utils/user-context.util';
 @injectable()
 export class PatientController implements IPatientController {
   constructor(
-    @inject('CreatePatientUseCase') private readonly createPatientUseCase: CreatePatientUseCase,
-    @inject('UpdatePatientUseCase') private readonly updatePatientUseCase: UpdatePatientUseCase,
-    @inject('DeletePatientUseCase') private readonly deletePatientUseCase: DeletePatientUseCase,
-    @inject('RestorePatientUseCase') private readonly restorePatientUseCase: RestorePatientUseCase,
-    @inject('GetPatientsUseCase') private readonly getPatientsUseCase: GetPatientsUseCase,
-    @inject('GetPatientUseCase') private readonly getPatientUseCase: GetPatientUseCase
+    @inject('ICreatePatientUseCase') private readonly createPatientUseCase: ICreatePatientUseCase,
+    @inject('IUpdatePatientUseCase') private readonly updatePatientUseCase: IUpdatePatientUseCase,
+    @inject('IDeletePatientUseCase') private readonly deletePatientUseCase: IDeletePatientUseCase,
+    @inject('IRestorePatientUseCase') private readonly restorePatientUseCase: IRestorePatientUseCase,
+    @inject('IGetPatientsUseCase') private readonly getPatientsUseCase: IGetPatientsUseCase,
+    @inject('IGetPatientUseCase') private readonly getPatientUseCase: IGetPatientUseCase
   ) {}
 
   async create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {

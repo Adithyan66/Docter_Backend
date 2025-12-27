@@ -2,9 +2,10 @@ import { injectable, inject } from 'tsyringe';
 import { IMediaRepository, MediaSearchOptions } from '../../../domain/repositories/media.repository';
 import { GetMediaQueryDto, PaginatedMediaResponseDto } from '../../../presentation/dto/media.dto';
 import { mediaToDto } from '../../mappers/media.mapper';
+import { IGetAllMediaUseCase } from '../../interfaces/use-cases/media/media-use-cases.interface';
 
 @injectable()
-export class GetAllMediaUseCase {
+export class GetAllMediaUseCase implements IGetAllMediaUseCase {
   constructor(@inject('IMediaRepository') private readonly mediaRepository: IMediaRepository) {}
 
   async execute(doctorId: string, query: GetMediaQueryDto): Promise<PaginatedMediaResponseDto> {

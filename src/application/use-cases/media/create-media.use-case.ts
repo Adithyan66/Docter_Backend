@@ -9,9 +9,10 @@ import { Media } from '../../../domain/entities/media.entity';
 import { CreateMediaRequestDto, MediaResponseDto } from '../../../presentation/dto/media.dto';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { mediaToDto } from '../../mappers/media.mapper';
+import { ICreateMediaUseCase } from '../../interfaces/use-cases/media/media-use-cases.interface';
 
 @injectable()
-export class CreateMediaUseCase {
+export class CreateMediaUseCase implements ICreateMediaUseCase {
   constructor(
     @inject('IMediaRepository') private readonly mediaRepository: IMediaRepository,
     @inject('IDoctorRepository') private readonly doctorRepository: IDoctorRepository,

@@ -2,12 +2,14 @@ import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
 import { IVisitController } from '../interfaces/controllers/visit-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages, paginatedResponse } from '../../infrastructure/constants';
-import { CreateVisitUseCase } from '../../application/use-cases/visit/create-visit.use-case';
-import { UpdateVisitUseCase } from '../../application/use-cases/visit/update-visit.use-case';
-import { DeleteVisitUseCase } from '../../application/use-cases/visit/delete-visit.use-case';
-import { GetVisitUseCase } from '../../application/use-cases/visit/get-visit.use-case';
-import { GetAllVisitsUseCase } from '../../application/use-cases/visit/get-all-visits.use-case';
-import { GetVisitRemindersUseCase } from '../../application/use-cases/visit/get-visit-reminders.use-case';
+import {
+  ICreateVisitUseCase,
+  IUpdateVisitUseCase,
+  IDeleteVisitUseCase,
+  IGetVisitUseCase,
+  IGetAllVisitsUseCase,
+  IGetVisitRemindersUseCase,
+} from '../../application/interfaces/use-cases/visit/visit-use-cases.interface';
 import { ValidationError } from '../../domain/errors/validation.error';
 import { CreateVisitRequestDto, UpdateVisitRequestDto, GetVisitsQueryDto } from '../dto/visit.dto';
 import { GetVisitRemindersQueryDto } from '../dto/visit-reminder.dto';
@@ -16,12 +18,12 @@ import { getUserId, getUserContext } from '../utils/user-context.util';
 @injectable()
 export class VisitController implements IVisitController {
   constructor(
-    @inject('CreateVisitUseCase') private readonly createVisitUseCase: CreateVisitUseCase,
-    @inject('UpdateVisitUseCase') private readonly updateVisitUseCase: UpdateVisitUseCase,
-    @inject('DeleteVisitUseCase') private readonly deleteVisitUseCase: DeleteVisitUseCase,
-    @inject('GetVisitUseCase') private readonly getVisitUseCase: GetVisitUseCase,
-    @inject('GetAllVisitsUseCase') private readonly getAllVisitsUseCase: GetAllVisitsUseCase,
-    @inject('GetVisitRemindersUseCase') private readonly getVisitRemindersUseCase: GetVisitRemindersUseCase
+    @inject('ICreateVisitUseCase') private readonly createVisitUseCase: ICreateVisitUseCase,
+    @inject('IUpdateVisitUseCase') private readonly updateVisitUseCase: IUpdateVisitUseCase,
+    @inject('IDeleteVisitUseCase') private readonly deleteVisitUseCase: IDeleteVisitUseCase,
+    @inject('IGetVisitUseCase') private readonly getVisitUseCase: IGetVisitUseCase,
+    @inject('IGetAllVisitsUseCase') private readonly getAllVisitsUseCase: IGetAllVisitsUseCase,
+    @inject('IGetVisitRemindersUseCase') private readonly getVisitRemindersUseCase: IGetVisitRemindersUseCase
   ) {}
 
   async create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {

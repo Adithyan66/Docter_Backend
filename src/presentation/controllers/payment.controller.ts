@@ -2,10 +2,12 @@ import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
 import { IPaymentController } from '../interfaces/controllers/payment-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
-import { CreatePaymentUseCase } from '../../application/use-cases/payment/create-payment.use-case';
-import { GetPaymentUseCase } from '../../application/use-cases/payment/get-payment.use-case';
-import { GetAllPaymentsUseCase } from '../../application/use-cases/payment/get-all-payments.use-case';
-import { RefundPaymentUseCase } from '../../application/use-cases/payment/refund-payment.use-case';
+import {
+  ICreatePaymentUseCase,
+  IGetPaymentUseCase,
+  IGetAllPaymentsUseCase,
+  IRefundPaymentUseCase,
+} from '../../application/interfaces/use-cases/payment/payment-use-cases.interface';
 import { ValidationError } from '../../domain/errors/validation.error';
 import {
   CreatePaymentRequestDto,
@@ -19,10 +21,10 @@ import { getUserId, getUserContext } from '../utils/user-context.util';
 @injectable()
 export class PaymentController implements IPaymentController {
   constructor(
-    @inject('CreatePaymentUseCase') private readonly createPaymentUseCase: CreatePaymentUseCase,
-    @inject('GetPaymentUseCase') private readonly getPaymentUseCase: GetPaymentUseCase,
-    @inject('GetAllPaymentsUseCase') private readonly getAllPaymentsUseCase: GetAllPaymentsUseCase,
-    @inject('RefundPaymentUseCase') private readonly refundPaymentUseCase: RefundPaymentUseCase
+    @inject('ICreatePaymentUseCase') private readonly createPaymentUseCase: ICreatePaymentUseCase,
+    @inject('IGetPaymentUseCase') private readonly getPaymentUseCase: IGetPaymentUseCase,
+    @inject('IGetAllPaymentsUseCase') private readonly getAllPaymentsUseCase: IGetAllPaymentsUseCase,
+    @inject('IRefundPaymentUseCase') private readonly refundPaymentUseCase: IRefundPaymentUseCase
   ) {}
 
   async create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {

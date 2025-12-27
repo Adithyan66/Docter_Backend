@@ -3,9 +3,10 @@ import { ITreatmentCourseRepository, TreatmentCourseSearchOptions } from '../../
 import { GetTreatmentCoursesQueryDto, PaginatedTreatmentCoursesResponseDto } from '../../../presentation/dto/treatment-course.dto';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { treatmentCourseToDto } from '../../mappers/treatment-course.mapper';
+import { IGetAllTreatmentCoursesUseCase } from '../../interfaces/use-cases/treatment-course/treatment-course-use-cases.interface';
 
 @injectable()
-export class GetAllTreatmentCoursesUseCase {
+export class GetAllTreatmentCoursesUseCase implements IGetAllTreatmentCoursesUseCase {
   constructor(
     @inject('ITreatmentCourseRepository') private readonly treatmentCourseRepository: ITreatmentCourseRepository
   ) {}

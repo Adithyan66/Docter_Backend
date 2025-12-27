@@ -2,11 +2,13 @@ import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
 import { ITreatmentCourseController } from '../interfaces/controllers/treatment-course-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
-import { CreateTreatmentCourseUseCase } from '../../application/use-cases/treatment-course/create-treatment-course.use-case';
-import { UpdateTreatmentCourseUseCase } from '../../application/use-cases/treatment-course/update-treatment-course.use-case';
-import { DeleteTreatmentCourseUseCase } from '../../application/use-cases/treatment-course/delete-treatment-course.use-case';
-import { GetTreatmentCourseUseCase } from '../../application/use-cases/treatment-course/get-treatment-course.use-case';
-import { GetAllTreatmentCoursesUseCase } from '../../application/use-cases/treatment-course/get-all-treatment-courses.use-case';
+import {
+  ICreateTreatmentCourseUseCase,
+  IUpdateTreatmentCourseUseCase,
+  IDeleteTreatmentCourseUseCase,
+  IGetTreatmentCourseUseCase,
+  IGetAllTreatmentCoursesUseCase,
+} from '../../application/interfaces/use-cases/treatment-course/treatment-course-use-cases.interface';
 import { ValidationError } from '../../domain/errors/validation.error';
 import { CreateTreatmentCourseRequestDto, UpdateTreatmentCourseRequestDto, GetTreatmentCoursesQueryDto } from '../dto/treatment-course.dto';
 import { TreatmentCourseStatus } from '../../domain/value-objects/treatment-course-status.vo';
@@ -15,11 +17,11 @@ import { getUserId, getUserContext } from '../utils/user-context.util';
 @injectable()
 export class TreatmentCourseController implements ITreatmentCourseController {
   constructor(
-    @inject('CreateTreatmentCourseUseCase') private readonly createTreatmentCourseUseCase: CreateTreatmentCourseUseCase,
-    @inject('UpdateTreatmentCourseUseCase') private readonly updateTreatmentCourseUseCase: UpdateTreatmentCourseUseCase,
-    @inject('DeleteTreatmentCourseUseCase') private readonly deleteTreatmentCourseUseCase: DeleteTreatmentCourseUseCase,
-    @inject('GetTreatmentCourseUseCase') private readonly getTreatmentCourseUseCase: GetTreatmentCourseUseCase,
-    @inject('GetAllTreatmentCoursesUseCase') private readonly getAllTreatmentCoursesUseCase: GetAllTreatmentCoursesUseCase
+    @inject('ICreateTreatmentCourseUseCase') private readonly createTreatmentCourseUseCase: ICreateTreatmentCourseUseCase,
+    @inject('IUpdateTreatmentCourseUseCase') private readonly updateTreatmentCourseUseCase: IUpdateTreatmentCourseUseCase,
+    @inject('IDeleteTreatmentCourseUseCase') private readonly deleteTreatmentCourseUseCase: IDeleteTreatmentCourseUseCase,
+    @inject('IGetTreatmentCourseUseCase') private readonly getTreatmentCourseUseCase: IGetTreatmentCourseUseCase,
+    @inject('IGetAllTreatmentCoursesUseCase') private readonly getAllTreatmentCoursesUseCase: IGetAllTreatmentCoursesUseCase
   ) {}
 
   async create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {

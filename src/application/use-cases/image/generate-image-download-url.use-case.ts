@@ -1,14 +1,12 @@
 import { injectable, inject } from 'tsyringe';
 import { IS3Service } from '../../interfaces/s3-service.interface';
 import { ValidationError } from '../../../domain/errors/validation.error';
+import { IGenerateImageDownloadUrlUseCase, DownloadUrlResponseDto } from '../../interfaces/use-cases/image/image-use-cases.interface';
 
-export interface DownloadUrlResponseDto {
-  downloadUrl: string;
-  expiresIn: number;
-}
+export { DownloadUrlResponseDto };
 
 @injectable()
-export class GenerateImageDownloadUrlUseCase {
+export class GenerateImageDownloadUrlUseCase implements IGenerateImageDownloadUrlUseCase {
   constructor(
     @inject('IS3Service') private s3Service: IS3Service
   ) {}

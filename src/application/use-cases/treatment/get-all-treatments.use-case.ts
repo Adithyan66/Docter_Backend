@@ -1,8 +1,9 @@
 import { injectable, inject } from 'tsyringe';
 import { ITreatmentRepository, FindAllPaginatedOptions } from '../../../domain/repositories/treatment.repository';
+import { IGetAllTreatmentsUseCase } from '../../interfaces/use-cases/treatment/treatment-use-cases.interface';
 
 @injectable()
-export class GetAllTreatmentsUseCase {
+export class GetAllTreatmentsUseCase implements IGetAllTreatmentsUseCase {
   constructor(
     @inject('ITreatmentRepository') private treatmentRepository: ITreatmentRepository
   ) {}

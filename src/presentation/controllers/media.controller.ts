@@ -2,11 +2,13 @@ import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
 import { IMediaController } from '../interfaces/controllers/media-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
-import { CreateMediaUseCase } from '../../application/use-cases/media/create-media.use-case';
-import { UpdateMediaUseCase } from '../../application/use-cases/media/update-media.use-case';
-import { DeleteMediaUseCase } from '../../application/use-cases/media/delete-media.use-case';
-import { GetMediaUseCase } from '../../application/use-cases/media/get-media.use-case';
-import { GetAllMediaUseCase } from '../../application/use-cases/media/get-all-media.use-case';
+import {
+  ICreateMediaUseCase,
+  IUpdateMediaUseCase,
+  IDeleteMediaUseCase,
+  IGetMediaUseCase,
+  IGetAllMediaUseCase,
+} from '../../application/interfaces/use-cases/media/media-use-cases.interface';
 import { ValidationError } from '../../domain/errors/validation.error';
 import { CreateMediaRequestDto, UpdateMediaRequestDto, GetMediaQueryDto } from '../dto/media.dto';
 import { getUserId, getUserContext } from '../utils/user-context.util';
@@ -14,11 +16,11 @@ import { getUserId, getUserContext } from '../utils/user-context.util';
 @injectable()
 export class MediaController implements IMediaController {
   constructor(
-    @inject('CreateMediaUseCase') private readonly createMediaUseCase: CreateMediaUseCase,
-    @inject('UpdateMediaUseCase') private readonly updateMediaUseCase: UpdateMediaUseCase,
-    @inject('DeleteMediaUseCase') private readonly deleteMediaUseCase: DeleteMediaUseCase,
-    @inject('GetMediaUseCase') private readonly getMediaUseCase: GetMediaUseCase,
-    @inject('GetAllMediaUseCase') private readonly getAllMediaUseCase: GetAllMediaUseCase
+    @inject('ICreateMediaUseCase') private readonly createMediaUseCase: ICreateMediaUseCase,
+    @inject('IUpdateMediaUseCase') private readonly updateMediaUseCase: IUpdateMediaUseCase,
+    @inject('IDeleteMediaUseCase') private readonly deleteMediaUseCase: IDeleteMediaUseCase,
+    @inject('IGetMediaUseCase') private readonly getMediaUseCase: IGetMediaUseCase,
+    @inject('IGetAllMediaUseCase') private readonly getAllMediaUseCase: IGetAllMediaUseCase
   ) {}
 
   async create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {

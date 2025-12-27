@@ -3,9 +3,10 @@ import { IPrescriptionRepository } from '../../../domain/repositories/prescripti
 import { PrescriptionResponseDto } from '../../../presentation/dto/prescription.dto';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { prescriptionToDto } from '../../mappers/prescription.mapper';
+import { IGetPrescriptionUseCase } from '../../interfaces/use-cases/prescription/prescription-use-cases.interface';
 
 @injectable()
-export class GetPrescriptionUseCase {
+export class GetPrescriptionUseCase implements IGetPrescriptionUseCase {
   constructor(
     @inject('IPrescriptionRepository') private readonly prescriptionRepository: IPrescriptionRepository
   ) {}

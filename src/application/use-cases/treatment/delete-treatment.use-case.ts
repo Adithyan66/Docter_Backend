@@ -1,9 +1,10 @@
 import { injectable, inject } from 'tsyringe';
 import { ITreatmentRepository } from '../../../domain/repositories/treatment.repository';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
+import { IDeleteTreatmentUseCase } from '../../interfaces/use-cases/treatment/treatment-use-cases.interface';
 
 @injectable()
-export class DeleteTreatmentUseCase {
+export class DeleteTreatmentUseCase implements IDeleteTreatmentUseCase {
   constructor(
     @inject('ITreatmentRepository') private treatmentRepository: ITreatmentRepository
   ) {}

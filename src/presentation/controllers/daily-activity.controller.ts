@@ -2,14 +2,14 @@ import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
 import { IDailyActivityController } from '../interfaces/controllers/daily-activity-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
-import { GetDailyActivitiesUseCase } from '../../application/use-cases/daily-activity/get-daily-activities.use-case';
+import { IGetDailyActivitiesUseCase } from '../../application/interfaces/use-cases/daily-activity/daily-activity-use-cases.interface';
 import { GetDailyActivitiesQueryDto } from '../dto/daily-activity.dto';
 import { getUserContext } from '../utils/user-context.util';
 
 @injectable()
 export class DailyActivityController implements IDailyActivityController {
   constructor(
-    @inject('GetDailyActivitiesUseCase') private readonly getDailyActivitiesUseCase: GetDailyActivitiesUseCase
+    @inject('IGetDailyActivitiesUseCase') private readonly getDailyActivitiesUseCase: IGetDailyActivitiesUseCase
   ) {}
 
   async getAll(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {

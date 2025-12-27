@@ -1,24 +1,12 @@
 import { injectable, inject } from 'tsyringe';
 import { ITreatmentRepository, TreatmentStatisticsOptions } from '../../../domain/repositories/treatment.repository';
-import { Treatment } from '../../../domain/entities/treatment.entity';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
+import { IGetTreatmentUseCase, GetTreatmentOptions, GetTreatmentResult } from '../../interfaces/use-cases/treatment/treatment-use-cases.interface';
 
-export interface GetTreatmentOptions {
-  includeStatistics?: boolean;
-  startDateFrom?: Date;
-  startDateTo?: Date;
-  clinicId?: string;
-  include?: string[];
-  exclude?: string[];
-}
-
-export interface GetTreatmentResult {
-  treatment: Treatment;
-  statistics?: any;
-}
+export { GetTreatmentOptions, GetTreatmentResult };
 
 @injectable()
-export class GetTreatmentUseCase {
+export class GetTreatmentUseCase implements IGetTreatmentUseCase {
   constructor(
     @inject('ITreatmentRepository') private treatmentRepository: ITreatmentRepository
   ) {}

@@ -9,9 +9,10 @@ import { Patient } from '../../../domain/entities/patient.entity';
 import { patientToDto } from '../../mappers/patient.mapper';
 import { IClinicRepository } from '../../../domain/repositories/clinic.repository';
 import { IPatientIdCounterRepository } from '../../../domain/repositories/patient-id-counter.repository';
+import { ICreatePatientUseCase } from '../../interfaces/use-cases/patient/patient-use-cases.interface';
 
 @injectable()
-export class CreatePatientUseCase {
+export class CreatePatientUseCase implements ICreatePatientUseCase {
   constructor(
     @inject('IPatientRepository') private readonly patientRepository: IPatientRepository,
     @inject('IClinicRepository') private readonly clinicRepository: IClinicRepository,

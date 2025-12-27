@@ -1,9 +1,10 @@
 import { injectable, inject } from 'tsyringe';
 import { ITreatmentCourseRepository, VisitReminderSearchOptions } from '../../../domain/repositories/treatment-course.repository';
 import { GetVisitRemindersQueryDto, PaginatedVisitRemindersResponseDto } from '../../../presentation/dto/visit-reminder.dto';
+import { IGetVisitRemindersUseCase } from '../../interfaces/use-cases/visit/visit-use-cases.interface';
 
 @injectable()
-export class GetVisitRemindersUseCase {
+export class GetVisitRemindersUseCase implements IGetVisitRemindersUseCase {
   constructor(
     @inject('ITreatmentCourseRepository') private readonly treatmentCourseRepository: ITreatmentCourseRepository
   ) {}

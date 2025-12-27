@@ -8,9 +8,10 @@ import { Prescription } from '../../../domain/entities/prescription.entity';
 import { CreatePrescriptionRequestDto, PrescriptionResponseDto } from '../../../presentation/dto/prescription.dto';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { prescriptionToDto } from '../../mappers/prescription.mapper';
+import { ICreatePrescriptionUseCase } from '../../interfaces/use-cases/prescription/prescription-use-cases.interface';
 
 @injectable()
-export class CreatePrescriptionUseCase {
+export class CreatePrescriptionUseCase implements ICreatePrescriptionUseCase {
   constructor(
     @inject('IPrescriptionRepository') private readonly prescriptionRepository: IPrescriptionRepository,
     @inject('IPatientRepository') private readonly patientRepository: IPatientRepository,

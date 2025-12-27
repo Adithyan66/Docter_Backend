@@ -3,9 +3,10 @@ import { IPatientRepository, PatientSearchOptions } from '../../../domain/reposi
 import { GetPatientsQueryDto, PaginatedPatientsResponseDto } from '../../../presentation/dto/patient.dto';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { patientToDto } from '../../mappers/patient.mapper';
+import { IGetPatientsUseCase } from '../../interfaces/use-cases/patient/patient-use-cases.interface';
 
 @injectable()
-export class GetPatientsUseCase {
+export class GetPatientsUseCase implements IGetPatientsUseCase {
   constructor(
     @inject('IPatientRepository') private readonly patientRepository: IPatientRepository
   ) {}

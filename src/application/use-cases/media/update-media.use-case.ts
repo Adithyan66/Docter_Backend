@@ -10,9 +10,10 @@ import { UpdateMediaRequestDto, MediaResponseDto } from '../../../presentation/d
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { mediaToDto } from '../../mappers/media.mapper';
+import { IUpdateMediaUseCase } from '../../interfaces/use-cases/media/media-use-cases.interface';
 
 @injectable()
-export class UpdateMediaUseCase {
+export class UpdateMediaUseCase implements IUpdateMediaUseCase {
   constructor(
     @inject('IMediaRepository') private readonly mediaRepository: IMediaRepository,
     @inject('IDoctorRepository') private readonly doctorRepository: IDoctorRepository,

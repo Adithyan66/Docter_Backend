@@ -12,9 +12,10 @@ import { CreatePaymentRequestDto, PaymentResponseDto } from '../../../presentati
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { paymentToDto } from '../../mappers/payment.mapper';
 import { MongoPaymentRepository } from '../../../infrastructure/repositories/mongodb/payment.repository';
+import { ICreatePaymentUseCase } from '../../interfaces/use-cases/payment/payment-use-cases.interface';
 
 @injectable()
-export class CreatePaymentUseCase {
+export class CreatePaymentUseCase implements ICreatePaymentUseCase {
   constructor(
     @inject('IPaymentRepository') private readonly paymentRepository: IPaymentRepository,
     @inject('ITreatmentCourseRepository') private readonly treatmentCourseRepository: ITreatmentCourseRepository,

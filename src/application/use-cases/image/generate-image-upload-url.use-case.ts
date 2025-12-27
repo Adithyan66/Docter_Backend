@@ -1,6 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { IImageUploadService } from '../../interfaces/image-upload-service.interface';
-import { IGenerateImageUploadUrlUseCase } from '../../interfaces/generate-image-upload-url-use-case.interface';
+import { IGenerateImageUploadUrlUseCase } from '../../interfaces/use-cases/image/image-use-cases.interface';
 import { GenerateUploadUrlDto, UploadUrlResponseDto } from '../../../presentation/dto/image-upload.dto';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { config } from '../../../infrastructure/config';

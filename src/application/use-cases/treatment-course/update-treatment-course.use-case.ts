@@ -8,9 +8,10 @@ import { UpdateTreatmentCourseRequestDto, TreatmentCourseResponseDto } from '../
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { treatmentCourseToDto } from '../../mappers/treatment-course.mapper';
+import { IUpdateTreatmentCourseUseCase } from '../../interfaces/use-cases/treatment-course/treatment-course-use-cases.interface';
 
 @injectable()
-export class UpdateTreatmentCourseUseCase {
+export class UpdateTreatmentCourseUseCase implements IUpdateTreatmentCourseUseCase {
   constructor(
     @inject('ITreatmentCourseRepository') private readonly treatmentCourseRepository: ITreatmentCourseRepository,
     @inject('IDoctorRepository') private readonly doctorRepository: IDoctorRepository,

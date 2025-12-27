@@ -4,9 +4,10 @@ import { PaymentResponseDto } from '../../../presentation/dto/payment.dto';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { paymentToDto } from '../../mappers/payment.mapper';
+import { IGetPaymentUseCase } from '../../interfaces/use-cases/payment/payment-use-cases.interface';
 
 @injectable()
-export class GetPaymentUseCase {
+export class GetPaymentUseCase implements IGetPaymentUseCase {
   constructor(@inject('IPaymentRepository') private readonly paymentRepository: IPaymentRepository) {}
 
   async execute(id: string, doctorId: string): Promise<PaymentResponseDto> {

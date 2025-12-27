@@ -1,9 +1,10 @@
 import { injectable, inject } from 'tsyringe';
 import { IPrescriptionRepository } from '../../../domain/repositories/prescription.repository';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
+import { IDeletePrescriptionUseCase } from '../../interfaces/use-cases/prescription/prescription-use-cases.interface';
 
 @injectable()
-export class DeletePrescriptionUseCase {
+export class DeletePrescriptionUseCase implements IDeletePrescriptionUseCase {
   constructor(
     @inject('IPrescriptionRepository') private readonly prescriptionRepository: IPrescriptionRepository
   ) {}

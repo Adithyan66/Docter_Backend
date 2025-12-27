@@ -8,9 +8,10 @@ import { ValidationError } from '../../../domain/errors/validation.error';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { paymentToDto } from '../../mappers/payment.mapper';
 import { MongoPaymentRepository } from '../../../infrastructure/repositories/mongodb/payment.repository';
+import { IRefundPaymentUseCase } from '../../interfaces/use-cases/payment/payment-use-cases.interface';
 
 @injectable()
-export class RefundPaymentUseCase {
+export class RefundPaymentUseCase implements IRefundPaymentUseCase {
   constructor(
     @inject('IPaymentRepository') private readonly paymentRepository: IPaymentRepository,
     @inject('ITreatmentCourseRepository') private readonly treatmentCourseRepository: ITreatmentCourseRepository

@@ -32,6 +32,7 @@ import { LogoutUseCase } from '../application/use-cases/auth/logout.use-case';
 import { ILoginUseCase, IRefreshTokenUseCase, ILogoutUseCase } from '../application/interfaces/use-cases/auth/auth-use-cases.interface';
 import { GenerateImageUploadUrlUseCase } from '../application/use-cases/image/generate-image-upload-url.use-case';
 import { GenerateImageDownloadUrlUseCase } from '../application/use-cases/image/generate-image-download-url.use-case';
+import { IGenerateImageUploadUrlUseCase, IGenerateImageDownloadUrlUseCase } from '../application/interfaces/use-cases/image/image-use-cases.interface';
 import { CreateTreatmentUseCase } from '../application/use-cases/treatment/create-treatment.use-case';
 import { UpdateTreatmentUseCase } from '../application/use-cases/treatment/update-treatment.use-case';
 import { DeleteTreatmentUseCase } from '../application/use-cases/treatment/delete-treatment.use-case';
@@ -40,6 +41,16 @@ import { GetAllTreatmentsUseCase } from '../application/use-cases/treatment/get-
 import { GetTreatmentNamesUseCase } from '../application/use-cases/treatment/get-treatment-names.use-case';
 import { AddTreatmentImagesUseCase } from '../application/use-cases/treatment/add-treatment-images.use-case';
 import { GetTreatmentImagesUseCase } from '../application/use-cases/treatment/get-treatment-images.use-case';
+import {
+  ICreateTreatmentUseCase,
+  IUpdateTreatmentUseCase,
+  IDeleteTreatmentUseCase,
+  IGetTreatmentUseCase,
+  IGetAllTreatmentsUseCase,
+  IGetTreatmentNamesUseCase,
+  IAddTreatmentImagesUseCase,
+  IGetTreatmentImagesUseCase,
+} from '../application/interfaces/use-cases/treatment/treatment-use-cases.interface';
 import { CreateClinicUseCase } from '../application/use-cases/clinic/create-clinic.use-case';
 import { UpdateClinicUseCase } from '../application/use-cases/clinic/update-clinic.use-case';
 import { DeleteClinicUseCase } from '../application/use-cases/clinic/delete-clinic.use-case';
@@ -66,37 +77,80 @@ import { DeletePatientUseCase } from '../application/use-cases/patient/delete-pa
 import { RestorePatientUseCase } from '../application/use-cases/patient/restore-patient.use-case';
 import { GetPatientsUseCase } from '../application/use-cases/patient/get-patients.use-case';
 import { GetPatientUseCase } from '../application/use-cases/patient/get-patient.use-case';
+import {
+  ICreatePatientUseCase,
+  IUpdatePatientUseCase,
+  IDeletePatientUseCase,
+  IRestorePatientUseCase,
+  IGetPatientsUseCase,
+  IGetPatientUseCase,
+} from '../application/interfaces/use-cases/patient/patient-use-cases.interface';
 import { CreateTreatmentCourseUseCase } from '../application/use-cases/treatment-course/create-treatment-course.use-case';
 import { UpdateTreatmentCourseUseCase } from '../application/use-cases/treatment-course/update-treatment-course.use-case';
 import { DeleteTreatmentCourseUseCase } from '../application/use-cases/treatment-course/delete-treatment-course.use-case';
 import { GetTreatmentCourseUseCase } from '../application/use-cases/treatment-course/get-treatment-course.use-case';
 import { GetAllTreatmentCoursesUseCase } from '../application/use-cases/treatment-course/get-all-treatment-courses.use-case';
+import {
+  ICreateTreatmentCourseUseCase,
+  IUpdateTreatmentCourseUseCase,
+  IDeleteTreatmentCourseUseCase,
+  IGetTreatmentCourseUseCase,
+  IGetAllTreatmentCoursesUseCase,
+} from '../application/interfaces/use-cases/treatment-course/treatment-course-use-cases.interface';
 import { CreateVisitUseCase } from '../application/use-cases/visit/create-visit.use-case';
 import { UpdateVisitUseCase } from '../application/use-cases/visit/update-visit.use-case';
 import { DeleteVisitUseCase } from '../application/use-cases/visit/delete-visit.use-case';
 import { GetVisitUseCase } from '../application/use-cases/visit/get-visit.use-case';
 import { GetAllVisitsUseCase } from '../application/use-cases/visit/get-all-visits.use-case';
 import { GetVisitRemindersUseCase } from '../application/use-cases/visit/get-visit-reminders.use-case';
+import {
+  ICreateVisitUseCase,
+  IUpdateVisitUseCase,
+  IDeleteVisitUseCase,
+  IGetVisitUseCase,
+  IGetAllVisitsUseCase,
+  IGetVisitRemindersUseCase,
+} from '../application/interfaces/use-cases/visit/visit-use-cases.interface';
 import { GetDailyActivitiesUseCase } from '../application/use-cases/daily-activity/get-daily-activities.use-case';
+import { IGetDailyActivitiesUseCase } from '../application/interfaces/use-cases/daily-activity/daily-activity-use-cases.interface';
 import { CreatePaymentUseCase } from '../application/use-cases/payment/create-payment.use-case';
 import { GetPaymentUseCase } from '../application/use-cases/payment/get-payment.use-case';
 import { GetAllPaymentsUseCase } from '../application/use-cases/payment/get-all-payments.use-case';
 import { RefundPaymentUseCase } from '../application/use-cases/payment/refund-payment.use-case';
+import {
+  ICreatePaymentUseCase,
+  IGetPaymentUseCase,
+  IGetAllPaymentsUseCase,
+  IRefundPaymentUseCase,
+} from '../application/interfaces/use-cases/payment/payment-use-cases.interface';
 import { CreatePrescriptionUseCase } from '../application/use-cases/prescription/create-prescription.use-case';
 import { GetPrescriptionUseCase } from '../application/use-cases/prescription/get-prescription.use-case';
 import { GetAllPrescriptionsUseCase } from '../application/use-cases/prescription/get-all-prescriptions.use-case';
 import { UpdatePrescriptionUseCase } from '../application/use-cases/prescription/update-prescription.use-case';
 import { DeletePrescriptionUseCase } from '../application/use-cases/prescription/delete-prescription.use-case';
+import {
+  ICreatePrescriptionUseCase,
+  IGetPrescriptionUseCase,
+  IGetAllPrescriptionsUseCase,
+  IUpdatePrescriptionUseCase,
+  IDeletePrescriptionUseCase,
+} from '../application/interfaces/use-cases/prescription/prescription-use-cases.interface';
 import { CreateMediaUseCase } from '../application/use-cases/media/create-media.use-case';
 import { GetMediaUseCase } from '../application/use-cases/media/get-media.use-case';
 import { GetAllMediaUseCase } from '../application/use-cases/media/get-all-media.use-case';
 import { UpdateMediaUseCase } from '../application/use-cases/media/update-media.use-case';
 import { DeleteMediaUseCase } from '../application/use-cases/media/delete-media.use-case';
+import {
+  ICreateMediaUseCase,
+  IUpdateMediaUseCase,
+  IDeleteMediaUseCase,
+  IGetMediaUseCase,
+  IGetAllMediaUseCase,
+} from '../application/interfaces/use-cases/media/media-use-cases.interface';
 import { IPasswordService } from '../application/interfaces/password-service.interface';
 import { IJwtService } from '../application/interfaces/jwt-service.interface';
 import { IS3Service } from '../application/interfaces/s3-service.interface';
 import { IImageUploadService } from '../application/interfaces/image-upload-service.interface';
-import { IGenerateImageUploadUrlUseCase } from '../application/interfaces/generate-image-upload-url-use-case.interface';
 import { ImageServiceController } from '../presentation/controllers/image-service.controller';
 import { TreatmentController } from '../presentation/controllers/treatment.controller';
 import { ClinicController } from '../presentation/controllers/clinic.controller';
@@ -115,6 +169,13 @@ import { UpdateStaffUseCase } from '../application/use-cases/staff/update-staff.
 import { DeleteStaffUseCase } from '../application/use-cases/staff/delete-staff.use-case';
 import { GetStaffUseCase } from '../application/use-cases/staff/get-staff.use-case';
 import { GetAllStaffUseCase } from '../application/use-cases/staff/get-all-staff.use-case';
+import {
+  ICreateStaffUseCase,
+  IUpdateStaffUseCase,
+  IDeleteStaffUseCase,
+  IGetStaffUseCase,
+  IGetAllStaffUseCase,
+} from '../application/interfaces/use-cases/staff/staff-use-cases.interface';
 
 container.registerSingleton<IDoctorRepository>('IDoctorRepository', MongoDoctorRepository);
 container.registerSingleton<IStaffRepository>('IStaffRepository', MongoStaffRepository);
@@ -144,31 +205,31 @@ container.registerSingleton<ILoginUseCase>('ILoginUseCase', LoginUseCase);
 container.registerSingleton<IRefreshTokenUseCase>('IRefreshTokenUseCase', RefreshTokenUseCase);
 
 container.registerSingleton<ILogoutUseCase>('ILogoutUseCase', LogoutUseCase);
-container.registerSingleton<CreateStaffUseCase>('CreateStaffUseCase', CreateStaffUseCase);
-container.registerSingleton<UpdateStaffUseCase>('UpdateStaffUseCase', UpdateStaffUseCase);
-container.registerSingleton<DeleteStaffUseCase>('DeleteStaffUseCase', DeleteStaffUseCase);
-container.registerSingleton<GetStaffUseCase>('GetStaffUseCase', GetStaffUseCase);
-container.registerSingleton<GetAllStaffUseCase>('GetAllStaffUseCase', GetAllStaffUseCase);
+container.registerSingleton<ICreateStaffUseCase>('ICreateStaffUseCase', CreateStaffUseCase);
+container.registerSingleton<IUpdateStaffUseCase>('IUpdateStaffUseCase', UpdateStaffUseCase);
+container.registerSingleton<IDeleteStaffUseCase>('IDeleteStaffUseCase', DeleteStaffUseCase);
+container.registerSingleton<IGetStaffUseCase>('IGetStaffUseCase', GetStaffUseCase);
+container.registerSingleton<IGetAllStaffUseCase>('IGetAllStaffUseCase', GetAllStaffUseCase);
 
 container.registerSingleton<IGenerateImageUploadUrlUseCase>('IGenerateImageUploadUrlUseCase', GenerateImageUploadUrlUseCase);
 
-container.registerSingleton<GenerateImageDownloadUrlUseCase>('GenerateImageDownloadUrlUseCase', GenerateImageDownloadUrlUseCase);
+container.registerSingleton<IGenerateImageDownloadUrlUseCase>('IGenerateImageDownloadUrlUseCase', GenerateImageDownloadUrlUseCase);
 
-container.registerSingleton<CreateTreatmentUseCase>('CreateTreatmentUseCase', CreateTreatmentUseCase);
+container.registerSingleton<ICreateTreatmentUseCase>('ICreateTreatmentUseCase', CreateTreatmentUseCase);
 
-container.registerSingleton<UpdateTreatmentUseCase>('UpdateTreatmentUseCase', UpdateTreatmentUseCase);
+container.registerSingleton<IUpdateTreatmentUseCase>('IUpdateTreatmentUseCase', UpdateTreatmentUseCase);
 
-container.registerSingleton<DeleteTreatmentUseCase>('DeleteTreatmentUseCase', DeleteTreatmentUseCase);
+container.registerSingleton<IDeleteTreatmentUseCase>('IDeleteTreatmentUseCase', DeleteTreatmentUseCase);
 
-container.registerSingleton<GetTreatmentUseCase>('GetTreatmentUseCase', GetTreatmentUseCase);
+container.registerSingleton<IGetTreatmentUseCase>('IGetTreatmentUseCase', GetTreatmentUseCase);
 
-container.registerSingleton<GetAllTreatmentsUseCase>('GetAllTreatmentsUseCase', GetAllTreatmentsUseCase);
+container.registerSingleton<IGetAllTreatmentsUseCase>('IGetAllTreatmentsUseCase', GetAllTreatmentsUseCase);
 
-container.registerSingleton<GetTreatmentNamesUseCase>('GetTreatmentNamesUseCase', GetTreatmentNamesUseCase);
+container.registerSingleton<IGetTreatmentNamesUseCase>('IGetTreatmentNamesUseCase', GetTreatmentNamesUseCase);
 
-container.registerSingleton<AddTreatmentImagesUseCase>('AddTreatmentImagesUseCase', AddTreatmentImagesUseCase);
+container.registerSingleton<IAddTreatmentImagesUseCase>('IAddTreatmentImagesUseCase', AddTreatmentImagesUseCase);
 
-container.registerSingleton<GetTreatmentImagesUseCase>('GetTreatmentImagesUseCase', GetTreatmentImagesUseCase);
+container.registerSingleton<IGetTreatmentImagesUseCase>('IGetTreatmentImagesUseCase', GetTreatmentImagesUseCase);
 
 container.registerSingleton<ICreateClinicUseCase>('ICreateClinicUseCase', CreateClinicUseCase);
 
@@ -188,43 +249,43 @@ container.registerSingleton<IDeleteClinicImageUseCase>('IDeleteClinicImageUseCas
 
 container.registerSingleton<IAddClinicImagesUseCase>('IAddClinicImagesUseCase', AddClinicImagesUseCase);
 
-container.registerSingleton<CreatePatientUseCase>('CreatePatientUseCase', CreatePatientUseCase);
-container.registerSingleton<UpdatePatientUseCase>('UpdatePatientUseCase', UpdatePatientUseCase);
-container.registerSingleton<DeletePatientUseCase>('DeletePatientUseCase', DeletePatientUseCase);
-container.registerSingleton<RestorePatientUseCase>('RestorePatientUseCase', RestorePatientUseCase);
-container.registerSingleton<GetPatientsUseCase>('GetPatientsUseCase', GetPatientsUseCase);
-container.registerSingleton<GetPatientUseCase>('GetPatientUseCase', GetPatientUseCase);
+container.registerSingleton<ICreatePatientUseCase>('ICreatePatientUseCase', CreatePatientUseCase);
+container.registerSingleton<IUpdatePatientUseCase>('IUpdatePatientUseCase', UpdatePatientUseCase);
+container.registerSingleton<IDeletePatientUseCase>('IDeletePatientUseCase', DeletePatientUseCase);
+container.registerSingleton<IRestorePatientUseCase>('IRestorePatientUseCase', RestorePatientUseCase);
+container.registerSingleton<IGetPatientsUseCase>('IGetPatientsUseCase', GetPatientsUseCase);
+container.registerSingleton<IGetPatientUseCase>('IGetPatientUseCase', GetPatientUseCase);
 
-container.registerSingleton<CreateTreatmentCourseUseCase>('CreateTreatmentCourseUseCase', CreateTreatmentCourseUseCase);
-container.registerSingleton<UpdateTreatmentCourseUseCase>('UpdateTreatmentCourseUseCase', UpdateTreatmentCourseUseCase);
-container.registerSingleton<DeleteTreatmentCourseUseCase>('DeleteTreatmentCourseUseCase', DeleteTreatmentCourseUseCase);
-container.registerSingleton<GetTreatmentCourseUseCase>('GetTreatmentCourseUseCase', GetTreatmentCourseUseCase);
-container.registerSingleton<GetAllTreatmentCoursesUseCase>('GetAllTreatmentCoursesUseCase', GetAllTreatmentCoursesUseCase);
+container.registerSingleton<ICreateTreatmentCourseUseCase>('ICreateTreatmentCourseUseCase', CreateTreatmentCourseUseCase);
+container.registerSingleton<IUpdateTreatmentCourseUseCase>('IUpdateTreatmentCourseUseCase', UpdateTreatmentCourseUseCase);
+container.registerSingleton<IDeleteTreatmentCourseUseCase>('IDeleteTreatmentCourseUseCase', DeleteTreatmentCourseUseCase);
+container.registerSingleton<IGetTreatmentCourseUseCase>('IGetTreatmentCourseUseCase', GetTreatmentCourseUseCase);
+container.registerSingleton<IGetAllTreatmentCoursesUseCase>('IGetAllTreatmentCoursesUseCase', GetAllTreatmentCoursesUseCase);
 
-container.registerSingleton<CreateVisitUseCase>('CreateVisitUseCase', CreateVisitUseCase);
-container.registerSingleton<UpdateVisitUseCase>('UpdateVisitUseCase', UpdateVisitUseCase);
-container.registerSingleton<DeleteVisitUseCase>('DeleteVisitUseCase', DeleteVisitUseCase);
-container.registerSingleton<GetVisitUseCase>('GetVisitUseCase', GetVisitUseCase);
-container.registerSingleton<GetAllVisitsUseCase>('GetAllVisitsUseCase', GetAllVisitsUseCase);
-container.registerSingleton<GetVisitRemindersUseCase>('GetVisitRemindersUseCase', GetVisitRemindersUseCase);
-container.registerSingleton<GetDailyActivitiesUseCase>('GetDailyActivitiesUseCase', GetDailyActivitiesUseCase);
+container.registerSingleton<ICreateVisitUseCase>('ICreateVisitUseCase', CreateVisitUseCase);
+container.registerSingleton<IUpdateVisitUseCase>('IUpdateVisitUseCase', UpdateVisitUseCase);
+container.registerSingleton<IDeleteVisitUseCase>('IDeleteVisitUseCase', DeleteVisitUseCase);
+container.registerSingleton<IGetVisitUseCase>('IGetVisitUseCase', GetVisitUseCase);
+container.registerSingleton<IGetAllVisitsUseCase>('IGetAllVisitsUseCase', GetAllVisitsUseCase);
+container.registerSingleton<IGetVisitRemindersUseCase>('IGetVisitRemindersUseCase', GetVisitRemindersUseCase);
+container.registerSingleton<IGetDailyActivitiesUseCase>('IGetDailyActivitiesUseCase', GetDailyActivitiesUseCase);
 
-container.registerSingleton<CreatePaymentUseCase>('CreatePaymentUseCase', CreatePaymentUseCase);
-container.registerSingleton<GetPaymentUseCase>('GetPaymentUseCase', GetPaymentUseCase);
-container.registerSingleton<GetAllPaymentsUseCase>('GetAllPaymentsUseCase', GetAllPaymentsUseCase);
-container.registerSingleton<RefundPaymentUseCase>('RefundPaymentUseCase', RefundPaymentUseCase);
+container.registerSingleton<ICreatePaymentUseCase>('ICreatePaymentUseCase', CreatePaymentUseCase);
+container.registerSingleton<IGetPaymentUseCase>('IGetPaymentUseCase', GetPaymentUseCase);
+container.registerSingleton<IGetAllPaymentsUseCase>('IGetAllPaymentsUseCase', GetAllPaymentsUseCase);
+container.registerSingleton<IRefundPaymentUseCase>('IRefundPaymentUseCase', RefundPaymentUseCase);
 
-container.registerSingleton<CreatePrescriptionUseCase>('CreatePrescriptionUseCase', CreatePrescriptionUseCase);
-container.registerSingleton<GetPrescriptionUseCase>('GetPrescriptionUseCase', GetPrescriptionUseCase);
-container.registerSingleton<GetAllPrescriptionsUseCase>('GetAllPrescriptionsUseCase', GetAllPrescriptionsUseCase);
-container.registerSingleton<UpdatePrescriptionUseCase>('UpdatePrescriptionUseCase', UpdatePrescriptionUseCase);
-container.registerSingleton<DeletePrescriptionUseCase>('DeletePrescriptionUseCase', DeletePrescriptionUseCase);
+container.registerSingleton<ICreatePrescriptionUseCase>('ICreatePrescriptionUseCase', CreatePrescriptionUseCase);
+container.registerSingleton<IGetPrescriptionUseCase>('IGetPrescriptionUseCase', GetPrescriptionUseCase);
+container.registerSingleton<IGetAllPrescriptionsUseCase>('IGetAllPrescriptionsUseCase', GetAllPrescriptionsUseCase);
+container.registerSingleton<IUpdatePrescriptionUseCase>('IUpdatePrescriptionUseCase', UpdatePrescriptionUseCase);
+container.registerSingleton<IDeletePrescriptionUseCase>('IDeletePrescriptionUseCase', DeletePrescriptionUseCase);
 
-container.registerSingleton<CreateMediaUseCase>('CreateMediaUseCase', CreateMediaUseCase);
-container.registerSingleton<GetMediaUseCase>('GetMediaUseCase', GetMediaUseCase);
-container.registerSingleton<GetAllMediaUseCase>('GetAllMediaUseCase', GetAllMediaUseCase);
-container.registerSingleton<UpdateMediaUseCase>('UpdateMediaUseCase', UpdateMediaUseCase);
-container.registerSingleton<DeleteMediaUseCase>('DeleteMediaUseCase', DeleteMediaUseCase);
+container.registerSingleton<ICreateMediaUseCase>('ICreateMediaUseCase', CreateMediaUseCase);
+container.registerSingleton<IGetMediaUseCase>('IGetMediaUseCase', GetMediaUseCase);
+container.registerSingleton<IGetAllMediaUseCase>('IGetAllMediaUseCase', GetAllMediaUseCase);
+container.registerSingleton<IUpdateMediaUseCase>('IUpdateMediaUseCase', UpdateMediaUseCase);
+container.registerSingleton<IDeleteMediaUseCase>('IDeleteMediaUseCase', DeleteMediaUseCase);
 
 container.registerSingleton<ImageServiceController>('ImageServiceController', ImageServiceController);
 

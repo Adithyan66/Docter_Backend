@@ -2,9 +2,10 @@ import { injectable, inject } from 'tsyringe';
 import { IStaffRepository } from '../../../domain/repositories/staff.repository';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { StaffResponseDto } from '../../../presentation/dto/staff.dto';
+import { IGetStaffUseCase } from '../../interfaces/use-cases/staff/staff-use-cases.interface';
 
 @injectable()
-export class GetStaffUseCase {
+export class GetStaffUseCase implements IGetStaffUseCase {
   constructor(@inject('IStaffRepository') private readonly staffRepository: IStaffRepository) {}
 
   async execute(id: string, doctorId: string): Promise<StaffResponseDto> {

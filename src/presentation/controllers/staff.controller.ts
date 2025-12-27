@@ -2,22 +2,24 @@ import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
 import { IStaffController } from '../interfaces/controllers/staff-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
-import { CreateStaffUseCase } from '../../application/use-cases/staff/create-staff.use-case';
-import { UpdateStaffUseCase } from '../../application/use-cases/staff/update-staff.use-case';
-import { DeleteStaffUseCase } from '../../application/use-cases/staff/delete-staff.use-case';
-import { GetStaffUseCase } from '../../application/use-cases/staff/get-staff.use-case';
-import { GetAllStaffUseCase } from '../../application/use-cases/staff/get-all-staff.use-case';
+import {
+  ICreateStaffUseCase,
+  IUpdateStaffUseCase,
+  IDeleteStaffUseCase,
+  IGetStaffUseCase,
+  IGetAllStaffUseCase,
+} from '../../application/interfaces/use-cases/staff/staff-use-cases.interface';
 import { ValidationError } from '../../domain/errors/validation.error';
 import { getUserContext } from '../utils/user-context.util';
 
 @injectable()
 export class StaffController implements IStaffController {
   constructor(
-    @inject('CreateStaffUseCase') private readonly createStaffUseCase: CreateStaffUseCase,
-    @inject('UpdateStaffUseCase') private readonly updateStaffUseCase: UpdateStaffUseCase,
-    @inject('DeleteStaffUseCase') private readonly deleteStaffUseCase: DeleteStaffUseCase,
-    @inject('GetStaffUseCase') private readonly getStaffUseCase: GetStaffUseCase,
-    @inject('GetAllStaffUseCase') private readonly getAllStaffUseCase: GetAllStaffUseCase
+    @inject('ICreateStaffUseCase') private readonly createStaffUseCase: ICreateStaffUseCase,
+    @inject('IUpdateStaffUseCase') private readonly updateStaffUseCase: IUpdateStaffUseCase,
+    @inject('IDeleteStaffUseCase') private readonly deleteStaffUseCase: IDeleteStaffUseCase,
+    @inject('IGetStaffUseCase') private readonly getStaffUseCase: IGetStaffUseCase,
+    @inject('IGetAllStaffUseCase') private readonly getAllStaffUseCase: IGetAllStaffUseCase
   ) {}
 
   async create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {

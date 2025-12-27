@@ -2,11 +2,13 @@ import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
 import { IPrescriptionController } from '../interfaces/controllers/prescription-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
-import { CreatePrescriptionUseCase } from '../../application/use-cases/prescription/create-prescription.use-case';
-import { GetPrescriptionUseCase } from '../../application/use-cases/prescription/get-prescription.use-case';
-import { GetAllPrescriptionsUseCase } from '../../application/use-cases/prescription/get-all-prescriptions.use-case';
-import { UpdatePrescriptionUseCase } from '../../application/use-cases/prescription/update-prescription.use-case';
-import { DeletePrescriptionUseCase } from '../../application/use-cases/prescription/delete-prescription.use-case';
+import {
+  ICreatePrescriptionUseCase,
+  IGetPrescriptionUseCase,
+  IGetAllPrescriptionsUseCase,
+  IUpdatePrescriptionUseCase,
+  IDeletePrescriptionUseCase,
+} from '../../application/interfaces/use-cases/prescription/prescription-use-cases.interface';
 import { ValidationError } from '../../domain/errors/validation.error';
 import {
   CreatePrescriptionRequestDto,
@@ -20,11 +22,11 @@ import { getUserId, getUserContext } from '../utils/user-context.util';
 @injectable()
 export class PrescriptionController implements IPrescriptionController {
   constructor(
-    @inject('CreatePrescriptionUseCase') private readonly createPrescriptionUseCase: CreatePrescriptionUseCase,
-    @inject('GetPrescriptionUseCase') private readonly getPrescriptionUseCase: GetPrescriptionUseCase,
-    @inject('GetAllPrescriptionsUseCase') private readonly getAllPrescriptionsUseCase: GetAllPrescriptionsUseCase,
-    @inject('UpdatePrescriptionUseCase') private readonly updatePrescriptionUseCase: UpdatePrescriptionUseCase,
-    @inject('DeletePrescriptionUseCase') private readonly deletePrescriptionUseCase: DeletePrescriptionUseCase
+    @inject('ICreatePrescriptionUseCase') private readonly createPrescriptionUseCase: ICreatePrescriptionUseCase,
+    @inject('IGetPrescriptionUseCase') private readonly getPrescriptionUseCase: IGetPrescriptionUseCase,
+    @inject('IGetAllPrescriptionsUseCase') private readonly getAllPrescriptionsUseCase: IGetAllPrescriptionsUseCase,
+    @inject('IUpdatePrescriptionUseCase') private readonly updatePrescriptionUseCase: IUpdatePrescriptionUseCase,
+    @inject('IDeletePrescriptionUseCase') private readonly deletePrescriptionUseCase: IDeletePrescriptionUseCase
   ) {}
 
   async create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {

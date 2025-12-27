@@ -6,9 +6,10 @@ import { IClinicRepository } from '../../../domain/repositories/clinic.repositor
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { PatientResponseDto, PatientDetailResponseDto, TreatmentCoursesSummaryDto } from '../../../presentation/dto/patient.dto';
 import { patientToDto, patientToDetailDto } from '../../mappers/patient.mapper';
+import { IGetPatientUseCase } from '../../interfaces/use-cases/patient/patient-use-cases.interface';
 
 @injectable()
-export class GetPatientUseCase {
+export class GetPatientUseCase implements IGetPatientUseCase {
   constructor(
     @inject('IPatientRepository') private readonly patientRepository: IPatientRepository,
     @inject('ITreatmentCourseRepository') private readonly treatmentCourseRepository: ITreatmentCourseRepository,

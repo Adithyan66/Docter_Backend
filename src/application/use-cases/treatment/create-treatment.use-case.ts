@@ -4,33 +4,15 @@ import { Treatment } from '../../../domain/entities/treatment.entity';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { ConflictError } from '../../../domain/errors/conflict.error';
 import { VisitIntervalUnit } from '../../../domain/value-objects/visit-interval-unit.vo';
-
-interface CreateTreatmentInput {
-  name: string;
-  description?: string;
-  minDuration?: number;
-  maxDuration?: number;
-  avgDuration?: number;
-  minFees?: number;
-  maxFees?: number;
-  avgFees?: number;
-  steps?: string[];
-  aftercare?: string[];
-  followUpRequired?: boolean;
-  followUpAfterDays?: number;
-  risks?: string[];
-  images?: string[];
-  isOneTime?: boolean;
-  regularVisitInterval?: { interval: number; unit: VisitIntervalUnit };
-}
+import { ICreateTreatmentUseCase, CreateTreatmentRequestDto } from '../../interfaces/use-cases/treatment/treatment-use-cases.interface';
 
 @injectable()
-export class CreateTreatmentUseCase {
+export class CreateTreatmentUseCase implements ICreateTreatmentUseCase {
   constructor(
     @inject('ITreatmentRepository') private treatmentRepository: ITreatmentRepository
   ) {}
 
-  async execute(doctorId: string, input: CreateTreatmentInput): Promise<void> {
+  async execute(doctorId: string, input: CreateTreatmentRequestDto): Promise<void> {
     const trimmedInput = {
       ...input,
       name: input.name.trim(),
@@ -69,7 +51,7 @@ export class CreateTreatmentUseCase {
     await this.treatmentRepository.create(treatment);
   }
 
-  private validateInput(input: CreateTreatmentInput): void {
+  private validateInput(input: CreateTreatmentRequestDto): void {
     if (!input.name || input.name.trim().length === 0) {
       throw new ValidationError('Name is required');
     }
@@ -152,7 +134,7 @@ export class CreateTreatmentUseCase {
     }
   }
 
-  private validateVisitType(input: CreateTreatmentInput): void {
+  private validateVisitType(input: CreateTreatmentRequestDto): void {
     if (input.isOneTime === true && input.regularVisitInterval !== undefined && input.regularVisitInterval !== null) {
       throw new ValidationError('Cannot set regularVisitInterval when isOneTime is true');
     }

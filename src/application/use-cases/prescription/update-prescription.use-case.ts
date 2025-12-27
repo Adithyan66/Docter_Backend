@@ -7,9 +7,10 @@ import { PrescriptionResponseDto, UpdatePrescriptionRequestDto } from '../../../
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { prescriptionToDto } from '../../mappers/prescription.mapper';
+import { IUpdatePrescriptionUseCase } from '../../interfaces/use-cases/prescription/prescription-use-cases.interface';
 
 @injectable()
-export class UpdatePrescriptionUseCase {
+export class UpdatePrescriptionUseCase implements IUpdatePrescriptionUseCase {
   constructor(
     @inject('IPrescriptionRepository') private readonly prescriptionRepository: IPrescriptionRepository,
     @inject('IVisitRepository') private readonly visitRepository: IVisitRepository,

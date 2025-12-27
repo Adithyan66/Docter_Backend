@@ -1,9 +1,10 @@
 import { injectable, inject } from 'tsyringe';
 import { ITreatmentRepository, GetTreatmentImagesOptions } from '../../../domain/repositories/treatment.repository';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
+import { IGetTreatmentImagesUseCase } from '../../interfaces/use-cases/treatment/treatment-use-cases.interface';
 
 @injectable()
-export class GetTreatmentImagesUseCase {
+export class GetTreatmentImagesUseCase implements IGetTreatmentImagesUseCase {
   constructor(
     @inject('ITreatmentRepository') private treatmentRepository: ITreatmentRepository
   ) {}

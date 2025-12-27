@@ -13,9 +13,10 @@ import { MongoVisitRepository } from '../../../infrastructure/repositories/mongo
 import { MongoPaymentRepository } from '../../../infrastructure/repositories/mongodb/payment.repository';
 import { MongoTreatmentCourseRepository } from '../../../infrastructure/repositories/mongodb/treatment-course.repository';
 import { PaymentMethodVO } from '../../../domain/value-objects/payment-method.vo';
+import { IUpdateVisitUseCase } from '../../interfaces/use-cases/visit/visit-use-cases.interface';
 
 @injectable()
-export class UpdateVisitUseCase {
+export class UpdateVisitUseCase implements IUpdateVisitUseCase {
   constructor(
     @inject('IVisitRepository') private readonly visitRepository: IVisitRepository,
     @inject('ITreatmentCourseRepository') private readonly treatmentCourseRepository: ITreatmentCourseRepository,
