@@ -105,6 +105,7 @@ export interface ITreatmentRepository extends BaseRepository<Treatment> {
   getStatistics(treatmentId: string, options: TreatmentStatisticsOptions): Promise<TreatmentStatistics>;
   addTreatmentImages(treatmentId: string, imageUrls: string[]): Promise<boolean>;
   getTreatmentImages(treatmentId: string, options: GetTreatmentImagesOptions): Promise<{ images: string[]; total: number; page: number; limit: number; totalPages: number }>;
+  deleteTreatmentImage(treatmentId: string, imageIndex: number): Promise<boolean>;
 }
 
  

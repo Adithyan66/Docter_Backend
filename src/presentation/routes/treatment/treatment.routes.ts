@@ -25,6 +25,8 @@ export const setupTreatmentRoutes = (router: Router): void => {
   
   router.post('/treatment/:id/images', auth, doctorOnly, validate(addTreatmentImagesSchema), asyncHandler(treatmentController.addImages.bind(treatmentController)));
   
+  router.delete('/treatment/:id/images/:imageIndex', auth, asyncHandler(treatmentController.deleteImage.bind(treatmentController)));
+  
   router.get('/treatment/:id', auth, doctorOnly, asyncHandler(treatmentController.getById.bind(treatmentController)));
 };
 

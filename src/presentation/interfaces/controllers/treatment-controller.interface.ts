@@ -11,4 +11,5 @@ export interface ITreatmentController {
   getNames(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
   getImages(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
   addImages(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
+  deleteImage(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
 }

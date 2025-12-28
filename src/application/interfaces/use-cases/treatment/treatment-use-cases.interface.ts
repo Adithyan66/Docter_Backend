@@ -72,3 +72,12 @@ export interface IGetTreatmentImagesUseCase {
 export interface IAddTreatmentImagesUseCase {
   execute(treatmentId: string, doctorId: string, imageUrls: string[]): Promise<void>;
 }
+
+export interface IDeleteTreatmentImageUseCase {
+  execute(
+    treatmentId: string,
+    imageIndex: number,
+    imageUrl: string,
+    requester: { doctorId: string; role: 'doctor' | 'staff'; clinicId?: string }
+  ): Promise<boolean>;
+}

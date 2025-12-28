@@ -10,11 +10,13 @@ import { PatientId } from '../../../domain/value-objects/patient-id.vo';
 import { Patient } from '../../../domain/entities/patient.entity';
 import { patientToDto } from '../../mappers/patient.mapper';
 import { IUpdatePatientUseCase } from '../../interfaces/use-cases/patient/patient-use-cases.interface';
+import { IFileStorageService } from '../../interfaces/file-storage-service.interface';
 
 @injectable()
 export class UpdatePatientUseCase implements IUpdatePatientUseCase {
   constructor(
-    @inject('IPatientRepository') private readonly patientRepository: IPatientRepository
+    @inject('IPatientRepository') private readonly patientRepository: IPatientRepository,
+    @inject('IFileStorageService') private readonly fileStorageService: IFileStorageService
   ) {}
 
   async execute(id: string, doctorId: string, input: UpdatePatientRequestDto): Promise<PatientResponseDto> {
@@ -29,8 +31,8 @@ export class UpdatePatientUseCase implements IUpdatePatientUseCase {
 
     const updateData: Partial<Patient> = {};
     let hasChanges = false;
+    const oldProfilePicUrl = patient.profilePicUrl;
 
- 
     if (input.firstName !== undefined || input.lastName !== undefined) {
       const firstName = input.firstName !== undefined ? input.firstName.trim() : patient.firstName;
       const lastName = input.lastName !== undefined ? input.lastName.trim() : patient.lastName;
@@ -85,8 +87,22 @@ export class UpdatePatientUseCase implements IUpdatePatientUseCase {
     }
 
     if (input.profilePicUrl !== undefined) {
-      patient.profilePicUrl = input.profilePicUrl ? input.profilePicUrl.trim() : undefined;
-      updateData.profilePicUrl = patient.profilePicUrl;
+      const newProfilePicUrl = input.profilePicUrl === null || input.profilePicUrl === '' 
+        ? null 
+        : input.profilePicUrl.trim();
+      const profilePicChanged = oldProfilePicUrl !== newProfilePicUrl;
+
+      if (profilePicChanged && oldProfilePicUrl) {
+        try {
+          const fileKey = this.fileStorageService.extractKeyFromUrl(oldProfilePicUrl);
+          await this.fileStorageService.deleteFile(fileKey);
+        } catch (error) {
+          console.error(`Failed to delete old profile picture from cloud storage: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+
+      patient.profilePicUrl = newProfilePicUrl || undefined;
+      (updateData as any).profilePicUrl = newProfilePicUrl;
       hasChanges = true;
     }
 

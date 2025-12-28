@@ -11,11 +11,12 @@ import {
   IGetTreatmentNamesUseCase,
   IAddTreatmentImagesUseCase,
   IGetTreatmentImagesUseCase,
+  IDeleteTreatmentImageUseCase,
 } from '../../application/interfaces/use-cases/treatment/treatment-use-cases.interface';
 import { ValidationError } from '../../domain/errors/validation.error';
 import { CreateTreatmentRequestDto, UpdateTreatmentRequestDto, TreatmentResponseDto, PaginatedTreatmentsResponseDto, TreatmentList } from '../dto/treatment.dto';
 import { Treatment } from '../../domain/entities/treatment.entity';
-import { getUserId, getUserContext } from '../utils/user-context.util';
+import { getUserId, getUserContext, getClinicId } from '../utils/user-context.util';
 
 @injectable()
 export class TreatmentController implements ITreatmentController {
@@ -27,7 +28,8 @@ export class TreatmentController implements ITreatmentController {
     @inject('IGetAllTreatmentsUseCase') private readonly getAllTreatmentsUseCase: IGetAllTreatmentsUseCase,
     @inject('IGetTreatmentNamesUseCase') private readonly getTreatmentNamesUseCase: IGetTreatmentNamesUseCase,
     @inject('IAddTreatmentImagesUseCase') private readonly addTreatmentImagesUseCase: IAddTreatmentImagesUseCase,
-    @inject('IGetTreatmentImagesUseCase') private readonly getTreatmentImagesUseCase: IGetTreatmentImagesUseCase
+    @inject('IGetTreatmentImagesUseCase') private readonly getTreatmentImagesUseCase: IGetTreatmentImagesUseCase,
+    @inject('IDeleteTreatmentImageUseCase') private readonly deleteTreatmentImageUseCase: IDeleteTreatmentImageUseCase
   ) {}
 
   async create(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
@@ -188,6 +190,40 @@ export class TreatmentController implements ITreatmentController {
     await this.addTreatmentImagesUseCase.execute(id, doctorId, body.images);
 
     successResponse(res, null, HttpStatus.OK, SuccessMessages.UPDATED);
+  }
+
+  async deleteImage(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const id = req.params.id;
+    if (!id) {
+      throw new ValidationError('Treatment ID is required');
+    }
+
+    const imageIndexParam = req.params.imageIndex;
+    if (!imageIndexParam) {
+      throw new ValidationError('Image index is required');
+    }
+
+    const imageIndex = parseInt(imageIndexParam, 10);
+    if (isNaN(imageIndex) || imageIndex < 0) {
+      throw new ValidationError('Invalid image index');
+    }
+
+    const body = req.body as { imageUrl?: string };
+    if (!body || !body.imageUrl || typeof body.imageUrl !== 'string' || body.imageUrl.trim().length === 0) {
+      throw new ValidationError('Image URL is required in request body');
+    }
+
+    const userContext = getUserContext(req);
+    const doctorId = userContext.doctorId;
+    const staffClinicId = getClinicId(req);
+
+    await this.deleteTreatmentImageUseCase.execute(id, imageIndex, body.imageUrl, {
+      doctorId,
+      role: userContext.role,
+      clinicId: staffClinicId,
+    });
+
+    successResponse(res, null, HttpStatus.OK, SuccessMessages.DELETED);
   }
 
   private toResponseDto(treatment: Treatment, statistics?: any): TreatmentResponseDto {

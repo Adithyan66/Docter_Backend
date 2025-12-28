@@ -264,7 +264,9 @@ export class MongoPatientRepository implements IPatientRepository {
       updateData.email = entity.email ? entity.email.toString() : undefined;
     }
     if (entity.address !== undefined) updateData.address = entity.address;
-    if (entity.profilePicUrl !== undefined) updateData.profilePicUrl = entity.profilePicUrl;
+    if (entity.profilePicUrl !== undefined) {
+      updateData.profilePicUrl = entity.profilePicUrl === null ? null : entity.profilePicUrl;
+    }
     if (entity.consultationType !== undefined) updateData.consultationType = entity.consultationType;
     if (entity.tags !== undefined) updateData.tags = entity.tags;
     if (entity.treatmentCourses !== undefined) {

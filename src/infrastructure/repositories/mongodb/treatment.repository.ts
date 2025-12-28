@@ -1037,5 +1037,45 @@ export class MongoTreatmentRepository implements ITreatmentRepository {
       totalPages,
     };
   }
+
+  async deleteTreatmentImage(treatmentId: string, imageIndex: number): Promise<boolean> {
+    if (imageIndex < 0) {
+      return false;
+    }
+
+    const result = await TreatmentModel.findOneAndUpdate(
+      { 
+        _id: treatmentId, 
+        isDeleted: false,
+        $expr: { 
+          $and: [
+            { $isArray: '$images' },
+            { $gte: [{ $size: '$images' }, { $add: [imageIndex, 1] }] }
+          ]
+        }
+      },
+      [
+        {
+          $set: {
+            images: {
+              $concatArrays: [
+                { $slice: ['$images', imageIndex] },
+                { 
+                  $slice: [
+                    '$images', 
+                    { $add: [imageIndex, 1] }, 
+                    { $size: '$images' }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      { new: false }
+    );
+
+    return result !== null;
+  }
 }
 
