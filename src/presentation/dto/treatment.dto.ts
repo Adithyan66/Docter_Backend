@@ -36,6 +36,7 @@ export interface UpdateTreatmentRequestDto {
   images?: string[];
   isOneTime?: boolean;
   regularVisitInterval?: { interval: number; unit: VisitIntervalUnit };
+  isActive?: boolean;
 }
 
 export interface TreatmentResponseDto {

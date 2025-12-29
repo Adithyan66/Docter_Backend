@@ -36,7 +36,7 @@ export class MongoPrescriptionRepository implements IPrescriptionRepository {
       diagnosis: entity.diagnosis || [],
       items: entity.items || [],
       notes: entity.notes,
-      isDeleted: entity.isDeleted || false,
+      isDeleted: false,
     });
     const saved = await doc.save();
     return this.toDomain(saved);
@@ -51,7 +51,6 @@ export class MongoPrescriptionRepository implements IPrescriptionRepository {
     if (entity.diagnosis !== undefined) updateData.diagnosis = entity.diagnosis;
     if (entity.items !== undefined) updateData.items = entity.items;
     if (entity.notes !== undefined) updateData.notes = entity.notes;
-    if (entity.isDeleted !== undefined) updateData.isDeleted = entity.isDeleted;
 
     const doc = await PrescriptionModel.findOneAndUpdate(
       { _id: id, isDeleted: false },

@@ -4,6 +4,7 @@ import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { ConflictError } from '../../../domain/errors/conflict.error';
 import { VisitIntervalUnit } from '../../../domain/value-objects/visit-interval-unit.vo';
+import { Treatment } from '../../../domain/entities/treatment.entity';
 import { IUpdateTreatmentUseCase, UpdateTreatmentRequestDto } from '../../interfaces/use-cases/treatment/treatment-use-cases.interface';
 
 @injectable()
@@ -32,7 +33,7 @@ export class UpdateTreatmentUseCase implements IUpdateTreatmentUseCase {
       }
     }
 
-    const updateData: Partial<typeof existingTreatment> = {};
+    const updateData: Partial<Treatment> = {};
     if (trimmedInput.name !== undefined) updateData.name = trimmedInput.name;
     if (trimmedInput.description !== undefined) updateData.description = trimmedInput.description;
     if (trimmedInput.minDuration !== undefined) updateData.minDuration = trimmedInput.minDuration;
@@ -50,10 +51,10 @@ export class UpdateTreatmentUseCase implements IUpdateTreatmentUseCase {
     if (trimmedInput.isOneTime !== undefined) updateData.isOneTime = trimmedInput.isOneTime;
     if (trimmedInput.isActive !== undefined) updateData.isActive = trimmedInput.isActive;
     if (trimmedInput.isOneTime === true) {
-      updateData.minDuration = null;
-      updateData.maxDuration = null;
-      updateData.avgDuration = null;
-      updateData.regularVisitInterval = null;
+      updateData.minDuration = undefined;
+      updateData.maxDuration = undefined;
+      updateData.avgDuration = undefined;
+      updateData.regularVisitInterval = undefined;
     }
     if (trimmedInput.regularVisitInterval !== undefined) {
       updateData.regularVisitInterval = trimmedInput.regularVisitInterval ?? undefined;

@@ -11,7 +11,7 @@ export const createPaymentSchema = z.object({
     .min(MIN_AMOUNT, `amount must be at least ${MIN_AMOUNT}`)
     .max(MAX_AMOUNT, `amount must not exceed ${MAX_AMOUNT}`),
   method: z.enum(['cash', 'card', 'upi', 'bank', 'insurance', 'online'], {
-    errorMap: () => ({ message: 'method must be one of: cash, card, upi, bank, insurance, online' }),
+    message: 'method must be one of: cash, card, upi, bank, insurance, online',
   }),
   reference: z.string().optional(),
   visitId: z.string().optional(),
