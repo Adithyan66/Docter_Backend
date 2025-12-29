@@ -222,14 +222,5 @@ The application uses a centralized error handling system with:
 - Consistent error response format
 - Proper HTTP status codes
 
-## Contributing
 
-1. Create a feature branch
-2. Make your changes
-3. Ensure code follows the project's architecture patterns
-4. Submit a pull request
-
-## License
-
-ISC
 
