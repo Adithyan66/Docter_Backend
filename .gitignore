@@ -13,3 +13,10 @@ coverage/
 *.swp
 *.swo
 *~
+
+# Service account keys (GCP, AWS, etc.)
+*-service-account*.json
+*service-account*.json
+*key*.json
+gcp-key*.json
+aws-credentials.json
