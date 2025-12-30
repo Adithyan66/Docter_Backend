@@ -1,6 +1,6 @@
 # Doctor Management Backend API
 
-A comprehensive backend API for managing medical practice operations including patients, treatments, visits, prescriptions, payments, and staff management.
+A comprehensive backend API for managing practice operations including patients, treatments, visits, prescriptions, payments, and staff management. 
 
 ## Features
 
@@ -221,6 +221,7 @@ The application uses a centralized error handling system with:
 - Custom error classes (BadRequest, NotFound, Unauthorized, Conflict, Validation)
 - Consistent error response format
 - Proper HTTP status codes
+
 
 
 
