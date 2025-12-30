@@ -17,7 +17,6 @@ A comprehensive backend API for managing practice operations including patients,
 
 ## Tech Stack
 
-
 - **Runtime**: Node.js with TypeScript
 - **Framework**: Express.js
 - **Database**: MongoDB with Mongoose
