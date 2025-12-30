@@ -223,5 +223,4 @@ The application uses a centralized error handling system with:
 - Proper HTTP status codes
 
 
-..................................................
 
