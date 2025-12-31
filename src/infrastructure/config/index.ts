@@ -26,6 +26,16 @@ interface Config {
     };
   };
   allowedImageTypes: string[];
+  backup: {
+    cronSchedule: string;
+    tempDir: string;
+  };
+  googleDrive: {
+    oauthCredentials: string;
+    tokenPath: string;
+    folderId?: string;
+    rootFolderName: string;
+  };
 }
 
 const getConfig = (): Config => {
@@ -55,6 +65,16 @@ const getConfig = (): Config => {
     allowedImageTypes: process.env.ALLOWED_IMAGE_TYPES
       ? process.env.ALLOWED_IMAGE_TYPES.split(',').map(type => type.trim())
       : [],
+    backup: {
+      cronSchedule: process.env.BACKUP_CRON_SCHEDULE || '0 2 * * *',
+      tempDir: process.env.BACKUP_TEMP_DIR || './backups',
+    },
+    googleDrive: {
+      oauthCredentials: process.env.GOOGLE_DRIVE_OAUTH_CREDENTIALS || process.env.GOOGLE_DRIVE_SERVICE_ACCOUNT_KEY || '',
+      tokenPath: process.env.GOOGLE_DRIVE_TOKEN_PATH || './credentials/google-drive-token.json',
+      folderId: process.env.GOOGLE_DRIVE_FOLDER_ID,
+      rootFolderName: process.env.GOOGLE_DRIVE_ROOT_FOLDER_NAME || 'database-backups',
+    },
   };
 };
 

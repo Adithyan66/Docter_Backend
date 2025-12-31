@@ -20,3 +20,7 @@ coverage/
 *key*.json
 gcp-key*.json
 aws-credentials.json
+credentials/
+backups/
+**/google-drive-token.json
+token.json

@@ -149,6 +149,14 @@ import {
   IGetMediaUseCase,
   IGetAllMediaUseCase,
 } from '../application/interfaces/use-cases/media/media-use-cases.interface';
+import { IExecuteBackupUseCase } from '../application/interfaces/use-cases/backup/backup-use-cases.interface';
+import { ExecuteBackupUseCase } from '../application/use-cases/backup/execute-backup.use-case';
+import { IBackupService } from '../domain/services/backup-service.interface';
+import { IGoogleDriveService } from '../domain/services/google-drive-service.interface';
+import { ISchedulerService } from '../domain/services/scheduler-service.interface';
+import { MongoDbDumpService } from '../infrastructure/shared/mongodb-dump.service';
+import { GoogleDriveService } from '../infrastructure/shared/google-drive.service';
+import { BackupSchedulerService } from '../infrastructure/shared/backup-scheduler.service';
 import { IPasswordService } from '../application/interfaces/password-service.interface';
 import { IJwtService } from '../application/interfaces/jwt-service.interface';
 import { IFileStorageService } from '../application/interfaces/file-storage-service.interface';
@@ -290,6 +298,11 @@ container.registerSingleton<IGetMediaUseCase>('IGetMediaUseCase', GetMediaUseCas
 container.registerSingleton<IGetAllMediaUseCase>('IGetAllMediaUseCase', GetAllMediaUseCase);
 container.registerSingleton<IUpdateMediaUseCase>('IUpdateMediaUseCase', UpdateMediaUseCase);
 container.registerSingleton<IDeleteMediaUseCase>('IDeleteMediaUseCase', DeleteMediaUseCase);
+
+container.registerSingleton<IBackupService>('IBackupService', MongoDbDumpService);
+container.registerSingleton<IGoogleDriveService>('IGoogleDriveService', GoogleDriveService);
+container.registerSingleton<ISchedulerService>('ISchedulerService', BackupSchedulerService);
+container.registerSingleton<IExecuteBackupUseCase>('IExecuteBackupUseCase', ExecuteBackupUseCase);
 
 container.registerSingleton<ImageServiceController>('ImageServiceController', ImageServiceController);
 
