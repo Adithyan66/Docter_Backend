@@ -425,7 +425,7 @@ jobs:
             node_modules
             **/*.log
 
-      - name: Install, build & restart PM2
+      - name: Install deps & restart PM2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VM_IP }}
@@ -439,16 +439,11 @@ jobs:
             echo "📁 Deployed files:"
             ls -la | head -10
 
-            test -f package.json && echo "✅ package.json OK" || (echo "❌ NO package.json!" && exit 1)
-            test -f tsconfig.json && echo "✅ tsconfig.json OK" || echo "⚠️ No tsconfig.json"
+            test -f package.json || (echo "❌ package.json missing" && exit 1)
+            test -d dist || (echo "❌ dist/ missing (CI build failed)" && exit 1)
 
-            rm -rf node_modules dist
-
-            npm install
-            npm install -D typescript @types/node
-            npm run build
-
-            test -f dist/server.js && echo "✅ dist/server.js built!" || (echo "❌ Build failed!" && exit 1)
+            rm -rf node_modules
+            npm install --omit=dev
 
             sudo chown -R adithyanbinu666:adithyanbinu666 /var/www/doctor/backend
             sudo chmod -R 755 /var/www/doctor/backend
@@ -457,4 +452,5 @@ jobs:
             pm2 save
             pm2 status
 
-            echo "✅ Backend deployment COMPLETE!"
+            echo "✅ Backend deployed successfully!"
+
