@@ -277,12 +277,108 @@
 
 
 
+# name: Backend CI/CD
+# on:
+#   push:
+#     branches: [main, develop]
+#   pull_request:
+#     branches: [main]
+
+# env:
+#   NODE_VERSION: '20'
+
+# jobs:
+#   deploy:
+#     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+#     runs-on: ubuntu-latest  # ← FIXED: 2 spaces from jobs:, same level as 'if:'
+#     steps:
+#     - uses: actions/checkout@v4
+    
+#     - name: Setup Node.js
+#       uses: actions/setup-node@v4
+#       with:
+#         node-version: ${{ env.NODE_VERSION }}
+#         cache: 'npm'
+    
+#     - name: Install & Build
+#       run: |
+#         npm ci
+#         npm run build
+    
+#     - name: 🔍 Debug Files + Secrets
+#       run: |
+#         echo "📁 Files to deploy:"
+#         ls -la package*.json || echo "❌ No package.json in repo!"
+#         ls -la dist/ 2>/dev/null || echo "📝 dist/ will be built on server"
+#         echo "VM_IP: '${{ secrets.VM_IP }}'"
+#         echo "Key length: $(echo '${{ secrets.SSH_PRIVATE_KEY_BACKEND }}' | wc -c) chars"
+    
+#     - name: Deploy ALL backend files
+#       uses: appleboy/scp-action@v0.1.4
+#       with:
+#         host: ${{ secrets.VM_IP }}
+#         username: ${{ secrets.VM_USER }}
+#         key: ${{ secrets.SSH_PRIVATE_KEY_BACKEND }}
+#         rm: true
+#         source: "."
+#         target: "/var/www/doctor/backend/"
+#         exclude: ".git*", "node_modules", "**/*.log"
+    
+#     - name: Install, build & restart PM2
+#       uses: appleboy/ssh-action@v1.0.3
+#       with:
+#         host: ${{ secrets.VM_IP }}
+#         username: ${{ secrets.VM_USER }}
+#         key: ${{ secrets.SSH_PRIVATE_KEY_BACKEND }}
+#         script: |
+#           cd /var/www/doctor/backend
+#           echo "📁 Deployed files:"
+#           ls -la | head -10
+          
+#           test -f package.json && echo "✅ package.json OK" || echo "❌ NO package.json!"
+#           test -f tsconfig.json && echo "✅ tsconfig.json OK" || echo "⚠️ No tsconfig"
+          
+#           rm -rf node_modules dist
+#           npm install
+#           npm install typescript @types/node -D
+#           npm run build
+          
+#           test -f dist/server.js && echo "✅ dist/server.js built!" || echo "❌ Build failed!"
+          
+#           sudo chown -R adithyanbinu666:adithyanbinu666 /var/www/doctor/backend
+#           sudo chmod -R 755 /var/www/doctor/backend
+          
+#           pm2 restart doctor-api || pm2 start dist/server.js --name doctor-api
+#           pm2 save
+#           pm2 status
+#           echo "✅ Backend COMPLETE!"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 name: Backend CI/CD
+
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 env:
   NODE_VERSION: '20'
@@ -290,75 +386,75 @@ env:
 jobs:
   deploy:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-    runs-on: ubuntu-latest  # ← FIXED: 2 spaces from jobs:, same level as 'if:'
+    runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-    
-    - name: Install & Build
-      run: |
-        npm ci
-        npm run build
-    
-    - name: 🔍 Debug Files + Secrets
-      run: |
-        echo "📁 Files to deploy:"
-        ls -la package*.json || echo "❌ No package.json in repo!"
-        ls -la dist/ 2>/dev/null || echo "📝 dist/ will be built on server"
-        echo "VM_IP: '${{ secrets.VM_IP }}'"
-        echo "Key length: $(echo '${{ secrets.SSH_PRIVATE_KEY_BACKEND }}' | wc -c) chars"
-    
-    - name: Deploy ALL backend files
-      uses: appleboy/scp-action@v0.1.4
-      with:
-        host: ${{ secrets.VM_IP }}
-        username: ${{ secrets.VM_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY_BACKEND }}
-        rm: true
-        source: "."
-        target: "/var/www/doctor/backend/"
-        exclude: ".git*", "node_modules", "**/*.log"
-    
-    - name: Install, build & restart PM2
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.VM_IP }}
-        username: ${{ secrets.VM_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY_BACKEND }}
-        script: |
-          cd /var/www/doctor/backend
-          echo "📁 Deployed files:"
-          ls -la | head -10
-          
-          test -f package.json && echo "✅ package.json OK" || echo "❌ NO package.json!"
-          test -f tsconfig.json && echo "✅ tsconfig.json OK" || echo "⚠️ No tsconfig"
-          
-          rm -rf node_modules dist
-          npm install
-          npm install typescript @types/node -D
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install & Build (CI check)
+        run: |
+          npm ci
           npm run build
-          
-          test -f dist/server.js && echo "✅ dist/server.js built!" || echo "❌ Build failed!"
-          
-          sudo chown -R adithyanbinu666:adithyanbinu666 /var/www/doctor/backend
-          sudo chmod -R 755 /var/www/doctor/backend
-          
-          pm2 restart doctor-api || pm2 start dist/server.js --name doctor-api
-          pm2 save
-          pm2 status
-          echo "✅ Backend COMPLETE!"
 
+      - name: 🔍 Debug Files + Secrets
+        run: |
+          echo "📁 Files to deploy:"
+          ls -la package*.json || echo "❌ No package.json in repo!"
+          ls -la dist/ 2>/dev/null || echo "📝 dist/ will be built on server"
+          echo "VM_IP: '${{ secrets.VM_IP }}'"
+          echo "Key length: $(echo '${{ secrets.SSH_PRIVATE_KEY_BACKEND }}' | wc -c) chars"
 
+      - name: Deploy ALL backend files
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_BACKEND }}
+          rm: true
+          source: "."
+          target: "/var/www/doctor/backend/"
+          exclude: |
+            .git*
+            node_modules
+            **/*.log
 
+      - name: Install, build & restart PM2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_BACKEND }}
+          script: |
+            set -e
 
+            cd /var/www/doctor/backend
 
+            echo "📁 Deployed files:"
+            ls -la | head -10
 
+            test -f package.json && echo "✅ package.json OK" || (echo "❌ NO package.json!" && exit 1)
+            test -f tsconfig.json && echo "✅ tsconfig.json OK" || echo "⚠️ No tsconfig.json"
 
+            rm -rf node_modules dist
 
+            npm install
+            npm install -D typescript @types/node
+            npm run build
 
+            test -f dist/server.js && echo "✅ dist/server.js built!" || (echo "❌ Build failed!" && exit 1)
 
+            sudo chown -R adithyanbinu666:adithyanbinu666 /var/www/doctor/backend
+            sudo chmod -R 755 /var/www/doctor/backend
+
+            pm2 restart doctor-api || pm2 start dist/server.js --name doctor-api
+            pm2 save
+            pm2 status
+
+            echo "✅ Backend deployment COMPLETE!"
