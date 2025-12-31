@@ -318,11 +318,12 @@ jobs:
     - name: 🔍 Debug Files + Secrets
       run: |
         echo "📁 Files to deploy:"
-        find . -name "package.json" -o -name "server.js" -o -name "*.ts" | head -10
+        ls -la package*.json || echo "❌ No package.json in repo!"
+        ls -la dist/ 2>/dev/null || echo "📝 dist/ will be built on server"
         echo "VM_IP: '${{ secrets.VM_IP }}'"
         echo "Key length: $(echo '${{ secrets.SSH_PRIVATE_KEY_BACKEND }}' | wc -c) chars"
     
-    # Deploy EVERYTHING in repo root + dist
+    # Deploy ENTIRE repo (copies application/, domain/, package.json, etc.)
     - name: Deploy ALL backend files
       uses: appleboy/scp-action@v0.1.4
       with:
@@ -330,11 +331,11 @@ jobs:
         username: ${{ secrets.VM_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY_BACKEND }}
         rm: true
-        source: "."  # ← COPY ENTIRE REPO (safest)
+        source: "."
         target: "/var/www/doctor/backend/"
-        exclude: ".git*", "node_modules", "*.log"
+        exclude: ".git*", "node_modules", "**/*.log"
     
-    - name: Install, build & restart
+    - name: Install, build & restart PM2
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.VM_IP }}
@@ -344,12 +345,19 @@ jobs:
           cd /var/www/doctor/backend
           echo "📁 Deployed files:"
           ls -la | head -10
-          test -f package.json && echo "✅ package.json OK" || echo "❌ NO package.json!"
-          test -f dist/server.js && echo "✅ dist/server.js OK" || echo "❌ NO dist/server.js"
           
+          # Verify critical files exist
+          test -f package.json && echo "✅ package.json OK" || echo "❌ NO package.json!"
+          test -f tsconfig.json && echo "✅ tsconfig.json OK" || echo "⚠️ No tsconfig"
+          
+          # Clean install + build
           rm -rf node_modules dist
-          npm ci
+          npm install
+          npm install typescript @types/node -D
           npm run build
+          
+          # Verify build worked
+          test -f dist/server.js && echo "✅ dist/server.js built!" || echo "❌ Build failed!"
           
           sudo chown -R adithyanbinu666:adithyanbinu666 /var/www/doctor/backend
           sudo chmod -R 755 /var/www/doctor/backend
