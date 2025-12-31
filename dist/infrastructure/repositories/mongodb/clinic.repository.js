@@ -1,0 +1,1202 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MongoClinicRepository = void 0;
+const tsyringe_1 = require("tsyringe");
+const mongoose_1 = require("mongoose");
+const clinic_entity_1 = require("../../../domain/entities/clinic.entity");
+const clinic_model_1 = require("../../database/mongoose/clinic.model");
+const treatment_course_model_1 = require("../../database/mongoose/treatment-course.model");
+const email_vo_1 = require("../../../domain/value-objects/email.vo");
+const working_day_vo_1 = require("../../../domain/value-objects/working-day.vo");
+let MongoClinicRepository = class MongoClinicRepository {
+    async findById(id) {
+        const pipeline = [
+            {
+                $match: {
+                    _id: new mongoose_1.Types.ObjectId(id),
+                    isDeleted: false,
+                },
+            },
+            {
+                $lookup: {
+                    from: 'treatments',
+                    localField: 'treatments',
+                    foreignField: '_id',
+                    as: 'populatedTreatments',
+                    pipeline: [
+                        {
+                            $match: { isDeleted: false },
+                        },
+                        {
+                            $project: {
+                                _id: 1,
+                                name: 1,
+                            },
+                        },
+                    ],
+                },
+            },
+            {
+                $project: {
+                    _id: 1,
+                    clinicId: 1,
+                    doctor: 1,
+                    name: 1,
+                    address: 1,
+                    city: 1,
+                    state: 1,
+                    pincode: 1,
+                    phone: 1,
+                    email: 1,
+                    website: 1,
+                    locationUrl: 1,
+                    workingDays: 1,
+                    treatments: 1,
+                    populatedTreatments: 1,
+                    images: 1,
+                    notes: 1,
+                    isActive: 1,
+                    isDeleted: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
+                },
+            },
+        ];
+        const result = await clinic_model_1.ClinicModel.aggregate(pipeline);
+        if (!result || result.length === 0)
+            return null;
+        return this.toDomainFromPlainObject(result[0]);
+    }
+    async findAll() {
+        const clinicDocs = await clinic_model_1.ClinicModel.find({ isDeleted: false }).populate('treatments', 'name');
+        return clinicDocs.map((doc) => this.toDomain(doc));
+    }
+    async findByName(name, doctorId) {
+        const pipeline = [
+            {
+                $match: {
+                    name: name.trim(),
+                    doctor: new mongoose_1.Types.ObjectId(doctorId),
+                    isDeleted: false,
+                },
+            },
+            {
+                $lookup: {
+                    from: 'treatments',
+                    localField: 'treatments',
+                    foreignField: '_id',
+                    as: 'populatedTreatments',
+                    pipeline: [
+                        {
+                            $match: { isDeleted: false },
+                        },
+                        {
+                            $project: {
+                                _id: 1,
+                                name: 1,
+                            },
+                        },
+                    ],
+                },
+            },
+            {
+                $project: {
+                    _id: 1,
+                    clinicId: 1,
+                    doctor: 1,
+                    name: 1,
+                    address: 1,
+                    city: 1,
+                    state: 1,
+                    pincode: 1,
+                    phone: 1,
+                    email: 1,
+                    website: 1,
+                    locationUrl: 1,
+                    workingDays: 1,
+                    treatments: 1,
+                    populatedTreatments: 1,
+                    images: {
+                        $cond: {
+                            if: { $and: [{ $isArray: '$images' }, { $gt: [{ $size: '$images' }, 0] }] },
+                            then: [{ $arrayElemAt: ['$images', 0] }],
+                            else: '$$REMOVE',
+                        },
+                    },
+                    notes: 1,
+                    isActive: 1,
+                    isDeleted: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
+                },
+            },
+        ];
+        const result = await clinic_model_1.ClinicModel.aggregate(pipeline);
+        if (!result || result.length === 0)
+            return null;
+        return this.toDomainFromPlainObject(result[0]);
+    }
+    async findByClinicId(clinicId, doctorId) {
+        const pipeline = [
+            {
+                $match: {
+                    clinicId: clinicId.toUpperCase(),
+                    doctor: new mongoose_1.Types.ObjectId(doctorId),
+                    isDeleted: false,
+                },
+            },
+            {
+                $lookup: {
+                    from: 'treatments',
+                    localField: 'treatments',
+                    foreignField: '_id',
+                    as: 'populatedTreatments',
+                    pipeline: [
+                        {
+                            $match: { isDeleted: false },
+                        },
+                        {
+                            $project: {
+                                _id: 1,
+                                name: 1,
+                            },
+                        },
+                    ],
+                },
+            },
+            {
+                $project: {
+                    _id: 1,
+                    clinicId: 1,
+                    doctor: 1,
+                    name: 1,
+                    address: 1,
+                    city: 1,
+                    state: 1,
+                    pincode: 1,
+                    phone: 1,
+                    email: 1,
+                    website: 1,
+                    locationUrl: 1,
+                    workingDays: 1,
+                    treatments: 1,
+                    populatedTreatments: 1,
+                    images: {
+                        $cond: {
+                            if: { $and: [{ $isArray: '$images' }, { $gt: [{ $size: '$images' }, 0] }] },
+                            then: [{ $arrayElemAt: ['$images', 0] }],
+                            else: '$$REMOVE',
+                        },
+                    },
+                    notes: 1,
+                    isActive: 1,
+                    isDeleted: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
+                },
+            },
+        ];
+        const result = await clinic_model_1.ClinicModel.aggregate(pipeline);
+        if (!result || result.length === 0)
+            return null;
+        return this.toDomainFromPlainObject(result[0]);
+    }
+    async findNames(doctorId, search) {
+        const filter = { isActive: true, isDeleted: false, doctor: new mongoose_1.Types.ObjectId(doctorId) };
+        if (search && search.trim().length > 0) {
+            const regex = new RegExp(search.trim(), 'i');
+            filter.$or = [{ name: regex }, { city: regex }];
+        }
+        const documents = await clinic_model_1.ClinicModel.find(filter).sort({ name: 1 }).select({ name: 1 });
+        return documents.map((doc) => ({
+            id: doc._id.toString(),
+            name: doc.name,
+        }));
+    }
+    async findAllPaginated(options) {
+        const { page, limit, search, doctorId, sortBy = 'createdAt', sortOrder = 'desc' } = options;
+        const skip = (page - 1) * limit;
+        const doctorObjectId = new mongoose_1.Types.ObjectId(doctorId);
+        const matchStage = { isDeleted: false, doctor: doctorObjectId };
+        if (search && search.trim().length > 0) {
+            const searchRegex = { $regex: search.trim(), $options: 'i' };
+            matchStage.$or = [
+                { name: searchRegex },
+                { city: searchRegex },
+            ];
+        }
+        const sortDirection = sortOrder === 'asc' ? 1 : -1;
+        const sortField = sortBy === 'createdAt' ? 'createdAt' : sortBy;
+        const pipeline = [
+            {
+                $match: matchStage,
+            },
+            {
+                $lookup: {
+                    from: 'treatmentcourses',
+                    let: { clinicId: '$_id', doctorId: '$doctor' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$doctor', '$$doctorId'] },
+                                        { $eq: ['$clinic', '$$clinicId'] },
+                                        { $ne: ['$clinic', null] },
+                                        { $eq: ['$isDeleted', false] },
+                                    ],
+                                },
+                            },
+                        },
+                    ],
+                    as: 'treatmentCourses',
+                },
+            },
+            {
+                $addFields: {
+                    patientIds: {
+                        $map: {
+                            input: { $ifNull: ['$treatmentCourses', []] },
+                            as: 'tc',
+                            in: '$$tc.patient',
+                        },
+                    },
+                },
+            },
+            {
+                $addFields: {
+                    numOfPatients: {
+                        $size: {
+                            $setUnion: ['$patientIds'],
+                        },
+                    },
+                    onGoingTreatments: {
+                        $size: {
+                            $filter: {
+                                input: { $ifNull: ['$treatmentCourses', []] },
+                                as: 'tc',
+                                cond: { $eq: ['$$tc.status', 'active'] },
+                            },
+                        },
+                    },
+                    completedTreatments: {
+                        $size: {
+                            $filter: {
+                                input: { $ifNull: ['$treatmentCourses', []] },
+                                as: 'tc',
+                                cond: { $eq: ['$$tc.status', 'completed'] },
+                            },
+                        },
+                    },
+                },
+            },
+            {
+                $facet: {
+                    metadata: [
+                        {
+                            $count: 'total',
+                        },
+                    ],
+                    data: [
+                        {
+                            $sort: { [sortField]: sortDirection },
+                        },
+                        {
+                            $skip: skip,
+                        },
+                        {
+                            $limit: limit,
+                        },
+                        {
+                            $project: {
+                                id: { $toString: '$_id' },
+                                name: 1,
+                                clinicId: 1,
+                                isActive: 1,
+                                city: { $ifNull: ['$city', ''] },
+                                numOfPatients: 1,
+                                onGoingTreatments: 1,
+                                completedTreatments: 1,
+                            },
+                        },
+                    ],
+                },
+            },
+            {
+                $project: {
+                    clinics: '$data',
+                    total: {
+                        $ifNull: [{ $arrayElemAt: ['$metadata.total', 0] }, 0],
+                    },
+                },
+            }
+        ];
+        const result = await clinic_model_1.ClinicModel.aggregate(pipeline);
+        if (!result || result.length === 0) {
+            return {
+                clinics: [],
+                total: 0,
+                page,
+                limit,
+                totalPages: 0,
+            };
+        }
+        const aggregationResult = result[0];
+        const total = aggregationResult.total || 0;
+        const totalPages = Math.ceil(total / limit);
+        const clinics = aggregationResult.clinics.map((doc) => ({
+            id: doc.id,
+            name: doc.name,
+            clinicId: doc.clinicId,
+            isActive: doc.isActive,
+            city: doc.city || '',
+            numOfPatients: doc.numOfPatients || 0,
+            onGoingTreatments: doc.onGoingTreatments || 0,
+            completedTreatments: doc.completedTreatments || 0,
+        }));
+        return {
+            clinics,
+            total,
+            page,
+            limit,
+            totalPages,
+        };
+    }
+    async create(entity) {
+        const clinicDoc = new clinic_model_1.ClinicModel({
+            clinicId: entity.clinicId.toUpperCase(),
+            doctor: new mongoose_1.Types.ObjectId(entity.doctorId),
+            name: entity.name,
+            address: entity.address,
+            city: entity.city,
+            state: entity.state,
+            pincode: entity.pincode,
+            phone: entity.phone,
+            email: entity.email?.toString(),
+            website: entity.website,
+            locationUrl: entity.locationUrl,
+            workingDays: entity.workingDays?.map(wd => ({
+                day: wd.getDay(),
+                startTime: wd.getStartTime(),
+                endTime: wd.getEndTime(),
+            })),
+            treatments: entity.treatments?.map(t => t) || [],
+            images: entity.images,
+            notes: entity.notes,
+            isActive: entity.isActive !== undefined ? entity.isActive : true,
+            isDeleted: entity.isDeleted !== undefined ? entity.isDeleted : false,
+        });
+        const saved = await clinicDoc.save();
+        const populated = await clinic_model_1.ClinicModel.findById(saved._id).populate('treatments', 'name');
+        return this.toDomain(populated || saved);
+    }
+    async update(id, entity) {
+        const updateData = {};
+        if (entity.clinicId !== undefined) {
+            throw new Error('clinicId cannot be updated');
+        }
+        if (entity.name !== undefined)
+            updateData.name = entity.name;
+        if (entity.address !== undefined)
+            updateData.address = entity.address;
+        if (entity.city !== undefined)
+            updateData.city = entity.city;
+        if (entity.state !== undefined)
+            updateData.state = entity.state;
+        if (entity.pincode !== undefined)
+            updateData.pincode = entity.pincode;
+        if (entity.phone !== undefined)
+            updateData.phone = entity.phone;
+        if (entity.email !== undefined) {
+            updateData.email = entity.email ? entity.email.toString() : undefined;
+        }
+        if (entity.website !== undefined)
+            updateData.website = entity.website;
+        if (entity.locationUrl !== undefined)
+            updateData.locationUrl = entity.locationUrl;
+        if (entity.workingDays !== undefined) {
+            updateData.workingDays = entity.workingDays.length > 0
+                ? entity.workingDays.map(wd => ({
+                    day: wd.getDay(),
+                    startTime: wd.getStartTime(),
+                    endTime: wd.getEndTime(),
+                }))
+                : [];
+        }
+        if (entity.treatments !== undefined)
+            updateData.treatments = entity.treatments;
+        if (entity.images !== undefined)
+            updateData.images = entity.images;
+        if (entity.notes !== undefined)
+            updateData.notes = entity.notes;
+        if (entity.isActive !== undefined)
+            updateData.isActive = entity.isActive;
+        if (entity.isDeleted !== undefined)
+            updateData.isDeleted = entity.isDeleted;
+        const clinicDoc = await clinic_model_1.ClinicModel.findOneAndUpdate({ _id: id, isDeleted: false }, updateData, { new: true }).populate('treatments', 'name');
+        if (!clinicDoc)
+            return null;
+        return this.toDomain(clinicDoc);
+    }
+    async delete(id) {
+        const result = await clinic_model_1.ClinicModel.findOneAndUpdate({ _id: id, isDeleted: false }, { isDeleted: true }, { new: true });
+        return !!result;
+    }
+    async getStatistics(clinicId, options) {
+        const { doctorId, startDateFrom, startDateTo, treatmentId } = options;
+        const clinicObjectId = new mongoose_1.Types.ObjectId(clinicId);
+        const doctorObjectId = new mongoose_1.Types.ObjectId(doctorId);
+        const courseMatch = {
+            clinic: clinicObjectId,
+            doctor: doctorObjectId,
+            isDeleted: false,
+        };
+        if (treatmentId && mongoose_1.Types.ObjectId.isValid(treatmentId)) {
+            courseMatch.treatment = new mongoose_1.Types.ObjectId(treatmentId);
+        }
+        if (startDateFrom || startDateTo) {
+            courseMatch.startDate = {};
+            if (startDateFrom)
+                courseMatch.startDate.$gte = startDateFrom;
+            if (startDateTo)
+                courseMatch.startDate.$lte = startDateTo;
+        }
+        const pipeline = [
+            { $match: courseMatch },
+            {
+                $lookup: {
+                    from: 'visits',
+                    let: { courseId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$course', '$$courseId'] },
+                                        { $eq: ['$isDeleted', false] },
+                                    ],
+                                },
+                            },
+                        },
+                        {
+                            $project: {
+                                billedAmount: { $ifNull: ['$billedAmount', 0] },
+                            },
+                        },
+                    ],
+                    as: 'visits',
+                },
+            },
+            {
+                $lookup: {
+                    from: 'payments',
+                    let: { courseId: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$course', '$$courseId'] },
+                                        { $eq: ['$isDeleted', false] },
+                                    ],
+                                },
+                            },
+                        },
+                        {
+                            $project: {
+                                amount: 1,
+                                method: { $ifNull: ['$method', 'cash'] },
+                                refunded: { $ifNull: ['$refunded', false] },
+                                refundAmount: { $ifNull: ['$refundDetails.refundAmount', 0] },
+                            },
+                        },
+                    ],
+                    as: 'payments',
+                },
+            },
+            {
+                $lookup: {
+                    from: 'treatments',
+                    localField: 'treatment',
+                    foreignField: '_id',
+                    as: 'treatmentInfo',
+                    pipeline: [
+                        {
+                            $match: { isDeleted: false },
+                        },
+                        {
+                            $project: {
+                                _id: 1,
+                                name: 1,
+                            },
+                        },
+                    ],
+                },
+            },
+            {
+                $facet: {
+                    overallStats: [
+                        {
+                            $group: {
+                                _id: null,
+                                totalCourses: { $sum: 1 },
+                                uniquePatients: { $addToSet: '$patient' },
+                                totalPaid: { $sum: { $ifNull: ['$totalPaid', 0] } },
+                                totalCost: { $sum: { $ifNull: ['$totalCost', 0] } },
+                                medicallyCompleted: {
+                                    $sum: { $cond: [{ $ifNull: ['$isMedicallyCompleted', false] }, 1, 0] },
+                                },
+                                paymentCompleted: {
+                                    $sum: { $cond: [{ $ifNull: ['$isPaymentCompleted', false] }, 1, 0] },
+                                },
+                                statusActive: {
+                                    $sum: { $cond: [{ $eq: [{ $ifNull: ['$status', 'active'] }, 'active'] }, 1, 0] },
+                                },
+                                statusPaused: {
+                                    $sum: { $cond: [{ $eq: [{ $ifNull: ['$status', 'active'] }, 'paused'] }, 1, 0] },
+                                },
+                                statusCompleted: {
+                                    $sum: { $cond: [{ $eq: [{ $ifNull: ['$status', 'active'] }, 'completed'] }, 1, 0] },
+                                },
+                                statusCancelled: {
+                                    $sum: { $cond: [{ $eq: [{ $ifNull: ['$status', 'active'] }, 'cancelled'] }, 1, 0] },
+                                },
+                                totalVisits: { $sum: { $size: '$visits' } },
+                                totalBilledAmount: {
+                                    $sum: {
+                                        $reduce: {
+                                            input: '$visits',
+                                            initialValue: 0,
+                                            in: { $add: ['$$value', { $ifNull: ['$$this.billedAmount', 0] }] },
+                                        },
+                                    },
+                                },
+                                earliestStartDate: { $min: '$startDate' },
+                                latestStartDate: { $max: '$startDate' },
+                                completedCoursesWithDates: {
+                                    $push: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    { $eq: [{ $ifNull: ['$status', 'active'] }, 'completed'] },
+                                                    { $ifNull: ['$isMedicallyCompleted', false] },
+                                                    { $ne: ['$startDate', null] },
+                                                    { $ne: ['$expectedEndDate', null] },
+                                                ],
+                                            },
+                                            {
+                                                startDate: '$startDate',
+                                                expectedEndDate: '$expectedEndDate',
+                                            },
+                                            '$$REMOVE',
+                                        ],
+                                    },
+                                },
+                                paymentCash: {
+                                    $sum: {
+                                        $reduce: {
+                                            input: {
+                                                $filter: {
+                                                    input: '$payments',
+                                                    as: 'p',
+                                                    cond: { $eq: ['$$p.method', 'cash'] },
+                                                },
+                                            },
+                                            initialValue: 0,
+                                            in: { $add: ['$$value', { $ifNull: ['$$this.amount', 0] }] },
+                                        },
+                                    },
+                                },
+                                paymentCard: {
+                                    $sum: {
+                                        $reduce: {
+                                            input: {
+                                                $filter: {
+                                                    input: '$payments',
+                                                    as: 'p',
+                                                    cond: { $eq: ['$$p.method', 'card'] },
+                                                },
+                                            },
+                                            initialValue: 0,
+                                            in: { $add: ['$$value', { $ifNull: ['$$this.amount', 0] }] },
+                                        },
+                                    },
+                                },
+                                paymentUpi: {
+                                    $sum: {
+                                        $reduce: {
+                                            input: {
+                                                $filter: {
+                                                    input: '$payments',
+                                                    as: 'p',
+                                                    cond: { $eq: ['$$p.method', 'upi'] },
+                                                },
+                                            },
+                                            initialValue: 0,
+                                            in: { $add: ['$$value', { $ifNull: ['$$this.amount', 0] }] },
+                                        },
+                                    },
+                                },
+                                paymentBank: {
+                                    $sum: {
+                                        $reduce: {
+                                            input: {
+                                                $filter: {
+                                                    input: '$payments',
+                                                    as: 'p',
+                                                    cond: { $eq: ['$$p.method', 'bank'] },
+                                                },
+                                            },
+                                            initialValue: 0,
+                                            in: { $add: ['$$value', { $ifNull: ['$$this.amount', 0] }] },
+                                        },
+                                    },
+                                },
+                                paymentInsurance: {
+                                    $sum: {
+                                        $reduce: {
+                                            input: {
+                                                $filter: {
+                                                    input: '$payments',
+                                                    as: 'p',
+                                                    cond: { $eq: ['$$p.method', 'insurance'] },
+                                                },
+                                            },
+                                            initialValue: 0,
+                                            in: { $add: ['$$value', { $ifNull: ['$$this.amount', 0] }] },
+                                        },
+                                    },
+                                },
+                                paymentOnline: {
+                                    $sum: {
+                                        $reduce: {
+                                            input: {
+                                                $filter: {
+                                                    input: '$payments',
+                                                    as: 'p',
+                                                    cond: { $eq: ['$$p.method', 'online'] },
+                                                },
+                                            },
+                                            initialValue: 0,
+                                            in: { $add: ['$$value', { $ifNull: ['$$this.amount', 0] }] },
+                                        },
+                                    },
+                                },
+                                refundTotal: {
+                                    $sum: {
+                                        $reduce: {
+                                            input: {
+                                                $filter: {
+                                                    input: '$payments',
+                                                    as: 'p',
+                                                    cond: { $eq: ['$$p.refunded', true] },
+                                                },
+                                            },
+                                            initialValue: 0,
+                                            in: { $add: ['$$value', { $ifNull: ['$$this.refundAmount', 0] }] },
+                                        },
+                                    },
+                                },
+                                refundCount: {
+                                    $sum: {
+                                        $size: {
+                                            $filter: {
+                                                input: '$payments',
+                                                as: 'p',
+                                                cond: { $eq: ['$$p.refunded', true] },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        {
+                            $project: {
+                                _id: 0,
+                                patients: {
+                                    totalCount: '$totalCourses',
+                                    uniqueCount: { $size: '$uniquePatients' },
+                                },
+                                treatmentCourses: {
+                                    totalCount: '$totalCourses',
+                                    statusBreakdown: {
+                                        active: '$statusActive',
+                                        paused: '$statusPaused',
+                                        completed: '$statusCompleted',
+                                        cancelled: '$statusCancelled',
+                                    },
+                                    medicallyCompleted: '$medicallyCompleted',
+                                    paymentCompleted: '$paymentCompleted',
+                                },
+                                revenue: {
+                                    totalPaid: '$totalPaid',
+                                    totalCost: '$totalCost',
+                                    outstanding: { $subtract: ['$totalCost', '$totalPaid'] },
+                                    averagePerCourse: {
+                                        paid: {
+                                            $cond: [
+                                                { $gt: ['$totalCourses', 0] },
+                                                { $divide: ['$totalPaid', '$totalCourses'] },
+                                                0,
+                                            ],
+                                        },
+                                        cost: {
+                                            $cond: [
+                                                { $gt: ['$totalCourses', 0] },
+                                                { $divide: ['$totalCost', '$totalCourses'] },
+                                                0,
+                                            ],
+                                        },
+                                    },
+                                    byPaymentMethod: {
+                                        cash: '$paymentCash',
+                                        card: '$paymentCard',
+                                        upi: '$paymentUpi',
+                                        bank: '$paymentBank',
+                                        insurance: '$paymentInsurance',
+                                        online: '$paymentOnline',
+                                    },
+                                    refunds: {
+                                        totalAmount: '$refundTotal',
+                                        count: '$refundCount',
+                                    },
+                                },
+                                visits: {
+                                    totalCount: '$totalVisits',
+                                    averagePerCourse: {
+                                        $cond: [
+                                            { $gt: ['$totalCourses', 0] },
+                                            { $divide: ['$totalVisits', '$totalCourses'] },
+                                            0,
+                                        ],
+                                    },
+                                    totalBilledAmount: '$totalBilledAmount',
+                                    averageBilledAmount: {
+                                        $cond: [
+                                            { $gt: ['$totalVisits', 0] },
+                                            { $divide: ['$totalBilledAmount', '$totalVisits'] },
+                                            0,
+                                        ],
+                                    },
+                                },
+                                timeMetrics: {
+                                    earliestStartDate: '$earliestStartDate',
+                                    latestStartDate: '$latestStartDate',
+                                    averageDuration: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    { $gt: [{ $size: '$completedCoursesWithDates' }, 0] },
+                                                ],
+                                            },
+                                            {
+                                                $divide: [
+                                                    {
+                                                        $reduce: {
+                                                            input: '$completedCoursesWithDates',
+                                                            initialValue: 0,
+                                                            in: {
+                                                                $add: [
+                                                                    '$$value',
+                                                                    {
+                                                                        $divide: [
+                                                                            {
+                                                                                $subtract: [
+                                                                                    '$$this.expectedEndDate',
+                                                                                    '$$this.startDate',
+                                                                                ],
+                                                                            },
+                                                                            86400000,
+                                                                        ],
+                                                                    },
+                                                                ],
+                                                            },
+                                                        },
+                                                    },
+                                                    { $size: '$completedCoursesWithDates' },
+                                                ],
+                                            },
+                                            null,
+                                        ],
+                                    },
+                                },
+                                completionRates: {
+                                    treatment: {
+                                        $cond: [
+                                            { $gt: ['$totalCourses', 0] },
+                                            { $multiply: [{ $divide: ['$statusCompleted', '$totalCourses'] }, 100] },
+                                            0,
+                                        ],
+                                    },
+                                    payment: {
+                                        $cond: [
+                                            { $gt: ['$totalCourses', 0] },
+                                            { $multiply: [{ $divide: ['$paymentCompleted', '$totalCourses'] }, 100] },
+                                            0,
+                                        ],
+                                    },
+                                    medical: {
+                                        $cond: [
+                                            { $gt: ['$totalCourses', 0] },
+                                            { $multiply: [{ $divide: ['$medicallyCompleted', '$totalCourses'] }, 100] },
+                                            0,
+                                        ],
+                                    },
+                                    cancellation: {
+                                        $cond: [
+                                            { $gt: ['$totalCourses', 0] },
+                                            { $multiply: [{ $divide: ['$statusCancelled', '$totalCourses'] }, 100] },
+                                            0,
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                    treatmentStats: [
+                        {
+                            $match: {
+                                treatment: { $ne: null },
+                            },
+                        },
+                        {
+                            $group: {
+                                _id: '$treatment',
+                                treatmentName: { $first: { $arrayElemAt: ['$treatmentInfo.name', 0] } },
+                                courseCount: { $sum: 1 },
+                                totalPaid: { $sum: { $ifNull: ['$totalPaid', 0] } },
+                                totalCost: { $sum: { $ifNull: ['$totalCost', 0] } },
+                            },
+                        },
+                        {
+                            $project: {
+                                _id: 0,
+                                treatmentId: { $toString: '$_id' },
+                                treatmentName: { $ifNull: ['$treatmentName', 'Unknown Treatment'] },
+                                courseCount: 1,
+                                totalPaid: 1,
+                                totalCost: 1,
+                                outstanding: { $subtract: ['$totalCost', '$totalPaid'] },
+                            },
+                        },
+                    ],
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    stats: { $arrayElemAt: ['$overallStats', 0] },
+                    treatments: '$treatmentStats',
+                },
+            },
+        ];
+        const result = await treatment_course_model_1.TreatmentCourseModel.aggregate(pipeline);
+        if (!result || result.length === 0 || !result[0].stats) {
+            return this.getEmptyStatistics();
+        }
+        const stats = result[0].stats;
+        const treatments = result[0].treatments || [];
+        return {
+            patients: stats.patients,
+            treatmentCourses: stats.treatmentCourses,
+            revenue: stats.revenue,
+            treatments: treatments,
+            visits: stats.visits,
+            timeMetrics: {
+                earliestStartDate: stats.timeMetrics.earliestStartDate || undefined,
+                latestStartDate: stats.timeMetrics.latestStartDate || undefined,
+                averageDuration: stats.timeMetrics.averageDuration || undefined,
+            },
+            completionRates: stats.completionRates,
+        };
+    }
+    getEmptyStatistics() {
+        return {
+            patients: {
+                totalCount: 0,
+                uniqueCount: 0,
+            },
+            treatmentCourses: {
+                totalCount: 0,
+                statusBreakdown: {
+                    active: 0,
+                    paused: 0,
+                    completed: 0,
+                    cancelled: 0,
+                },
+                medicallyCompleted: 0,
+                paymentCompleted: 0,
+            },
+            revenue: {
+                totalPaid: 0,
+                totalCost: 0,
+                outstanding: 0,
+                averagePerCourse: {
+                    paid: 0,
+                    cost: 0,
+                },
+                byPaymentMethod: {
+                    cash: 0,
+                    card: 0,
+                    upi: 0,
+                    bank: 0,
+                    insurance: 0,
+                    online: 0,
+                },
+                refunds: {
+                    totalAmount: 0,
+                    count: 0,
+                },
+            },
+            treatments: [],
+            visits: {
+                totalCount: 0,
+                averagePerCourse: 0,
+                totalBilledAmount: 0,
+                averageBilledAmount: 0,
+            },
+            timeMetrics: {},
+            completionRates: {
+                treatment: 0,
+                payment: 0,
+                medical: 0,
+                cancellation: 0,
+            },
+        };
+    }
+    toDomain(doc) {
+        let email;
+        if (doc.email) {
+            try {
+                email = new email_vo_1.Email(doc.email);
+            }
+            catch {
+                email = undefined;
+            }
+        }
+        let workingDays;
+        if (doc.workingDays && doc.workingDays.length > 0) {
+            const mapped = doc.workingDays.map((wd) => {
+                try {
+                    return new working_day_vo_1.WorkingDay(wd.day, wd.startTime, wd.endTime);
+                }
+                catch {
+                    return null;
+                }
+            }).filter((wd) => wd !== null);
+            workingDays = mapped.length > 0 ? mapped : undefined;
+        }
+        let treatmentIds;
+        let populatedTreatmentsData;
+        const populatedTreatments = this.extractPopulatedTreatments(doc);
+        if (populatedTreatments && populatedTreatments.length > 0) {
+            populatedTreatmentsData = populatedTreatments.map((t) => ({
+                id: typeof t === 'object' && t._id ? t._id.toString() : (typeof t === 'object' && t.id ? t.id : t.toString()),
+                name: typeof t === 'object' && (t.name || t.name) ? t.name : undefined,
+            })).filter((t) => t.id && t.name);
+            treatmentIds = populatedTreatmentsData.map(t => t.id);
+        }
+        else if (doc.treatments) {
+            treatmentIds = doc.treatments.map((t) => {
+                if (typeof t === 'object' && t._id)
+                    return t._id.toString();
+                return t.toString();
+            });
+        }
+        return new clinic_entity_1.Clinic(doc._id.toString(), doc.clinicId, doc.doctor ? doc.doctor.toString() : '', doc.name, doc.createdAt, doc.updatedAt, doc.address, doc.city, doc.state, doc.pincode, doc.phone, email, doc.website, doc.locationUrl, workingDays, treatmentIds, populatedTreatmentsData, doc.images, doc.notes, doc.isActive, doc.isDeleted);
+    }
+    extractPopulatedTreatments(doc) {
+        if (!doc.treatments || !Array.isArray(doc.treatments)) {
+            return null;
+        }
+        if (doc.treatments.length > 0 && typeof doc.treatments[0] === 'object' && doc.treatments[0].name) {
+            return doc.treatments;
+        }
+        if (doc.populatedTreatments && Array.isArray(doc.populatedTreatments)) {
+            return doc.populatedTreatments;
+        }
+        return null;
+    }
+    toDomainFromPlainObject(doc) {
+        const id = doc._id ? doc._id.toString() : '';
+        let email;
+        if (doc.email) {
+            try {
+                email = new email_vo_1.Email(doc.email);
+            }
+            catch {
+                email = undefined;
+            }
+        }
+        let workingDays;
+        if (doc.workingDays && doc.workingDays.length > 0) {
+            const mapped = doc.workingDays.map((wd) => {
+                try {
+                    return new working_day_vo_1.WorkingDay(wd.day, wd.startTime, wd.endTime);
+                }
+                catch {
+                    return null;
+                }
+            }).filter((wd) => wd !== null);
+            workingDays = mapped.length > 0 ? mapped : undefined;
+        }
+        let treatmentIds;
+        let populatedTreatmentsData;
+        if (doc.populatedTreatments && Array.isArray(doc.populatedTreatments)) {
+            populatedTreatmentsData = doc.populatedTreatments
+                .filter((t) => t && t.id && t.name)
+                .map((t) => ({ id: t.id, name: t.name }));
+            treatmentIds = populatedTreatmentsData ? populatedTreatmentsData.map(t => t.id) : undefined;
+        }
+        else if (doc.treatments) {
+            if (doc.treatments.length > 0 && typeof doc.treatments[0] === 'object' && doc.treatments[0].name) {
+                populatedTreatmentsData = doc.treatments.map((t) => ({
+                    id: t._id ? t._id.toString() : t.toString(),
+                    name: t.name,
+                })).filter((t) => t.id && t.name);
+                treatmentIds = populatedTreatmentsData ? populatedTreatmentsData.map(t => t.id) : undefined;
+            }
+            else {
+                treatmentIds = doc.treatments.map((t) => {
+                    if (typeof t === 'object' && t._id) {
+                        return t._id.toString();
+                    }
+                    return t.toString();
+                });
+            }
+        }
+        return new clinic_entity_1.Clinic(id, doc.clinicId || '', doc.doctor ? doc.doctor.toString() : '', doc.name || '', doc.createdAt, doc.updatedAt, doc.address, doc.city, doc.state, doc.pincode, doc.phone, email, doc.website, doc.locationUrl, workingDays, treatmentIds, populatedTreatmentsData, doc.images, doc.notes, doc.isActive, doc.isDeleted);
+    }
+    async getClinicImages(clinicId, options) {
+        const { page, limit } = options;
+        const skip = (page - 1) * limit;
+        const pipeline = [
+            {
+                $match: {
+                    _id: new mongoose_1.Types.ObjectId(clinicId),
+                    isDeleted: false,
+                },
+            },
+            {
+                $facet: {
+                    metadata: [
+                        {
+                            $project: {
+                                total: {
+                                    $cond: {
+                                        if: { $isArray: '$images' },
+                                        then: { $size: '$images' },
+                                        else: 0,
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                    data: [
+                        {
+                            $project: {
+                                images: {
+                                    $cond: {
+                                        if: {
+                                            $and: [
+                                                { $isArray: '$images' },
+                                                { $gt: [{ $size: { $ifNull: ['$images', []] } }, 0] },
+                                            ],
+                                        },
+                                        then: {
+                                            $slice: ['$images', skip, limit],
+                                        },
+                                        else: [],
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                },
+            },
+            {
+                $project: {
+                    images: { $arrayElemAt: ['$data.images', 0] },
+                    total: { $arrayElemAt: ['$metadata.total', 0] },
+                },
+            },
+        ];
+        const result = await clinic_model_1.ClinicModel.aggregate(pipeline);
+        if (!result || result.length === 0 || !result[0].total) {
+            return {
+                images: [],
+                total: 0,
+                page,
+                limit,
+                totalPages: 0,
+            };
+        }
+        const aggregationResult = result[0];
+        const total = aggregationResult.total || 0;
+        const images = aggregationResult.images || [];
+        const totalPages = Math.ceil(total / limit);
+        return {
+            images,
+            total,
+            page,
+            limit,
+            totalPages,
+        };
+    }
+    async deleteClinicImage(clinicId, imageIndex) {
+        if (imageIndex < 0) {
+            return false;
+        }
+        const result = await clinic_model_1.ClinicModel.findOneAndUpdate({
+            _id: clinicId,
+            isDeleted: false,
+            $expr: {
+                $and: [
+                    { $isArray: '$images' },
+                    { $gte: [{ $size: '$images' }, { $add: [imageIndex, 1] }] }
+                ]
+            }
+        }, [
+            {
+                $set: {
+                    images: {
+                        $concatArrays: [
+                            { $slice: ['$images', imageIndex] },
+                            {
+                                $slice: [
+                                    '$images',
+                                    { $add: [imageIndex, 1] },
+                                    { $size: '$images' }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        ], { new: false });
+        return result !== null;
+    }
+    async addClinicImages(clinicId, imageUrls) {
+        if (!imageUrls || imageUrls.length === 0) {
+            return false;
+        }
+        const result = await clinic_model_1.ClinicModel.findOneAndUpdate({ _id: clinicId, isDeleted: false }, {
+            $push: {
+                images: {
+                    $each: imageUrls
+                }
+            }
+        }, { new: false });
+        return result !== null;
+    }
+};
+exports.MongoClinicRepository = MongoClinicRepository;
+exports.MongoClinicRepository = MongoClinicRepository = __decorate([
+    (0, tsyringe_1.injectable)()
+], MongoClinicRepository);

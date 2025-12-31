@@ -1,0 +1,21 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.setupPatientRoutes = void 0;
+const patient_controller_1 = require("../../controllers/patient.controller");
+const validation_middleware_1 = require("../../middleware/validation.middleware");
+const patient_validator_1 = require("../../validators/patient.validator");
+const async_handler_1 = require("../../utils/async-handler");
+const container_1 = require("../../../di/container");
+const auth_middleware_1 = require("../../middleware/auth.middleware");
+const role_middleware_1 = require("../../middleware/role.middleware");
+const setupPatientRoutes = (router) => {
+    const patientController = container_1.container.resolve(patient_controller_1.PatientController);
+    const auth = (0, auth_middleware_1.authMiddleware)();
+    router.post('/patient/add', auth, (0, validation_middleware_1.validate)(patient_validator_1.createPatientSchema), (0, async_handler_1.asyncHandler)(patientController.create.bind(patientController)));
+    router.get('/patient/all', auth, (0, async_handler_1.asyncHandler)(patientController.getAll.bind(patientController)));
+    router.get('/patient/:id', auth, (0, async_handler_1.asyncHandler)(patientController.getById.bind(patientController)));
+    router.patch('/patient/:id', auth, (0, validation_middleware_1.validate)(patient_validator_1.updatePatientSchema), (0, async_handler_1.asyncHandler)(patientController.update.bind(patientController)));
+    router.delete('/patient/:id', auth, role_middleware_1.doctorOnly, (0, async_handler_1.asyncHandler)(patientController.delete.bind(patientController)));
+    router.patch('/patient/:id/restore', auth, (0, async_handler_1.asyncHandler)(patientController.restore.bind(patientController)));
+};
+exports.setupPatientRoutes = setupPatientRoutes;

@@ -1,0 +1,145 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.UpdateTreatmentUseCase = void 0;
+const tsyringe_1 = require("tsyringe");
+const not_found_error_1 = require("../../../domain/errors/not-found.error");
+const validation_error_1 = require("../../../domain/errors/validation.error");
+const conflict_error_1 = require("../../../domain/errors/conflict.error");
+let UpdateTreatmentUseCase = class UpdateTreatmentUseCase {
+    constructor(treatmentRepository) {
+        this.treatmentRepository = treatmentRepository;
+    }
+    async execute(id, doctorId, input) {
+        const existingTreatment = await this.treatmentRepository.findById(id);
+        if (!existingTreatment || existingTreatment.doctorId !== doctorId) {
+            throw new not_found_error_1.NotFoundError('Treatment', id);
+        }
+        const trimmedInput = {
+            ...input,
+            name: input.name !== undefined ? input.name.trim() : undefined,
+        };
+        this.validateInput(trimmedInput, existingTreatment);
+        this.validateVisitType(trimmedInput, existingTreatment);
+        if (trimmedInput.name !== undefined && trimmedInput.name !== existingTreatment.name) {
+            const treatmentWithSameName = await this.treatmentRepository.findByName(trimmedInput.name, doctorId);
+            if (treatmentWithSameName) {
+                throw new conflict_error_1.ConflictError(`Treatment with name "${trimmedInput.name}" already exists`);
+            }
+        }
+        const updateData = {};
+        if (trimmedInput.name !== undefined)
+            updateData.name = trimmedInput.name;
+        if (trimmedInput.description !== undefined)
+            updateData.description = trimmedInput.description;
+        if (trimmedInput.minDuration !== undefined)
+            updateData.minDuration = trimmedInput.minDuration;
+        if (trimmedInput.maxDuration !== undefined)
+            updateData.maxDuration = trimmedInput.maxDuration;
+        if (trimmedInput.avgDuration !== undefined)
+            updateData.avgDuration = trimmedInput.avgDuration;
+        if (trimmedInput.minFees !== undefined)
+            updateData.minFees = trimmedInput.minFees;
+        if (trimmedInput.maxFees !== undefined)
+            updateData.maxFees = trimmedInput.maxFees;
+        if (trimmedInput.avgFees !== undefined)
+            updateData.avgFees = trimmedInput.avgFees;
+        if (trimmedInput.steps !== undefined)
+            updateData.steps = trimmedInput.steps;
+        if (trimmedInput.aftercare !== undefined)
+            updateData.aftercare = trimmedInput.aftercare;
+        if (trimmedInput.followUpRequired !== undefined)
+            updateData.followUpRequired = trimmedInput.followUpRequired;
+        if (trimmedInput.followUpAfterDays !== undefined)
+            updateData.followUpAfterDays = trimmedInput.followUpAfterDays;
+        if (trimmedInput.risks !== undefined)
+            updateData.risks = trimmedInput.risks;
+        if (trimmedInput.images !== undefined)
+            updateData.images = trimmedInput.images;
+        if (trimmedInput.isOneTime !== undefined)
+            updateData.isOneTime = trimmedInput.isOneTime;
+        if (trimmedInput.isActive !== undefined)
+            updateData.isActive = trimmedInput.isActive;
+        if (trimmedInput.isOneTime === true) {
+            updateData.minDuration = undefined;
+            updateData.maxDuration = undefined;
+            updateData.avgDuration = undefined;
+            updateData.regularVisitInterval = undefined;
+        }
+        if (trimmedInput.regularVisitInterval !== undefined) {
+            updateData.regularVisitInterval = trimmedInput.regularVisitInterval ?? undefined;
+        }
+        const updated = await this.treatmentRepository.update(id, updateData);
+        if (!updated) {
+            throw new not_found_error_1.NotFoundError('Treatment', id);
+        }
+    }
+    validateInput(input, existingTreatment) {
+        if (input.name !== undefined && input.name.trim().length === 0) {
+            throw new validation_error_1.ValidationError('Name cannot be empty');
+        }
+        const minDuration = input.minDuration !== undefined ? input.minDuration : existingTreatment.minDuration;
+        const maxDuration = input.maxDuration !== undefined ? input.maxDuration : existingTreatment.maxDuration;
+        const avgDuration = input.avgDuration !== undefined ? input.avgDuration : existingTreatment.avgDuration;
+        if (minDuration !== undefined && maxDuration !== undefined) {
+            if (minDuration > maxDuration) {
+                throw new validation_error_1.ValidationError('minDuration must be less than or equal to maxDuration');
+            }
+        }
+        if (avgDuration !== undefined) {
+            if (minDuration !== undefined && avgDuration < minDuration) {
+                throw new validation_error_1.ValidationError('avgDuration must be greater than or equal to minDuration');
+            }
+            if (maxDuration !== undefined && avgDuration > maxDuration) {
+                throw new validation_error_1.ValidationError('avgDuration must be less than or equal to maxDuration');
+            }
+        }
+        const minFees = input.minFees !== undefined ? input.minFees : existingTreatment.minFees;
+        const maxFees = input.maxFees !== undefined ? input.maxFees : existingTreatment.maxFees;
+        const avgFees = input.avgFees !== undefined ? input.avgFees : existingTreatment.avgFees;
+        if (minFees !== undefined && maxFees !== undefined) {
+            if (minFees > maxFees) {
+                throw new validation_error_1.ValidationError('minFees must be less than or equal to maxFees');
+            }
+        }
+        if (avgFees !== undefined) {
+            if (minFees !== undefined && avgFees < minFees) {
+                throw new validation_error_1.ValidationError('avgFees must be greater than or equal to minFees');
+            }
+            if (maxFees !== undefined && avgFees > maxFees) {
+                throw new validation_error_1.ValidationError('avgFees must be less than or equal to maxFees');
+            }
+        }
+    }
+    validateVisitType(input, existingTreatment) {
+        if (input.isOneTime === true && input.regularVisitInterval !== undefined && input.regularVisitInterval !== null) {
+            throw new validation_error_1.ValidationError('Cannot set regularVisitInterval when isOneTime is true');
+        }
+        if (input.regularVisitInterval !== undefined && input.regularVisitInterval !== null) {
+            if (input.regularVisitInterval.interval <= 0) {
+                throw new validation_error_1.ValidationError('regularVisitInterval.interval must be a positive number');
+            }
+            const validUnits = ['days', 'weeks', 'months', 'years'];
+            if (!input.regularVisitInterval.unit || !validUnits.includes(input.regularVisitInterval.unit)) {
+                throw new validation_error_1.ValidationError(`regularVisitInterval.unit must be one of: ${validUnits.join(', ')}`);
+            }
+        }
+    }
+};
+exports.UpdateTreatmentUseCase = UpdateTreatmentUseCase;
+exports.UpdateTreatmentUseCase = UpdateTreatmentUseCase = __decorate([
+    (0, tsyringe_1.injectable)(),
+    __param(0, (0, tsyringe_1.inject)('ITreatmentRepository')),
+    __metadata("design:paramtypes", [Object])
+], UpdateTreatmentUseCase);

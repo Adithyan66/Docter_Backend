@@ -1,0 +1,24 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.setupTreatmentRoutes = void 0;
+const treatment_controller_1 = require("../../controllers/treatment.controller");
+const validation_middleware_1 = require("../../middleware/validation.middleware");
+const treatment_validator_1 = require("../../validators/treatment.validator");
+const async_handler_1 = require("../../utils/async-handler");
+const container_1 = require("../../../di/container");
+const auth_middleware_1 = require("../../middleware/auth.middleware");
+const role_middleware_1 = require("../../middleware/role.middleware");
+const setupTreatmentRoutes = (router) => {
+    const treatmentController = container_1.container.resolve(treatment_controller_1.TreatmentController);
+    const auth = (0, auth_middleware_1.authMiddleware)();
+    router.post('/treatment/add', auth, role_middleware_1.doctorOnly, (0, validation_middleware_1.validate)(treatment_validator_1.createTreatmentSchema), (0, async_handler_1.asyncHandler)(treatmentController.create.bind(treatmentController)));
+    router.get('/treatment/all', auth, role_middleware_1.doctorOnly, (0, async_handler_1.asyncHandler)(treatmentController.getAll.bind(treatmentController)));
+    router.get('/treatment/names', auth, (0, async_handler_1.asyncHandler)(treatmentController.getNames.bind(treatmentController)));
+    router.patch('/treatment/:id', auth, role_middleware_1.doctorOnly, (0, validation_middleware_1.validate)(treatment_validator_1.updateTreatmentSchema), (0, async_handler_1.asyncHandler)(treatmentController.update.bind(treatmentController)));
+    router.delete('/treatment/:id', auth, role_middleware_1.doctorOnly, (0, async_handler_1.asyncHandler)(treatmentController.delete.bind(treatmentController)));
+    router.get('/treatment/:id/images', auth, role_middleware_1.doctorOnly, (0, async_handler_1.asyncHandler)(treatmentController.getImages.bind(treatmentController)));
+    router.post('/treatment/:id/images', auth, role_middleware_1.doctorOnly, (0, validation_middleware_1.validate)(treatment_validator_1.addTreatmentImagesSchema), (0, async_handler_1.asyncHandler)(treatmentController.addImages.bind(treatmentController)));
+    router.delete('/treatment/:id/images/:imageIndex', auth, (0, async_handler_1.asyncHandler)(treatmentController.deleteImage.bind(treatmentController)));
+    router.get('/treatment/:id', auth, role_middleware_1.doctorOnly, (0, async_handler_1.asyncHandler)(treatmentController.getById.bind(treatmentController)));
+};
+exports.setupTreatmentRoutes = setupTreatmentRoutes;
