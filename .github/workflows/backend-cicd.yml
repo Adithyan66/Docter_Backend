@@ -1,3 +1,100 @@
+# name: Backend CI/CD
+
+# on:
+#   push:
+#     branches: [main, develop]
+#   pull_request:
+#     branches: [main]
+
+# env:
+#   NODE_VERSION: '20'
+
+# jobs:
+#   test:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v4
+    
+#     - name: Setup Node.js
+#       uses: actions/setup-node@v4
+#       with:
+#         node-version: ${{ env.NODE_VERSION }}
+#         cache: 'npm'
+    
+#     - name: Install dependencies
+#       run: npm ci
+    
+#     - name: Run tests
+#       run: npm test || true
+
+#   deploy:
+#     needs: test
+#     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v4
+    
+#     - name: Setup Node.js
+#       uses: actions/setup-node@v4
+#       with:
+#         node-version: ${{ env.NODE_VERSION }}
+#         cache: 'npm'
+    
+#     - name: Install dependencies
+#       run: npm ci
+    
+#     - name: Build production
+#       run: npm run build
+    
+#     - name: Deploy dist folder to VM via SCP
+#       uses: appleboy/scp-action@v0.1.4
+#       with:
+#         host: ${{ secrets.VM_IP }}
+#         username: ${{ secrets.VM_USER }}
+#         key: ${{ secrets.SSH_PRIVATE_KEY_BACKEND }}
+#         rm: true
+#         source: "dist/*"
+#         target: "/var/www/doctor/backend/"
+#         strip_components: 1
+    
+#     - name: Deploy package files to VM via SCP
+#       uses: appleboy/scp-action@v0.1.4
+#       with:
+#         host: ${{ secrets.VM_IP }}
+#         username: ${{ secrets.VM_USER }}
+#         key: ${{ secrets.SSH_PRIVATE_KEY_BACKEND }}
+#         source: "package.json,package-lock.json"
+#         target: "/var/www/doctor/backend/"
+    
+#     - name: Install production dependencies & restart PM2
+#       uses: appleboy/ssh-action@v1.0.3
+#       with:
+#         host: ${{ secrets.VM_IP }}
+#         username: ${{ secrets.VM_USER }}
+#         key: ${{ secrets.SSH_PRIVATE_KEY_BACKEND }}
+#         script: |
+#           cd /var/www/doctor/backend
+#           npm ci --only=production
+#           sudo chown -R ${{ secrets.VM_USER }}:${{ secrets.VM_USER }} /var/www/doctor/backend
+#           sudo chmod -R 755 /var/www/doctor/backend
+#           pm2 restart doctor-api || pm2 start dist/server.js --name doctor-api
+#           pm2 save
+#           echo "✅ Backend deployed successfully!"
+#           pm2 list | grep doctor-api
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 name: Backend CI/CD
 
 on:
@@ -46,6 +143,12 @@ jobs:
     - name: Build production
       run: npm run build
     
+    - name: 🔍 Debug Backend Secrets
+      run: |
+        echo "VM_IP: '${{ secrets.VM_IP }}'"
+        echo "VM_USER: '${{ secrets.VM_USER }}'"
+        echo "SSH_PRIVATE_KEY_BACKEND length: $(echo '${{ secrets.SSH_PRIVATE_KEY_BACKEND }}' | wc -c) chars"
+    
     - name: Deploy dist folder to VM via SCP
       uses: appleboy/scp-action@v0.1.4
       with:
@@ -75,10 +178,9 @@ jobs:
         script: |
           cd /var/www/doctor/backend
           npm ci --only=production
-          sudo chown -R ${{ secrets.VM_USER }}:${{ secrets.VM_USER }} /var/www/doctor/backend
+          sudo chown -R adithyanbinu666:adithyanbinu666 /var/www/doctor/backend
           sudo chmod -R 755 /var/www/doctor/backend
           pm2 restart doctor-api || pm2 start dist/server.js --name doctor-api
           pm2 save
           echo "✅ Backend deployed successfully!"
           pm2 list | grep doctor-api
-
