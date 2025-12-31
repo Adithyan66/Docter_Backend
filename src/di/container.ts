@@ -323,3 +323,5 @@ container.registerSingleton<AuthMiddleware>('AuthMiddleware', AuthMiddleware);
 
 export { container };
 export default container;
+
+
