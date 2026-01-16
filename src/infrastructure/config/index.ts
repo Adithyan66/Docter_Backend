@@ -36,6 +36,18 @@ interface Config {
     folderId?: string;
     rootFolderName: string;
   };
+  email: {
+    enabled: boolean;
+    from: string;
+    to: string[];
+    smtp: {
+      host: string;
+      port: number;
+      secure: boolean;
+      user: string;
+      password: string;
+    };
+  };
 }
 
 const getConfig = (): Config => {
@@ -74,6 +86,18 @@ const getConfig = (): Config => {
       tokenPath: process.env.GOOGLE_DRIVE_TOKEN_PATH || './credentials/google-drive-token.json',
       folderId: process.env.GOOGLE_DRIVE_FOLDER_ID,
       rootFolderName: process.env.GOOGLE_DRIVE_ROOT_FOLDER_NAME || 'database-backups',
+    },
+    email: {
+      enabled: process.env.EMAIL_ENABLED === 'true',
+      from: process.env.EMAIL_FROM || '',
+      to: process.env.EMAIL_TO ? process.env.EMAIL_TO.split(',').map(email => email.trim()) : [],
+      smtp: {
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587', 10),
+        secure: process.env.SMTP_SECURE === 'true',
+        user: process.env.SMTP_USER || '',
+        password: process.env.SMTP_PASSWORD || '',
+      },
     },
   };
 };

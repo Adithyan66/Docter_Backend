@@ -8,21 +8,33 @@ import { errorHandler } from './infrastructure/errors/error-handler';
 import { notFoundHandler } from './infrastructure/errors/not-found-handler';
 import { setupRoutes } from './presentation/routes';
 import { ISchedulerService } from './domain/services/scheduler-service.interface';
-import { IExecuteBackupUseCase } from './application/interfaces/use-cases/backup/backup-use-cases.interface';
+import { BackupProcessManager } from './infrastructure/shared/backup-process-manager';
 
 const startServer = async (): Promise<void> => {
   try {
     await connectDatabase();
 
     const schedulerService = container.resolve<ISchedulerService>('ISchedulerService');
-    const executeBackupUseCase = container.resolve<IExecuteBackupUseCase>('IExecuteBackupUseCase');
+    const backupProcessManager = new BackupProcessManager();
 
     schedulerService.schedule(config.backup.cronSchedule, async () => {
-      await executeBackupUseCase.execute();
+      await backupProcessManager.spawnBackup();
     });
 
     schedulerService.start();
     console.log(`[Backup] Backup scheduler started with schedule: ${config.backup.cronSchedule}`);
+
+    process.on('SIGTERM', async () => {
+      console.log('[Server] SIGTERM received, waiting for backup to finish...');
+      await backupProcessManager.waitForCompletion();
+      process.exit(0);
+    });
+
+    process.on('SIGINT', async () => {
+      console.log('[Server] SIGINT received, waiting for backup to finish...');
+      await backupProcessManager.waitForCompletion();
+      process.exit(0);
+    });
 
     const app = createExpressApp({
       routes: (router) => {

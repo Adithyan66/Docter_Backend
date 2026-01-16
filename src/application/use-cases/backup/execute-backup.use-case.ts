@@ -1,5 +1,5 @@
 import { injectable, inject } from 'tsyringe';
-import { IExecuteBackupUseCase } from '../../interfaces/use-cases/backup/backup-use-cases.interface';
+import { IExecuteBackupUseCase, BackupResult } from '../../interfaces/use-cases/backup/backup-use-cases.interface';
 import { IBackupService } from '../../../domain/services/backup-service.interface';
 import { IGoogleDriveService } from '../../../domain/services/google-drive-service.interface';
 import { stat } from 'fs/promises';
@@ -12,7 +12,7 @@ export class ExecuteBackupUseCase implements IExecuteBackupUseCase {
   ) { }
 
 
-  async execute(): Promise<void> {
+  async execute(): Promise<BackupResult> {
     const timestamp = new Date();
     const backupFileName = `backup-${timestamp.toISOString().replace(/[:.]/g, '-')}.tar.gz`;
     let dumpPath: string | null = null;
@@ -21,31 +21,33 @@ export class ExecuteBackupUseCase implements IExecuteBackupUseCase {
     try {
       console.log(`[Backup] Starting MongoDB backup at ${timestamp.toISOString()}`);
 
-      // 1. Create dump
       dumpPath = await this.backupService.createMongoDump();
       console.log(`[Backup] MongoDB dump created: ${dumpPath}`);
 
-      // 2. Compress with integrity check
       compressedPath = await this.backupService.compressDump(dumpPath);
-      await this.validateBackupFile(compressedPath); // ADD THIS
+      await this.validateBackupFile(compressedPath);
 
       const stats = await stat(compressedPath);
-      console.log(`[Backup] Compressed: ${compressedPath} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`);
+      const fileSizeMB = stats.size / 1024 / 1024;
+      console.log(`[Backup] Compressed: ${compressedPath} (${fileSizeMB.toFixed(2)} MB)`);
 
-      // 3. Upload with verification
       const rootFolderId = await this.googleDriveService.getRootFolderId();
-      const monthFolder = timestamp.toISOString().slice(0, 7); // YYYY-MM
+      const monthFolder = timestamp.toISOString().slice(0, 7);
       const monthFolderId = await this.googleDriveService.ensureFolderExists(monthFolder, rootFolderId);
 
       await this.googleDriveService.uploadFile(compressedPath, backupFileName, monthFolderId);
 
       console.log(`[Backup] ✅ SUCCESS: ${backupFileName}`);
 
+      return {
+        backupFileName,
+        fileSizeMB,
+        timestamp,
+      };
     } catch (error) {
       console.error(`[Backup] ❌ FAILED:`, error);
       throw error;
     } finally {
-      // CRITICAL: Cleanup LAST, after upload success
       if (dumpPath) await this.safeCleanup(dumpPath);
       if (compressedPath && compressedPath !== dumpPath) await this.safeCleanup(compressedPath);
     }
