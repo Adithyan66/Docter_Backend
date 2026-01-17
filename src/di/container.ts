@@ -22,6 +22,8 @@ import { IPrescriptionRepository } from '../domain/repositories/prescription.rep
 import { MongoPrescriptionRepository } from '../infrastructure/repositories/mongodb/prescription.repository';
 import { IMediaRepository } from '../domain/repositories/media.repository';
 import { MongoMediaRepository } from '../infrastructure/repositories/mongodb/media.repository';
+import { ICalendarEntryRepository } from '../domain/repositories/calendar-entry.repository';
+import { MongoCalendarEntryRepository } from '../infrastructure/repositories/mongodb/calendar-entry.repository';
 import { PasswordService } from '../infrastructure/shared/password.service';
 import { JwtService } from '../infrastructure/shared/jwt.service';
 import { GcpStorageAdapter } from '../infrastructure/shared/adapters/gcp-storage.adapter';
@@ -115,6 +117,28 @@ import {
 } from '../application/interfaces/use-cases/visit/visit-use-cases.interface';
 import { GetDailyActivitiesUseCase } from '../application/use-cases/daily-activity/get-daily-activities.use-case';
 import { IGetDailyActivitiesUseCase } from '../application/interfaces/use-cases/daily-activity/daily-activity-use-cases.interface';
+import { CreateCalendarEntryUseCase } from '../application/use-cases/calendar-entry/create-calendar-entry.use-case';
+import { UpdateCalendarEntryUseCase } from '../application/use-cases/calendar-entry/update-calendar-entry.use-case';
+import { DeleteCalendarEntryUseCase } from '../application/use-cases/calendar-entry/delete-calendar-entry.use-case';
+import { GetCalendarEntryUseCase } from '../application/use-cases/calendar-entry/get-calendar-entry.use-case';
+import { AddAppointmentUseCase } from '../application/use-cases/calendar-entry/add-appointment.use-case';
+import { UpdateAppointmentUseCase } from '../application/use-cases/calendar-entry/update-appointment.use-case';
+import { DeleteAppointmentUseCase } from '../application/use-cases/calendar-entry/delete-appointment.use-case';
+import { GetAppointmentsUseCase } from '../application/use-cases/calendar-entry/get-appointments.use-case';
+import { GetMonthlyCalendarUseCase } from '../application/use-cases/calendar-entry/get-monthly-calendar.use-case';
+import { GetCalendarEntriesByDateUseCase } from '../application/use-cases/calendar-entry/get-calendar-entries-by-date.use-case';
+import {
+  ICreateCalendarEntryUseCase,
+  IUpdateCalendarEntryUseCase,
+  IDeleteCalendarEntryUseCase,
+  IGetCalendarEntryUseCase,
+  IAddAppointmentUseCase,
+  IUpdateAppointmentUseCase,
+  IDeleteAppointmentUseCase,
+  IGetAppointmentsUseCase,
+  IGetMonthlyCalendarUseCase,
+  IGetCalendarEntriesByDateUseCase,
+} from '../application/interfaces/use-cases/calendar-entry/calendar-entry-use-cases.interface';
 import { CreatePaymentUseCase } from '../application/use-cases/payment/create-payment.use-case';
 import { GetPaymentUseCase } from '../application/use-cases/payment/get-payment.use-case';
 import { GetAllPaymentsUseCase } from '../application/use-cases/payment/get-all-payments.use-case';
@@ -172,6 +196,7 @@ import { PaymentController } from '../presentation/controllers/payment.controlle
 import { PrescriptionController } from '../presentation/controllers/prescription.controller';
 import { MediaController } from '../presentation/controllers/media.controller';
 import { StaffController } from '../presentation/controllers/staff.controller';
+import { CalendarEntryController } from '../presentation/controllers/calendar-entry.controller';
 import { AuthController } from '../presentation/controllers/auth.controller';
 import { AuthMiddleware } from '../presentation/middleware/auth.middleware';
 import { CreateStaffUseCase } from '../application/use-cases/staff/create-staff.use-case';
@@ -201,6 +226,7 @@ container.registerSingleton<IVisitRepository>('IVisitRepository', MongoVisitRepo
 container.registerSingleton<IPaymentRepository>('IPaymentRepository', MongoPaymentRepository);
 container.registerSingleton<IPrescriptionRepository>('IPrescriptionRepository', MongoPrescriptionRepository);
 container.registerSingleton<IMediaRepository>('IMediaRepository', MongoMediaRepository);
+container.registerSingleton<ICalendarEntryRepository>('ICalendarEntryRepository', MongoCalendarEntryRepository);
 
 container.registerSingleton<IPasswordService>('IPasswordService', PasswordService);
 
@@ -282,6 +308,17 @@ container.registerSingleton<IGetAllVisitsUseCase>('IGetAllVisitsUseCase', GetAll
 container.registerSingleton<IGetVisitRemindersUseCase>('IGetVisitRemindersUseCase', GetVisitRemindersUseCase);
 container.registerSingleton<IGetDailyActivitiesUseCase>('IGetDailyActivitiesUseCase', GetDailyActivitiesUseCase);
 
+container.registerSingleton<ICreateCalendarEntryUseCase>('ICreateCalendarEntryUseCase', CreateCalendarEntryUseCase);
+container.registerSingleton<IUpdateCalendarEntryUseCase>('IUpdateCalendarEntryUseCase', UpdateCalendarEntryUseCase);
+container.registerSingleton<IDeleteCalendarEntryUseCase>('IDeleteCalendarEntryUseCase', DeleteCalendarEntryUseCase);
+container.registerSingleton<IGetCalendarEntryUseCase>('IGetCalendarEntryUseCase', GetCalendarEntryUseCase);
+container.registerSingleton<IAddAppointmentUseCase>('IAddAppointmentUseCase', AddAppointmentUseCase);
+container.registerSingleton<IUpdateAppointmentUseCase>('IUpdateAppointmentUseCase', UpdateAppointmentUseCase);
+container.registerSingleton<IDeleteAppointmentUseCase>('IDeleteAppointmentUseCase', DeleteAppointmentUseCase);
+container.registerSingleton<IGetAppointmentsUseCase>('IGetAppointmentsUseCase', GetAppointmentsUseCase);
+container.registerSingleton<IGetMonthlyCalendarUseCase>('IGetMonthlyCalendarUseCase', GetMonthlyCalendarUseCase);
+container.registerSingleton<IGetCalendarEntriesByDateUseCase>('IGetCalendarEntriesByDateUseCase', GetCalendarEntriesByDateUseCase);
+
 container.registerSingleton<ICreatePaymentUseCase>('ICreatePaymentUseCase', CreatePaymentUseCase);
 container.registerSingleton<IGetPaymentUseCase>('IGetPaymentUseCase', GetPaymentUseCase);
 container.registerSingleton<IGetAllPaymentsUseCase>('IGetAllPaymentsUseCase', GetAllPaymentsUseCase);
@@ -317,6 +354,7 @@ container.registerSingleton<PaymentController>('PaymentController', PaymentContr
 container.registerSingleton<PrescriptionController>('PrescriptionController', PrescriptionController);
 container.registerSingleton<MediaController>('MediaController', MediaController);
 container.registerSingleton<StaffController>('StaffController', StaffController);
+container.registerSingleton<CalendarEntryController>('CalendarEntryController', CalendarEntryController);
 container.registerSingleton<AuthController>('AuthController', AuthController);
 
 container.registerSingleton<AuthMiddleware>('AuthMiddleware', AuthMiddleware);

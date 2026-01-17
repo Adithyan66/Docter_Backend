@@ -139,6 +139,15 @@ export class MongoClinicRepository implements IClinicRepository {
     return this.toDomainFromPlainObject(result[0]);
   }
 
+  async existsByClinicIdAndDoctorId(clinicId: string, doctorId: string): Promise<boolean> {
+    const count = await ClinicModel.countDocuments({
+      _id: new Types.ObjectId(clinicId),
+      doctor: new Types.ObjectId(doctorId),
+      isDeleted: false,
+    });
+    return count > 0;
+  }
+
   async findByClinicId(clinicId: string, doctorId: string): Promise<Clinic | null> {
     const pipeline: PipelineStage[] = [
       {
