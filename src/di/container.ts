@@ -123,6 +123,7 @@ import { DeleteCalendarEntryUseCase } from '../application/use-cases/calendar-en
 import { GetCalendarEntryUseCase } from '../application/use-cases/calendar-entry/get-calendar-entry.use-case';
 import { AddAppointmentUseCase } from '../application/use-cases/calendar-entry/add-appointment.use-case';
 import { UpdateAppointmentUseCase } from '../application/use-cases/calendar-entry/update-appointment.use-case';
+import { ToggleAppointmentCompletedUseCase } from '../application/use-cases/calendar-entry/toggle-appointment-completed.use-case';
 import { DeleteAppointmentUseCase } from '../application/use-cases/calendar-entry/delete-appointment.use-case';
 import { GetAppointmentsUseCase } from '../application/use-cases/calendar-entry/get-appointments.use-case';
 import { GetMonthlyCalendarUseCase } from '../application/use-cases/calendar-entry/get-monthly-calendar.use-case';
@@ -134,6 +135,7 @@ import {
   IGetCalendarEntryUseCase,
   IAddAppointmentUseCase,
   IUpdateAppointmentUseCase,
+  IToggleAppointmentCompletedUseCase,
   IDeleteAppointmentUseCase,
   IGetAppointmentsUseCase,
   IGetMonthlyCalendarUseCase,
@@ -314,6 +316,7 @@ container.registerSingleton<IDeleteCalendarEntryUseCase>('IDeleteCalendarEntryUs
 container.registerSingleton<IGetCalendarEntryUseCase>('IGetCalendarEntryUseCase', GetCalendarEntryUseCase);
 container.registerSingleton<IAddAppointmentUseCase>('IAddAppointmentUseCase', AddAppointmentUseCase);
 container.registerSingleton<IUpdateAppointmentUseCase>('IUpdateAppointmentUseCase', UpdateAppointmentUseCase);
+container.registerSingleton<IToggleAppointmentCompletedUseCase>('IToggleAppointmentCompletedUseCase', ToggleAppointmentCompletedUseCase);
 container.registerSingleton<IDeleteAppointmentUseCase>('IDeleteAppointmentUseCase', DeleteAppointmentUseCase);
 container.registerSingleton<IGetAppointmentsUseCase>('IGetAppointmentsUseCase', GetAppointmentsUseCase);
 container.registerSingleton<IGetMonthlyCalendarUseCase>('IGetMonthlyCalendarUseCase', GetMonthlyCalendarUseCase);

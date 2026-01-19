@@ -10,6 +10,7 @@ export interface ICalendarEntryController {
   addAppointment(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
   updateAppointment(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
   deleteAppointment(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
+  toggleAppointmentCompleted(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
   getAppointments(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
   getMonthly(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;
   getByDate(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void>;

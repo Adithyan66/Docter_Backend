@@ -72,14 +72,18 @@ export interface IGetCalendarEntriesByDateUseCase {
     notes?: string;
     appointments: Array<{
       patientId: string;
-      patient: { id: string; fullName: string; mobile?: string };
-      treatmentId: string;
-      treatment: { id: string; name: string };
+      patient: { id: string; fullName: string; mobile?: string; email?: string; profilePicUrl?: string; patientId?: string };
+      treatmentId?: string;
+      treatment?: { id: string; name: string };
       startTime: string;
       endTime: string;
       notes?: string;
       completed: boolean;
     }>;
   }>>;
+}
+
+export interface IToggleAppointmentCompletedUseCase {
+  execute(entryId: string, doctorId: string, appointmentIndex: number): Promise<void>;
 }
 

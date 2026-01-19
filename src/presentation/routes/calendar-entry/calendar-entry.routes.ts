@@ -1,7 +1,7 @@
 import { Router } from '../../interfaces';
 import { CalendarEntryController } from '../../controllers/calendar-entry.controller';
 import { validate } from '../../middleware/validation.middleware';
-import { createCalendarEntrySchema, updateCalendarEntrySchema, appointmentSchema } from '../../validators/calendar-entry.validator';
+import { createCalendarEntrySchema, updateCalendarEntrySchema, appointmentSchema, updateAppointmentSchema } from '../../validators/calendar-entry.validator';
 import { asyncHandler } from '../../utils/async-handler';
 import { container } from '../../../di/container';
 import { authMiddleware } from '../../middleware/auth.middleware';
@@ -27,7 +27,9 @@ export const setupCalendarEntryRoutes = (router: Router): void => {
 
   router.get('/calendar-entry/:id/appointments', auth, doctorOnly, asyncHandler(calendarEntryController.getAppointments.bind(calendarEntryController)));
 
-  router.patch('/calendar-entry/:id/appointments/:appointmentIndex', auth, doctorOnly, validate(appointmentSchema), asyncHandler(calendarEntryController.updateAppointment.bind(calendarEntryController)));
+  router.patch('/calendar-entry/:id/appointments/:appointmentIndex', auth, doctorOnly, validate(updateAppointmentSchema), asyncHandler(calendarEntryController.updateAppointment.bind(calendarEntryController)));
+
+  router.patch('/calendar-entry/:id/appointments/:appointmentIndex/toggle-completed', auth, doctorOnly, asyncHandler(calendarEntryController.toggleAppointmentCompleted.bind(calendarEntryController)));
 
   router.delete('/calendar-entry/:id/appointments/:appointmentIndex', auth, doctorOnly, asyncHandler(calendarEntryController.deleteAppointment.bind(calendarEntryController)));
 };

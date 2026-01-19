@@ -221,6 +221,287 @@ export class MongoCalendarEntryRepository implements ICalendarEntryRepository {
     }));
   }
 
+  async findByDateWithDetails(date: Date, doctorId: string): Promise<Array<{
+    id: string;
+    clinic: { id: string; name: string };
+    startTime: string;
+    endTime: string;
+    notes?: string;
+    appointments: Array<{
+      patientId: string;
+      patient: { id: string; fullName: string; mobile?: string; email?: string; profilePicUrl?: string; patientId?: string };
+      treatmentId?: string;
+      treatment?: { id: string; name: string };
+      startTime: string;
+      endTime: string;
+      notes?: string;
+      completed: boolean;
+    }>;
+  }>> {
+    const normalizedDate = this.normalizeDate(date);
+
+    const pipeline: PipelineStage[] = [
+      {
+        $match: {
+          doctor: new Types.ObjectId(doctorId),
+          date: normalizedDate,
+        },
+      },
+      {
+        $lookup: {
+          from: 'clinics',
+          localField: 'clinic',
+          foreignField: '_id',
+          as: 'clinicData',
+          pipeline: [
+            {
+              $match: {
+                doctor: new Types.ObjectId(doctorId),
+                isDeleted: { $ne: true },
+              },
+            },
+            {
+              $project: {
+                name: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: '$clinicData',
+          preserveNullAndEmptyArrays: false,
+        },
+      },
+      {
+        $addFields: {
+          appointments: {
+            $cond: {
+              if: { $isArray: '$appointments' },
+              then: '$appointments',
+              else: [],
+            },
+          },
+        },
+      },
+      {
+        $facet: {
+          withAppointments: [
+            {
+              $match: {
+                $expr: { $gt: [{ $size: '$appointments' }, 0] },
+              },
+            },
+            {
+              $unwind: '$appointments',
+            },
+            {
+              $lookup: {
+                from: 'patients',
+                let: { patientIdStr: '$appointments.patientId' },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $and: [
+                          {
+                            $or: [
+                              { $eq: [{ $toString: '$_id' }, '$$patientIdStr'] },
+                              { $eq: ['$patientId', '$$patientIdStr'] },
+                            ],
+                          },
+                          { $eq: ['$doctor', new Types.ObjectId(doctorId)] },
+                          { $ne: ['$isDeleted', true] },
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    $project: {
+                      fullName: 1,
+                      phone: 1,
+                      email: 1,
+                      profilePicUrl: 1,
+                      patientId: 1,
+                    },
+                  },
+                ],
+                as: 'patientData',
+              },
+            },
+            {
+              $lookup: {
+                from: 'treatments',
+                let: { treatmentIdStr: '$appointments.treatmentId' },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $and: [
+                          {
+                            $cond: {
+                              if: { $ne: ['$$treatmentIdStr', null] },
+                              then: {
+                                $eq: [{ $toString: '$_id' }, '$$treatmentIdStr'],
+                              },
+                              else: false,
+                            },
+                          },
+                          { $eq: ['$doctor', new Types.ObjectId(doctorId)] },
+                          { $ne: ['$isDeleted', true] },
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    $project: {
+                      name: 1,
+                    },
+                  },
+                ],
+                as: 'treatmentData',
+              },
+            },
+            {
+              $addFields: {
+                appointment: {
+                  $cond: {
+                    if: { $gt: [{ $size: '$patientData' }, 0] },
+                    then: {
+                      patientId: '$appointments.patientId',
+                      patient: {
+                        id: { $toString: { $arrayElemAt: ['$patientData._id', 0] } },
+                        fullName: { $arrayElemAt: ['$patientData.fullName', 0] },
+                        mobile: { $arrayElemAt: ['$patientData.phone', 0] },
+                        email: { $arrayElemAt: ['$patientData.email', 0] },
+                        profilePicUrl: { $arrayElemAt: ['$patientData.profilePicUrl', 0] },
+                        patientId: { $arrayElemAt: ['$patientData.patientId', 0] },
+                      },
+                      treatmentId: '$appointments.treatmentId',
+                      treatment: {
+                        $cond: {
+                          if: { $gt: [{ $size: '$treatmentData' }, 0] },
+                          then: {
+                            id: { $toString: { $arrayElemAt: ['$treatmentData._id', 0] } },
+                            name: { $arrayElemAt: ['$treatmentData.name', 0] },
+                          },
+                          else: null,
+                        },
+                      },
+                      startTime: '$appointments.startTime',
+                      endTime: '$appointments.endTime',
+                      notes: '$appointments.notes',
+                      completed: {
+                        $ifNull: ['$appointments.completed', false],
+                      },
+                    },
+                    else: null,
+                  },
+                },
+              },
+            },
+            {
+              $group: {
+                _id: '$_id',
+                clinic: { $first: '$clinicData' },
+                clinicId: { $first: '$clinic' },
+                startTime: { $first: '$startTime' },
+                endTime: { $first: '$endTime' },
+                notes: { $first: '$notes' },
+                appointments: {
+                  $push: {
+                    $cond: {
+                      if: { $ne: ['$appointment', null] },
+                      then: '$appointment',
+                      else: '$$REMOVE',
+                    },
+                  },
+                },
+              },
+            },
+          ],
+          withoutAppointments: [
+            {
+              $match: {
+                $expr: {
+                  $or: [
+                    { $eq: [{ $size: '$appointments' }, 0] },
+                    { $not: { $isArray: '$appointments' } },
+                  ],
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                clinicData: 1,
+                clinic: 1,
+                startTime: 1,
+                endTime: 1,
+                notes: 1,
+                appointments: [],
+              },
+            },
+            {
+              $group: {
+                _id: '$_id',
+                clinic: { $first: '$clinicData' },
+                clinicId: { $first: '$clinic' },
+                startTime: { $first: '$startTime' },
+                endTime: { $first: '$endTime' },
+                notes: { $first: '$notes' },
+                appointments: { $first: '$appointments' },
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          entries: { $concatArrays: ['$withAppointments', '$withoutAppointments'] },
+        },
+      },
+      {
+        $unwind: '$entries',
+      },
+      {
+        $replaceRoot: { newRoot: '$entries' },
+      },
+      {
+        $project: {
+          _id: 0,
+          id: { $toString: '$_id' },
+          clinic: {
+            id: { $toString: '$clinicId' },
+            name: '$clinic.name',
+          },
+          startTime: 1,
+          endTime: 1,
+          notes: 1,
+          appointments: {
+            $cond: {
+              if: { $isArray: '$appointments' },
+              then: '$appointments',
+              else: [],
+            },
+          },
+        },
+      },
+      {
+        $sort: {
+          startTime: 1,
+        },
+      },
+    ];
+
+    const result = await CalendarEntryModel.aggregate(pipeline);
+    return result.map((item) => ({
+      ...item,
+      appointments: item.appointments || [],
+    }));
+  }
+
   private normalizeDate(date: Date): Date {
     const normalized = new Date(date);
     normalized.setHours(0, 0, 0, 0);

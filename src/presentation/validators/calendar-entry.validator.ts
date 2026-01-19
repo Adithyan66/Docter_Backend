@@ -20,6 +20,21 @@ export const appointmentSchema = z.object({
   path: ['endTime'],
 });
 
+export const updateAppointmentSchema = z.object({
+  treatmentId: z.string().min(1, 'treatmentId cannot be empty').optional(),
+  startTime: z.string().regex(timeRegex, 'Invalid startTime format. Expected HH:mm format').optional(),
+  endTime: z.string().regex(timeRegex, 'Invalid endTime format. Expected HH:mm format').optional(),
+  notes: z.string().optional(),
+}).refine((data) => {
+  if (data.startTime && data.endTime) {
+    return data.endTime > data.startTime;
+  }
+  return true;
+}, {
+  message: 'endTime must be after startTime',
+  path: ['endTime'],
+});
+
 export const createCalendarEntrySchema = z.object({
   date: z.string()
     .min(1, 'Date is required')

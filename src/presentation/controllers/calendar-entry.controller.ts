@@ -10,6 +10,7 @@ import {
   IAddAppointmentUseCase,
   IUpdateAppointmentUseCase,
   IDeleteAppointmentUseCase,
+  IToggleAppointmentCompletedUseCase,
   IGetAppointmentsUseCase,
   IGetMonthlyCalendarUseCase,
   IGetCalendarEntriesByDateUseCase,
@@ -29,6 +30,7 @@ export class CalendarEntryController implements ICalendarEntryController {
     @inject('IAddAppointmentUseCase') private readonly addAppointmentUseCase: IAddAppointmentUseCase,
     @inject('IUpdateAppointmentUseCase') private readonly updateAppointmentUseCase: IUpdateAppointmentUseCase,
     @inject('IDeleteAppointmentUseCase') private readonly deleteAppointmentUseCase: IDeleteAppointmentUseCase,
+    @inject('IToggleAppointmentCompletedUseCase') private readonly toggleAppointmentCompletedUseCase: IToggleAppointmentCompletedUseCase,
     @inject('IGetAppointmentsUseCase') private readonly getAppointmentsUseCase: IGetAppointmentsUseCase,
     @inject('IGetMonthlyCalendarUseCase') private readonly getMonthlyCalendarUseCase: IGetMonthlyCalendarUseCase,
     @inject('IGetCalendarEntriesByDateUseCase') private readonly getCalendarEntriesByDateUseCase: IGetCalendarEntriesByDateUseCase
@@ -152,6 +154,28 @@ export class CalendarEntryController implements ICalendarEntryController {
     await this.deleteAppointmentUseCase.execute(entryId, doctorId, appointmentIndex);
     
     successResponse(res, null, HttpStatus.OK, SuccessMessages.DELETED);
+  }
+
+  async toggleAppointmentCompleted(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
+    const entryId = req.params.id;
+    if (!entryId) {
+      throw new ValidationError('Calendar entry ID is required');
+    }
+
+    const appointmentIndexParam = req.params.appointmentIndex;
+    if (!appointmentIndexParam) {
+      throw new ValidationError('Appointment index is required');
+    }
+
+    const appointmentIndex = parseInt(appointmentIndexParam, 10);
+    if (isNaN(appointmentIndex) || appointmentIndex < 0) {
+      throw new ValidationError('Invalid appointment index');
+    }
+
+    const doctorId = getUserId(req);
+    await this.toggleAppointmentCompletedUseCase.execute(entryId, doctorId, appointmentIndex);
+    
+    successResponse(res, null, HttpStatus.OK, SuccessMessages.UPDATED);
   }
 
   async getAppointments(req: HttpRequest, res: HttpResponse, next?: HttpNext): Promise<void> {
