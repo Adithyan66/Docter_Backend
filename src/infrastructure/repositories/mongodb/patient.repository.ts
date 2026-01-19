@@ -423,6 +423,21 @@ export class MongoPatientRepository implements IPatientRepository {
       return course.toString();
     }).filter((value) => !!value);
   }
+
+  async getActivePatientCount(doctorId: string, clinicId?: string): Promise<number> {
+    const match: any = {
+      doctor: new Types.ObjectId(doctorId),
+      isDeleted: false,
+      isActive: true,
+    };
+
+    if (clinicId && Types.ObjectId.isValid(clinicId)) {
+      match.clinics = new Types.ObjectId(clinicId);
+    }
+
+    const result = await PatientModel.countDocuments(match);
+    return result;
+  }
 }
 
 

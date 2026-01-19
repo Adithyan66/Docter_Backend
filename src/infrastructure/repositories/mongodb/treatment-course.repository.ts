@@ -525,5 +525,42 @@ export class MongoTreatmentCourseRepository implements ITreatmentCourseRepositor
       totalPages,
     };
   }
+
+  async getOutstandingAmount(doctorId: string, clinicId?: string): Promise<number> {
+    const baseMatch: any = {
+      doctor: new Types.ObjectId(doctorId),
+      isDeleted: false,
+      status: { $in: ['active', 'paused'] },
+    };
+
+    if (clinicId && Types.ObjectId.isValid(clinicId)) {
+      baseMatch.clinic = new Types.ObjectId(clinicId);
+    }
+
+    const pipeline: PipelineStage[] = [
+      { $match: baseMatch },
+      {
+        $project: {
+          remaining: {
+            $max: [0, { $subtract: ['$totalCost', '$totalPaid'] }],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$remaining' },
+        },
+      },
+    ];
+
+    const result = await TreatmentCourseModel.aggregate(pipeline);
+
+    if (!result || result.length === 0) {
+      return 0;
+    }
+
+    return result[0].total || 0;
+  }
 }
 

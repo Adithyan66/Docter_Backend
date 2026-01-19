@@ -63,5 +63,6 @@ export interface IVisitRepository extends BaseRepository<Visit> {
   getDailyActivitiesAggregated(options: DailyActivitySearchOptions): Promise<DailyActivityAggregatedResult>;
   markDeletedByPatientId(patientId: string, doctorId: string, session?: any): Promise<number>;
   markRestoredByPatientId(patientId: string, doctorId: string, session?: any): Promise<number>;
+  getTotalVisitCount(doctorId: string, clinicId?: string): Promise<number>;
 }
 

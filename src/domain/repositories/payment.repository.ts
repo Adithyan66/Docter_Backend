@@ -18,6 +18,40 @@ export interface PaymentSearchOptions {
   sortOrder?: 'asc' | 'desc';
 }
 
+export interface RevenueMetrics {
+  totalRevenue: number;
+  revenueThisMonth: number;
+  revenueThisYear: number;
+}
+
+export interface RevenueTrendData {
+  date: string;
+  amount: number;
+}
+
+export interface RevenueByPaymentMethodData {
+  method: string;
+  amount: number;
+  percentage: number;
+}
+
+export interface RevenueByClinicData {
+  clinicId: string;
+  clinicName: string;
+  amount: number;
+}
+
+export interface MonthlyRevenueData {
+  month: string;
+  amount: number;
+}
+
+export interface PaymentCompletionStats {
+  completedCount: number;
+  totalCount: number;
+  rate: number;
+}
+
 export interface IPaymentRepository extends BaseRepository<Payment> {
   findByIdAndDoctor(id: string, doctorId: string): Promise<Payment | null>;
   findPaginated(options: PaymentSearchOptions): Promise<{
@@ -29,5 +63,11 @@ export interface IPaymentRepository extends BaseRepository<Payment> {
   }>;
   markDeletedByPatientId(patientId: string, doctorId: string, session?: any): Promise<number>;
   markRestoredByPatientId(patientId: string, doctorId: string, session?: any): Promise<number>;
+  getRevenueMetrics(doctorId: string, dateFrom?: Date, dateTo?: Date, clinicId?: string): Promise<RevenueMetrics>;
+  getRevenueTrend(doctorId: string, period: 'daily' | 'weekly' | 'monthly', dateFrom: Date, dateTo: Date, clinicId?: string): Promise<RevenueTrendData[]>;
+  getRevenueByPaymentMethod(doctorId: string, dateFrom?: Date, dateTo?: Date, clinicId?: string): Promise<RevenueByPaymentMethodData[]>;
+  getRevenueByClinic(doctorId: string, dateFrom?: Date, dateTo?: Date): Promise<RevenueByClinicData[]>;
+  getMonthlyRevenueComparison(doctorId: string, months: number, clinicId?: string): Promise<MonthlyRevenueData[]>;
+  getPaymentCompletionStats(doctorId: string, clinicId?: string): Promise<PaymentCompletionStats>;
 }
 

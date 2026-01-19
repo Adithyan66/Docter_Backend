@@ -55,5 +55,6 @@ export interface ITreatmentCourseRepository extends BaseRepository<TreatmentCour
     limit: number;
     totalPages: number;
   }>;
+  getOutstandingAmount(doctorId: string, clinicId?: string): Promise<number>;
 }
 

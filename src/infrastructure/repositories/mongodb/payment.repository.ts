@@ -1,10 +1,20 @@
 import { injectable } from 'tsyringe';
 import { PipelineStage, Types } from 'mongoose';
-import { IPaymentRepository, PaymentSearchOptions } from '../../../domain/repositories/payment.repository';
+import {
+  IPaymentRepository,
+  PaymentSearchOptions,
+  RevenueMetrics,
+  RevenueTrendData,
+  RevenueByPaymentMethodData,
+  RevenueByClinicData,
+  MonthlyRevenueData,
+  PaymentCompletionStats,
+} from '../../../domain/repositories/payment.repository';
 import { Payment } from '../../../domain/entities/payment.entity';
 import { PaymentMethodVO } from '../../../domain/value-objects/payment-method.vo';
 import { RefundDetails } from '../../../domain/entities/refund-details.entity';
 import { PaymentModel, IPayment } from '../../database/mongoose/payment.model';
+import { TreatmentCourseModel } from '../../database/mongoose/treatment-course.model';
 
 @injectable()
 export class MongoPaymentRepository implements IPaymentRepository {
@@ -308,6 +318,372 @@ export class MongoPaymentRepository implements IPaymentRepository {
       { session }
     );
     return result.modifiedCount;
+  }
+
+  async getRevenueMetrics(doctorId: string, dateFrom?: Date, dateTo?: Date, clinicId?: string): Promise<RevenueMetrics> {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+    const baseMatch: any = {
+      doctor: new Types.ObjectId(doctorId),
+      isDeleted: false,
+      refunded: false,
+    };
+
+    if (clinicId && Types.ObjectId.isValid(clinicId)) {
+      baseMatch.clinic = new Types.ObjectId(clinicId);
+    }
+
+    const totalMatch = { ...baseMatch };
+    if (dateFrom || dateTo) {
+      totalMatch.paidAt = {};
+      if (dateFrom) totalMatch.paidAt.$gte = dateFrom;
+      if (dateTo) totalMatch.paidAt.$lte = dateTo;
+    }
+
+    const monthlyMatch = {
+      ...baseMatch,
+      paidAt: { $gte: startOfMonth },
+    };
+
+    const yearlyMatch = {
+      ...baseMatch,
+      paidAt: { $gte: startOfYear },
+    };
+
+    const [totalResult, monthlyResult, yearlyResult] = await Promise.all([
+      PaymentModel.aggregate([
+        { $match: totalMatch },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$amount' },
+          },
+        },
+      ]),
+      PaymentModel.aggregate([
+        { $match: monthlyMatch },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$amount' },
+          },
+        },
+      ]),
+      PaymentModel.aggregate([
+        { $match: yearlyMatch },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$amount' },
+          },
+        },
+      ]),
+    ]);
+
+    return {
+      totalRevenue: totalResult[0]?.total || 0,
+      revenueThisMonth: monthlyResult[0]?.total || 0,
+      revenueThisYear: yearlyResult[0]?.total || 0,
+    };
+  }
+
+  async getRevenueTrend(
+    doctorId: string,
+    period: 'daily' | 'weekly' | 'monthly',
+    dateFrom: Date,
+    dateTo: Date,
+    clinicId?: string
+  ): Promise<RevenueTrendData[]> {
+    const baseMatch: any = {
+      doctor: new Types.ObjectId(doctorId),
+      isDeleted: false,
+      refunded: false,
+      paidAt: {
+        $gte: dateFrom,
+        $lte: dateTo,
+      },
+    };
+
+    if (clinicId && Types.ObjectId.isValid(clinicId)) {
+      baseMatch.clinic = new Types.ObjectId(clinicId);
+    }
+
+    let dateFormat: string;
+    if (period === 'daily') {
+      dateFormat = '%Y-%m-%d';
+    } else if (period === 'weekly') {
+      dateFormat = '%Y-%U';
+    } else {
+      dateFormat = '%Y-%m';
+    }
+
+    const pipeline: PipelineStage[] = [
+      { $match: baseMatch },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: dateFormat,
+              date: '$paidAt',
+            },
+          },
+          amount: { $sum: '$amount' },
+        },
+      },
+      { $sort: { _id: 1 } },
+      {
+        $project: {
+          _id: 0,
+          date: '$_id',
+          amount: 1,
+        },
+      },
+    ];
+
+    const result = await PaymentModel.aggregate(pipeline);
+    return result.map((item: any) => ({
+      date: item.date,
+      amount: item.amount,
+    }));
+  }
+
+  async getRevenueByPaymentMethod(
+    doctorId: string,
+    dateFrom?: Date,
+    dateTo?: Date,
+    clinicId?: string
+  ): Promise<RevenueByPaymentMethodData[]> {
+    const baseMatch: any = {
+      doctor: new Types.ObjectId(doctorId),
+      isDeleted: false,
+      refunded: false,
+    };
+
+    if (clinicId && Types.ObjectId.isValid(clinicId)) {
+      baseMatch.clinic = new Types.ObjectId(clinicId);
+    }
+
+    if (dateFrom || dateTo) {
+      baseMatch.paidAt = {};
+      if (dateFrom) baseMatch.paidAt.$gte = dateFrom;
+      if (dateTo) baseMatch.paidAt.$lte = dateTo;
+    }
+
+    const pipeline: PipelineStage[] = [
+      { $match: baseMatch },
+      {
+        $group: {
+          _id: '$method',
+          amount: { $sum: '$amount' },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          methods: {
+            $push: {
+              method: '$_id',
+              amount: '$amount',
+            },
+          },
+          totalAmount: { $sum: '$amount' },
+        },
+      },
+      { $unwind: '$methods' },
+      {
+        $project: {
+          _id: 0,
+          method: '$methods.method',
+          amount: '$methods.amount',
+          percentage: {
+            $multiply: [
+              { $divide: ['$methods.amount', '$totalAmount'] },
+              100,
+            ],
+          },
+        },
+      },
+      { $sort: { amount: -1 } },
+    ];
+
+    const result = await PaymentModel.aggregate(pipeline);
+    return result.map((item: any) => ({
+      method: item.method,
+      amount: item.amount,
+      percentage: Math.round(item.percentage * 100) / 100,
+    }));
+  }
+
+  async getRevenueByClinic(doctorId: string, dateFrom?: Date, dateTo?: Date): Promise<RevenueByClinicData[]> {
+    const baseMatch: any = {
+      doctor: new Types.ObjectId(doctorId),
+      isDeleted: false,
+      refunded: false,
+    };
+
+    if (dateFrom || dateTo) {
+      baseMatch.paidAt = {};
+      if (dateFrom) baseMatch.paidAt.$gte = dateFrom;
+      if (dateTo) baseMatch.paidAt.$lte = dateTo;
+    }
+
+    const pipeline: PipelineStage[] = [
+      { $match: baseMatch },
+      {
+        $lookup: {
+          from: 'clinics',
+          localField: 'clinic',
+          foreignField: '_id',
+          as: 'clinicData',
+        },
+      },
+      {
+        $group: {
+          _id: '$clinic',
+          amount: { $sum: '$amount' },
+          clinicName: { $first: { $arrayElemAt: ['$clinicData.name', 0] } },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          clinicId: {
+            $cond: [
+              { $ne: ['$_id', null] },
+              { $toString: '$_id' },
+              'unknown',
+            ],
+          },
+          clinicName: {
+            $ifNull: ['$clinicName', 'Unknown Clinic'],
+          },
+          amount: 1,
+        },
+      },
+      { $sort: { amount: -1 } },
+    ];
+
+    const result = await PaymentModel.aggregate(pipeline);
+    return result.map((item: any) => ({
+      clinicId: item.clinicId,
+      clinicName: item.clinicName,
+      amount: item.amount,
+    }));
+  }
+
+  async getMonthlyRevenueComparison(doctorId: string, months: number, clinicId?: string): Promise<MonthlyRevenueData[]> {
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
+    startDate.setHours(0, 0, 0, 0);
+
+    const baseMatch: any = {
+      doctor: new Types.ObjectId(doctorId),
+      isDeleted: false,
+      refunded: false,
+      paidAt: { $gte: startDate },
+    };
+
+    if (clinicId && Types.ObjectId.isValid(clinicId)) {
+      baseMatch.clinic = new Types.ObjectId(clinicId);
+    }
+
+    const pipeline: PipelineStage[] = [
+      { $match: baseMatch },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: '%Y-%m',
+              date: '$paidAt',
+            },
+          },
+          amount: { $sum: '$amount' },
+        },
+      },
+      { $sort: { _id: 1 } },
+      {
+        $project: {
+          _id: 0,
+          month: '$_id',
+          amount: 1,
+        },
+      },
+    ];
+
+    const result = await PaymentModel.aggregate(pipeline);
+    return result.map((item: any) => ({
+      month: item.month,
+      amount: item.amount,
+    }));
+  }
+
+  async getPaymentCompletionStats(doctorId: string, clinicId?: string): Promise<PaymentCompletionStats> {
+    const baseMatch: any = {
+      doctor: new Types.ObjectId(doctorId),
+      isDeleted: false,
+    };
+
+    if (clinicId && Types.ObjectId.isValid(clinicId)) {
+      baseMatch.clinic = new Types.ObjectId(clinicId);
+    }
+
+    const pipeline: PipelineStage[] = [
+      { $match: baseMatch },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          completed: {
+            $sum: {
+              $cond: [
+                { $gte: ['$totalPaid', '$totalCost'] },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalCount: { $ifNull: ['$total', 0] },
+          completedCount: { $ifNull: ['$completed', 0] },
+          rate: {
+            $cond: [
+              { $eq: ['$total', 0] },
+              0,
+              {
+                $multiply: [
+                  { $divide: ['$completed', '$total'] },
+                  100,
+                ],
+              },
+            ],
+          },
+        },
+      },
+    ];
+
+    const result = await TreatmentCourseModel.aggregate(pipeline);
+
+    if (!result || result.length === 0) {
+      return {
+        completedCount: 0,
+        totalCount: 0,
+        rate: 0,
+      };
+    }
+
+    const stats = result[0];
+    return {
+      completedCount: stats.completedCount || 0,
+      totalCount: stats.totalCount || 0,
+      rate: Math.round((stats.rate || 0) * 100) / 100,
+    };
   }
 }
 

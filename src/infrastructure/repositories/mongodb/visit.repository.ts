@@ -510,5 +510,19 @@ export class MongoVisitRepository implements IVisitRepository {
     );
     return result.modifiedCount;
   }
+
+  async getTotalVisitCount(doctorId: string, clinicId?: string): Promise<number> {
+    const match: any = {
+      doctor: new Types.ObjectId(doctorId),
+      isDeleted: false,
+    };
+
+    if (clinicId && Types.ObjectId.isValid(clinicId)) {
+      match.clinic = new Types.ObjectId(clinicId);
+    }
+
+    const result = await VisitModel.countDocuments(match);
+    return result;
+  }
 }
 

@@ -12,6 +12,7 @@ import { setupMediaRoutes } from './media/media.routes';
 import { setupDailyActivityRoutes } from './daily-activity/daily-activity.routes';
 import { setupStaffRoutes } from './staff/staff.routes';
 import { setupCalendarEntryRoutes } from './calendar-entry/calendar-entry.routes';
+import { setupFinancialAnalyticsRoutes } from './financial-analytics/financial-analytics.routes';
 
 export const setupRoutes = (router: Router): void => {
   setupAuthRoutes(router);
@@ -27,5 +28,6 @@ export const setupRoutes = (router: Router): void => {
   setupDailyActivityRoutes(router);
   setupStaffRoutes(router);
   setupCalendarEntryRoutes(router);
+  setupFinancialAnalyticsRoutes(router);
 };
 

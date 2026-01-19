@@ -201,6 +201,9 @@ import { StaffController } from '../presentation/controllers/staff.controller';
 import { CalendarEntryController } from '../presentation/controllers/calendar-entry.controller';
 import { AuthController } from '../presentation/controllers/auth.controller';
 import { AuthMiddleware } from '../presentation/middleware/auth.middleware';
+import { GetFinancialDashboardUseCase } from '../application/use-cases/financial-analytics/get-financial-dashboard.use-case';
+import { IGetFinancialDashboardUseCase } from '../application/interfaces/use-cases/financial-analytics/financial-analytics-use-cases.interface';
+import { FinancialAnalyticsController } from '../presentation/controllers/financial-analytics.controller';
 import { CreateStaffUseCase } from '../application/use-cases/staff/create-staff.use-case';
 import { UpdateStaffUseCase } from '../application/use-cases/staff/update-staff.use-case';
 import { DeleteStaffUseCase } from '../application/use-cases/staff/delete-staff.use-case';
@@ -361,6 +364,10 @@ container.registerSingleton<CalendarEntryController>('CalendarEntryController', 
 container.registerSingleton<AuthController>('AuthController', AuthController);
 
 container.registerSingleton<AuthMiddleware>('AuthMiddleware', AuthMiddleware);
+
+container.registerSingleton<IGetFinancialDashboardUseCase>('IGetFinancialDashboardUseCase', GetFinancialDashboardUseCase);
+
+container.registerSingleton<FinancialAnalyticsController>('FinancialAnalyticsController', FinancialAnalyticsController);
 
 export { container };
 export default container;
