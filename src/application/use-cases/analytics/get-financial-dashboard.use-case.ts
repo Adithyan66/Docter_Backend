@@ -1,5 +1,5 @@
 import { injectable, inject } from 'tsyringe';
-import { IGetFinancialDashboardUseCase } from '../../interfaces/use-cases/financial-analytics/financial-analytics-use-cases.interface';
+import { IGetFinancialDashboardUseCase } from '../../interfaces/use-cases/analytics/analytics-use-cases.interface';
 import { IPaymentRepository } from '../../../domain/repositories/payment.repository';
 import { ITreatmentCourseRepository } from '../../../domain/repositories/treatment-course.repository';
 import { IVisitRepository } from '../../../domain/repositories/visit.repository';
@@ -7,7 +7,7 @@ import { IPatientRepository } from '../../../domain/repositories/patient.reposit
 import {
   FinancialDashboardQueryDto,
   FinancialDashboardResponseDto,
-} from '../../../presentation/dto/financial-analytics.dto';
+} from '../../../presentation/dto/analytics.dto';
 
 @injectable()
 export class GetFinancialDashboardUseCase implements IGetFinancialDashboardUseCase {
@@ -87,4 +87,5 @@ export class GetFinancialDashboardUseCase implements IGetFinancialDashboardUseCa
     };
   }
 }
+
 

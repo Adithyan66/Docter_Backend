@@ -9,7 +9,7 @@ export class GetStaffUseCase implements IGetStaffUseCase {
   constructor(@inject('IStaffRepository') private readonly staffRepository: IStaffRepository) {}
 
   async execute(id: string, doctorId: string): Promise<StaffResponseDto> {
-    const staff = await this.staffRepository.findById(id);
+    const staff = await this.staffRepository.findByIdWithClinicName(id);
     if (!staff || staff.doctorId !== doctorId) {
       throw new NotFoundError('Staff');
     }
@@ -17,6 +17,7 @@ export class GetStaffUseCase implements IGetStaffUseCase {
       id: staff.id,
       username: staff.username,
       clinicId: staff.clinicId,
+      clinicName: staff.clinicName,
       doctorId: staff.doctorId,
       role: staff.role,
       isActive: staff.isActive,

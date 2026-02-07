@@ -14,6 +14,55 @@ export class MongoStaffRepository implements IStaffRepository {
     return doc ? this.toDomain(doc) : null;
   }
 
+  async findByIdWithClinicName(id: string): Promise<(Staff & { clinicName?: string }) | null> {
+    const objectId = new mongoose.Types.ObjectId(id);
+    const docs = await StaffModel.aggregate([
+      { $match: { _id: objectId } },
+      {
+        $lookup: {
+          from: 'clinics',
+          localField: 'clinicId',
+          foreignField: '_id',
+          as: 'clinic',
+        },
+      },
+      {
+        $unwind: {
+          path: '$clinic',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          username: 1,
+          clinicId: 1,
+          doctorId: 1,
+          role: 1,
+          isActive: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          clinicName: '$clinic.name',
+        },
+      },
+    ]);
+    const doc = docs[0];
+    if (!doc) return null;
+    const staff = this.toDomain({
+      _id: doc._id,
+      username: doc.username,
+      password: '',
+      clinicId: doc.clinicId,
+      doctorId: doc.doctorId,
+      role: doc.role,
+      refreshToken: null,
+      isActive: doc.isActive,
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt,
+    } as IStaff);
+    return { ...staff, clinicName: doc.clinicName };
+  }
+
   async findAll(): Promise<Staff[]> {
     const docs = await StaffModel.find();
     return docs.map((doc) => this.toDomain(doc));
@@ -122,11 +171,9 @@ export class MongoStaffRepository implements IStaffRepository {
               $project: {
                 _id: 1,
                 username: 1,
-                password: 1,
                 clinicId: 1,
                 doctorId: 1,
                 role: 1,
-                refreshToken: 1,
                 isActive: 1,
                 createdAt: 1,
                 updatedAt: 1,
@@ -148,11 +195,11 @@ export class MongoStaffRepository implements IStaffRepository {
       const staffEntity = this.toDomain({
         _id: doc._id,
         username: doc.username,
-        password: doc.password,
+        password: '',
         clinicId: doc.clinicId,
         doctorId: doc.doctorId,
         role: doc.role,
-        refreshToken: doc.refreshToken,
+        refreshToken: null,
         isActive: doc.isActive,
         createdAt: doc.createdAt,
         updatedAt: doc.updatedAt,

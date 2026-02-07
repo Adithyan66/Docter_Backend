@@ -19,6 +19,7 @@ export interface PaginatedStaffResult {
 }
 
 export interface IStaffRepository extends BaseRepository<Staff> {
+  findByIdWithClinicName(id: string): Promise<(Staff & { clinicName?: string }) | null>;
   findByUsername(username: string): Promise<Staff | null>;
   findByDoctorId(doctorId: string): Promise<Staff[]>;
   findByClinicId(clinicId: string): Promise<Staff[]>;

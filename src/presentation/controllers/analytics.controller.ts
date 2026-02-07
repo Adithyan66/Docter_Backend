@@ -1,13 +1,13 @@
 import { injectable, inject } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext } from '../interfaces';
-import { IFinancialAnalyticsController } from '../interfaces/controllers/financial-analytics-controller.interface';
+import { IAnalyticsController } from '../interfaces/controllers/analytics-controller.interface';
 import { successResponse, HttpStatus, SuccessMessages } from '../../infrastructure/constants';
-import { IGetFinancialDashboardUseCase } from '../../application/interfaces/use-cases/financial-analytics/financial-analytics-use-cases.interface';
-import { FinancialDashboardQueryDto } from '../dto/financial-analytics.dto';
+import { IGetFinancialDashboardUseCase } from '../../application/interfaces/use-cases/analytics/analytics-use-cases.interface';
+import { FinancialDashboardQueryDto } from '../dto/analytics.dto';
 import { getUserContext } from '../utils/user-context.util';
 
 @injectable()
-export class FinancialAnalyticsController implements IFinancialAnalyticsController {
+export class AnalyticsController implements IAnalyticsController {
   constructor(
     @inject('IGetFinancialDashboardUseCase') private readonly getFinancialDashboardUseCase: IGetFinancialDashboardUseCase
   ) {}
@@ -31,4 +31,5 @@ export class FinancialAnalyticsController implements IFinancialAnalyticsControll
     successResponse(res, dashboard, HttpStatus.OK, SuccessMessages.RETRIEVED);
   }
 }
+
 

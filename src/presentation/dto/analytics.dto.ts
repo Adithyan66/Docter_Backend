@@ -31,3 +31,4 @@ export interface FinancialDashboardResponseDto {
   paymentCompletionRate: PaymentCompletionStats;
 }
 
+
