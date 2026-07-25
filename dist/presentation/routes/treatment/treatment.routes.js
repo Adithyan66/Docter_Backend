@@ -5,12 +5,11 @@ const treatment_controller_1 = require("../../controllers/treatment.controller")
 const validation_middleware_1 = require("../../middleware/validation.middleware");
 const treatment_validator_1 = require("../../validators/treatment.validator");
 const async_handler_1 = require("../../utils/async-handler");
-const container_1 = require("../../../di/container");
 const auth_middleware_1 = require("../../middleware/auth.middleware");
 const role_middleware_1 = require("../../middleware/role.middleware");
-const setupTreatmentRoutes = (router) => {
-    const treatmentController = container_1.container.resolve(treatment_controller_1.TreatmentController);
-    const auth = (0, auth_middleware_1.authMiddleware)();
+const setupTreatmentRoutes = (router, resolver) => {
+    const treatmentController = resolver.resolve(treatment_controller_1.TreatmentController);
+    const auth = (0, auth_middleware_1.authMiddleware)(resolver);
     router.post('/treatment/add', auth, role_middleware_1.doctorOnly, (0, validation_middleware_1.validate)(treatment_validator_1.createTreatmentSchema), (0, async_handler_1.asyncHandler)(treatmentController.create.bind(treatmentController)));
     router.get('/treatment/all', auth, role_middleware_1.doctorOnly, (0, async_handler_1.asyncHandler)(treatmentController.getAll.bind(treatmentController)));
     router.get('/treatment/names', auth, (0, async_handler_1.asyncHandler)(treatmentController.getNames.bind(treatmentController)));

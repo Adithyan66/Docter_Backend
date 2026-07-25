@@ -174,6 +174,10 @@ import { MediaController } from '../presentation/controllers/media.controller';
 import { StaffController } from '../presentation/controllers/staff.controller';
 import { AuthController } from '../presentation/controllers/auth.controller';
 import { AuthMiddleware } from '../presentation/middleware/auth.middleware';
+import { ITransactionManager } from '../application/interfaces/transaction-manager.interface';
+import { MongoTransactionManager } from '../infrastructure/shared/mongo-transaction-manager';
+import { IPatientCascade } from '../application/interfaces/patient-cascade.interface';
+import { MongoPatientCascadeService } from '../infrastructure/shared/mongo-patient-cascade.service';
 import { CreateStaffUseCase } from '../application/use-cases/staff/create-staff.use-case';
 import { UpdateStaffUseCase } from '../application/use-cases/staff/update-staff.use-case';
 import { DeleteStaffUseCase } from '../application/use-cases/staff/delete-staff.use-case';
@@ -320,6 +324,9 @@ container.registerSingleton<StaffController>('StaffController', StaffController)
 container.registerSingleton<AuthController>('AuthController', AuthController);
 
 container.registerSingleton<AuthMiddleware>('AuthMiddleware', AuthMiddleware);
+
+container.registerSingleton<ITransactionManager>('ITransactionManager', MongoTransactionManager);
+container.registerSingleton<IPatientCascade>('IPatientCascade', MongoPatientCascadeService);
 
 export { container };
 export default container;

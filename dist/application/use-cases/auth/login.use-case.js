@@ -51,8 +51,8 @@ let LoginUseCase = class LoginUseCase {
                 clinicId: staff.clinicId,
                 doctorId: staff.doctorId,
             };
-            const accessToken = this.jwtService.generateAccessToken(payload);
-            const refreshToken = this.jwtService.generateRefreshToken(payload);
+            const accessToken = await this.jwtService.generateAccessToken(payload);
+            const refreshToken = await this.jwtService.generateRefreshToken(payload);
             await this.staffRepository.updateRefreshToken(staff.id, refreshToken);
             return {
                 accessToken,
@@ -83,8 +83,8 @@ let LoginUseCase = class LoginUseCase {
             email: doctor.email.toString(),
             role: 'doctor',
         };
-        const accessToken = this.jwtService.generateAccessToken(payload);
-        const refreshToken = this.jwtService.generateRefreshToken(payload);
+        const accessToken = await this.jwtService.generateAccessToken(payload);
+        const refreshToken = await this.jwtService.generateRefreshToken(payload);
         await this.doctorRepository.updateRefreshToken(doctor.id, refreshToken);
         return {
             accessToken,

@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import './load-env';
 import './di/container';
 import { container } from './di/container';
 import { connectDatabase } from './infrastructure/database/connection';
@@ -26,7 +27,7 @@ const startServer = async (): Promise<void> => {
 
     const app = createExpressApp({
       routes: (router) => {
-        setupRoutes(router);
+        setupRoutes(router, container);
       },
       notFoundHandler,
       errorHandler,

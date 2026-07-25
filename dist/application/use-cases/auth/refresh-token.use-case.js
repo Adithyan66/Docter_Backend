@@ -26,7 +26,7 @@ let RefreshTokenUseCase = class RefreshTokenUseCase {
     async execute(refreshToken) {
         let payload;
         try {
-            payload = this.jwtService.verifyRefreshToken(refreshToken);
+            payload = await this.jwtService.verifyRefreshToken(refreshToken);
         }
         catch (error) {
             throw new validation_error_1.ValidationError(error_messages_1.AuthenticationErrors.INVALID_REFRESH_TOKEN);
@@ -49,7 +49,7 @@ let RefreshTokenUseCase = class RefreshTokenUseCase {
                 clinicId: staff.clinicId,
                 doctorId: staff.doctorId,
             };
-            const accessToken = this.jwtService.generateAccessToken(tokenPayload);
+            const accessToken = await this.jwtService.generateAccessToken(tokenPayload);
             return { accessToken, refreshToken };
         }
         const doctor = await this.doctorRepository.findById(payload.id);
@@ -64,7 +64,7 @@ let RefreshTokenUseCase = class RefreshTokenUseCase {
             email: doctor.email.toString(),
             role: 'doctor',
         };
-        const accessToken = this.jwtService.generateAccessToken(tokenPayload);
+        const accessToken = await this.jwtService.generateAccessToken(tokenPayload);
         return { accessToken, refreshToken };
     }
 };

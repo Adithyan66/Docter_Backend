@@ -1,14 +1,14 @@
+import { DependencyContainer } from 'tsyringe';
 import { Router } from '../../interfaces';
 import { PaymentController } from '../../controllers/payment.controller';
 import { validate } from '../../middleware/validation.middleware';
 import { createPaymentSchema, refundPaymentSchema } from '../../validators/payment.validator';
 import { asyncHandler } from '../../utils/async-handler';
-import { container } from '../../../di/container';
 import { authMiddleware } from '../../middleware/auth.middleware';
 
-export const setupPaymentRoutes = (router: Router): void => {
-  const paymentController = container.resolve(PaymentController);
-  const auth = authMiddleware();
+export const setupPaymentRoutes = (router: Router, resolver: DependencyContainer): void => {
+  const paymentController = resolver.resolve(PaymentController);
+  const auth = authMiddleware(resolver);
 
   router.post('/payment/add', auth, validate(createPaymentSchema), asyncHandler(paymentController.create.bind(paymentController)));
 

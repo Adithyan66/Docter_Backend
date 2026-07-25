@@ -5,12 +5,11 @@ const visit_controller_1 = require("../../controllers/visit.controller");
 const validation_middleware_1 = require("../../middleware/validation.middleware");
 const visit_validator_1 = require("../../validators/visit.validator");
 const async_handler_1 = require("../../utils/async-handler");
-const container_1 = require("../../../di/container");
 const auth_middleware_1 = require("../../middleware/auth.middleware");
 const role_middleware_1 = require("../../middleware/role.middleware");
-const setupVisitRoutes = (router) => {
-    const visitController = container_1.container.resolve(visit_controller_1.VisitController);
-    const auth = (0, auth_middleware_1.authMiddleware)();
+const setupVisitRoutes = (router, resolver) => {
+    const visitController = resolver.resolve(visit_controller_1.VisitController);
+    const auth = (0, auth_middleware_1.authMiddleware)(resolver);
     router.post('/visit/add', auth, role_middleware_1.doctorOnly, (0, validation_middleware_1.validate)(visit_validator_1.createVisitSchema), (0, async_handler_1.asyncHandler)(visitController.create.bind(visitController)));
     router.get('/visits/all', auth, (0, async_handler_1.asyncHandler)(visitController.getAll.bind(visitController)));
     router.get('/visit/:id', auth, (0, async_handler_1.asyncHandler)(visitController.getById.bind(visitController)));

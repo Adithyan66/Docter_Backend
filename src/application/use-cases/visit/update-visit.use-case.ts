@@ -1,5 +1,5 @@
 import { injectable, inject } from 'tsyringe';
-import mongoose from 'mongoose';
+import { ITransactionManager } from '../../interfaces/transaction-manager.interface';
 import { IVisitRepository } from '../../../domain/repositories/visit.repository';
 import { ITreatmentCourseRepository } from '../../../domain/repositories/treatment-course.repository';
 import { ITreatmentRepository } from '../../../domain/repositories/treatment.repository';
@@ -9,9 +9,6 @@ import { VisitResponseDto, UpdateVisitRequestDto } from '../../../presentation/d
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { NotFoundError } from '../../../domain/errors/not-found.error';
 import { visitToDto } from '../../mappers/visit.mapper';
-import { MongoVisitRepository } from '../../../infrastructure/repositories/mongodb/visit.repository';
-import { MongoPaymentRepository } from '../../../infrastructure/repositories/mongodb/payment.repository';
-import { MongoTreatmentCourseRepository } from '../../../infrastructure/repositories/mongodb/treatment-course.repository';
 import { PaymentMethodVO } from '../../../domain/value-objects/payment-method.vo';
 import { IUpdateVisitUseCase } from '../../interfaces/use-cases/visit/visit-use-cases.interface';
 
@@ -21,7 +18,8 @@ export class UpdateVisitUseCase implements IUpdateVisitUseCase {
     @inject('IVisitRepository') private readonly visitRepository: IVisitRepository,
     @inject('ITreatmentCourseRepository') private readonly treatmentCourseRepository: ITreatmentCourseRepository,
     @inject('ITreatmentRepository') private readonly treatmentRepository: ITreatmentRepository,
-    @inject('IPaymentRepository') private readonly paymentRepository: IPaymentRepository
+    @inject('IPaymentRepository') private readonly paymentRepository: IPaymentRepository,
+    @inject('ITransactionManager') private readonly txManager: ITransactionManager
   ) {}
 
   async execute(id: string, doctorId: string, input: UpdateVisitRequestDto): Promise<VisitResponseDto> {
@@ -99,15 +97,9 @@ export class UpdateVisitUseCase implements IUpdateVisitUseCase {
       const needsTransaction = amountDifference !== 0 || (needsPaymentUpdate && input.billedAmount !== undefined);
 
       if (needsTransaction) {
-        const session = await mongoose.startSession();
-        session.startTransaction();
-
-        try {
-          const mongoVisitRepo = this.visitRepository as MongoVisitRepository;
-          const mongoPaymentRepo = this.paymentRepository as MongoPaymentRepository;
-          const mongoCourseRepo = this.treatmentCourseRepository as MongoTreatmentCourseRepository;
-
-          const paymentsResult = await mongoPaymentRepo.findPaginated({
+        const courseForTx = course;
+        return this.txManager.runInTransaction(async (tx) => {
+          const paymentsResult = await this.paymentRepository.findPaginated({
             doctorId,
             visitId: id,
             page: 1,
@@ -138,12 +130,12 @@ export class UpdateVisitUseCase implements IUpdateVisitUseCase {
             }
 
             if (Object.keys(paymentUpdateData).length > 0) {
-              await mongoPaymentRepo.update(firstPayment.id, paymentUpdateData, session);
+              await this.paymentRepository.update(firstPayment.id, paymentUpdateData, tx);
             }
 
             if (input.billedAmount !== undefined) {
               for (let i = 1; i < payments.length; i++) {
-                await mongoPaymentRepo.update(payments[i].id, { isDeleted: true }, session);
+                await this.paymentRepository.update(payments[i].id, { isDeleted: true }, tx);
               }
             }
           } else if (needsPaymentUpdate && input.billedAmount !== undefined && input.billedAmount > 0) {
@@ -152,27 +144,20 @@ export class UpdateVisitUseCase implements IUpdateVisitUseCase {
 
           if (amountDifference !== 0) {
             if (amountDifference > 0) {
-              await mongoCourseRepo.incrementTotalPaid(course.id, amountDifference, session);
+              await this.treatmentCourseRepository.incrementTotalPaid(courseForTx.id, amountDifference, tx);
             } else {
-              await mongoCourseRepo.decrementTotalPaid(course.id, Math.abs(amountDifference), session);
+              await this.treatmentCourseRepository.decrementTotalPaid(courseForTx.id, Math.abs(amountDifference), tx);
             }
           }
 
-          const updated = await mongoVisitRepo.update(id, updateData, session);
+          const updated = await this.visitRepository.update(id, updateData, tx);
           if (!updated) {
             throw new NotFoundError('Visit', id);
           }
 
-          await session.commitTransaction();
-
           const finalVisit = await this.visitRepository.findById(updated.id);
           return visitToDto(finalVisit || updated);
-        } catch (error) {
-          await session.abortTransaction();
-          throw error;
-        } finally {
-          session.endSession();
-        }
+        });
       }
     }
 
@@ -199,8 +184,7 @@ export class UpdateVisitUseCase implements IUpdateVisitUseCase {
           paymentUpdateData.reference = input.paymentReference.trim() || undefined;
         }
 
-        const mongoPaymentRepo = this.paymentRepository as MongoPaymentRepository;
-        await mongoPaymentRepo.update(firstPayment.id, paymentUpdateData);
+        await this.paymentRepository.update(firstPayment.id, paymentUpdateData);
       } else {
         if (visit.billedAmount && visit.billedAmount > 0) {
           throw new ValidationError('Payment record not found for this visit');

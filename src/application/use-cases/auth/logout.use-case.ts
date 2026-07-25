@@ -18,7 +18,7 @@ export class LogoutUseCase implements ILogoutUseCase {
   async execute(refreshToken: string): Promise<void> {
     let payload;
     try {
-      payload = this.jwtService.verifyRefreshToken(refreshToken);
+      payload = await this.jwtService.verifyRefreshToken(refreshToken);
     } catch (error) {
       throw new ValidationError(AuthenticationErrors.INVALID_REFRESH_TOKEN);
     }

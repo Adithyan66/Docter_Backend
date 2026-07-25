@@ -23,19 +23,19 @@ let JwtService = class JwtService {
         this.refreshSecret = config_1.config.jwtRefreshSecret || config_1.config.jwtSecret || 'default-refresh-secret-change-in-production';
         this.refreshExpiresIn = config_1.config.jwtRefreshExpiresIn || '7d';
     }
-    generate(payload) {
+    async generate(payload) {
         return jsonwebtoken_1.default.sign(payload, this.secret, { expiresIn: this.expiresIn });
     }
-    verify(token) {
+    async verify(token) {
         return jsonwebtoken_1.default.verify(token, this.secret);
     }
-    generateAccessToken(payload) {
+    async generateAccessToken(payload) {
         return jsonwebtoken_1.default.sign(payload, this.secret, { expiresIn: this.expiresIn });
     }
-    generateRefreshToken(payload) {
+    async generateRefreshToken(payload) {
         return jsonwebtoken_1.default.sign(payload, this.refreshSecret, { expiresIn: this.refreshExpiresIn });
     }
-    verifyRefreshToken(token) {
+    async verifyRefreshToken(token) {
         return jsonwebtoken_1.default.verify(token, this.refreshSecret);
     }
 };

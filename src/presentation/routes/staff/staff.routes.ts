@@ -1,5 +1,5 @@
+import { DependencyContainer } from 'tsyringe';
 import { Router } from '../../interfaces';
-import { container } from '../../../di/container';
 import { StaffController } from '../../controllers/staff.controller';
 import { validate } from '../../middleware/validation.middleware';
 import { authMiddleware } from '../../middleware/auth.middleware';
@@ -7,9 +7,9 @@ import { doctorOnly } from '../../middleware/role.middleware';
 import { createStaffSchema, updateStaffSchema } from '../../validators/staff.validator';
 import { asyncHandler } from '../../utils/async-handler';
 
-export const setupStaffRoutes = (router: Router): void => {
-  const staffController = container.resolve(StaffController);
-  const auth = authMiddleware();
+export const setupStaffRoutes = (router: Router, resolver: DependencyContainer): void => {
+  const staffController = resolver.resolve(StaffController);
+  const auth = authMiddleware(resolver);
   
 
   router.post('/staff', auth, doctorOnly, validate(createStaffSchema), asyncHandler(staffController.create.bind(staffController)));

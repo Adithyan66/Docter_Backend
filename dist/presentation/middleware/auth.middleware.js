@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.authMiddleware = exports.AuthMiddleware = void 0;
 const tsyringe_1 = require("tsyringe");
 const error_messages_1 = require("../../infrastructure/constants/error-messages");
-const container_1 = require("../../di/container");
 const unauthorized_error_1 = require("../../domain/errors/unauthorized.error");
 let AuthMiddleware = class AuthMiddleware {
     constructor(jwtService) {
@@ -39,7 +38,7 @@ let AuthMiddleware = class AuthMiddleware {
                 }
                 let payload;
                 try {
-                    payload = this.jwtService.verify(token);
+                    payload = await this.jwtService.verify(token);
                 }
                 catch (error) {
                     throw new unauthorized_error_1.UnauthorizedError(error_messages_1.AuthenticationErrors.TOKEN_INVALID);
@@ -66,8 +65,8 @@ exports.AuthMiddleware = AuthMiddleware = __decorate([
     __param(0, (0, tsyringe_1.inject)('IJwtService')),
     __metadata("design:paramtypes", [Object])
 ], AuthMiddleware);
-const authMiddleware = () => {
-    const authMiddlewareInstance = container_1.container.resolve('AuthMiddleware');
+const authMiddleware = (resolver) => {
+    const authMiddlewareInstance = resolver.resolve(AuthMiddleware);
     return authMiddlewareInstance.handle();
 };
 exports.authMiddleware = authMiddleware;

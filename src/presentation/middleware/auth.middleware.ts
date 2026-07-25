@@ -1,8 +1,7 @@
-import { injectable, inject } from 'tsyringe';
+import { injectable, inject, DependencyContainer } from 'tsyringe';
 import { HttpRequest, HttpResponse, HttpNext, HttpHandler } from '../interfaces';
 import { JwtPayload, IJwtService } from '../../application/interfaces/jwt-service.interface';
 import { AuthenticationErrors } from '../../infrastructure/constants/error-messages';
-import { container } from '../../di/container';
 import { UnauthorizedError } from '../../domain/errors/unauthorized.error';
 
 @injectable()
@@ -31,7 +30,7 @@ export class AuthMiddleware {
         
         let payload: JwtPayload;
         try {
-          payload = this.jwtService.verify(token);
+          payload = await this.jwtService.verify(token);
         } catch (error) {
           throw new UnauthorizedError(AuthenticationErrors.TOKEN_INVALID);
         }
@@ -52,8 +51,8 @@ export class AuthMiddleware {
   }
 }
 
-export const authMiddleware = (): HttpHandler => {
-  const authMiddlewareInstance = container.resolve<AuthMiddleware>('AuthMiddleware');
+export const authMiddleware = (resolver: DependencyContainer): HttpHandler => {
+  const authMiddlewareInstance = resolver.resolve(AuthMiddleware);
   return authMiddlewareInstance.handle();
 };
 

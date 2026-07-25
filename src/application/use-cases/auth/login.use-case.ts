@@ -54,8 +54,8 @@ export class LoginUseCase implements ILoginUseCase {
         clinicId: staff.clinicId,
         doctorId: staff.doctorId,
       };
-      const accessToken = this.jwtService.generateAccessToken(payload);
-      const refreshToken = this.jwtService.generateRefreshToken(payload);
+      const accessToken = await this.jwtService.generateAccessToken(payload);
+      const refreshToken = await this.jwtService.generateRefreshToken(payload);
       await this.staffRepository.updateRefreshToken(staff.id, refreshToken);
       return {
         accessToken,
@@ -93,8 +93,8 @@ export class LoginUseCase implements ILoginUseCase {
       role: 'doctor' as const,
     };
 
-    const accessToken = this.jwtService.generateAccessToken(payload);
-    const refreshToken = this.jwtService.generateRefreshToken(payload);
+    const accessToken = await this.jwtService.generateAccessToken(payload);
+    const refreshToken = await this.jwtService.generateRefreshToken(payload);
 
     await this.doctorRepository.updateRefreshToken(doctor.id, refreshToken);
 

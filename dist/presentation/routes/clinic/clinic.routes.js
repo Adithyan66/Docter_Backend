@@ -5,12 +5,11 @@ const clinic_controller_1 = require("../../controllers/clinic.controller");
 const validation_middleware_1 = require("../../middleware/validation.middleware");
 const clinic_validator_1 = require("../../validators/clinic.validator");
 const async_handler_1 = require("../../utils/async-handler");
-const container_1 = require("../../../di/container");
 const auth_middleware_1 = require("../../middleware/auth.middleware");
 const role_middleware_1 = require("../../middleware/role.middleware");
-const setupClinicRoutes = (router) => {
-    const clinicController = container_1.container.resolve(clinic_controller_1.ClinicController);
-    const auth = (0, auth_middleware_1.authMiddleware)();
+const setupClinicRoutes = (router, resolver) => {
+    const clinicController = resolver.resolve(clinic_controller_1.ClinicController);
+    const auth = (0, auth_middleware_1.authMiddleware)(resolver);
     router.post('/clinic/add', auth, role_middleware_1.doctorOnly, (0, validation_middleware_1.validate)(clinic_validator_1.createClinicSchema), (0, async_handler_1.asyncHandler)(clinicController.create.bind(clinicController)));
     router.get('/clinic/all', auth, role_middleware_1.doctorOnly, (0, async_handler_1.asyncHandler)(clinicController.getAll.bind(clinicController)));
     router.get('/clinic/names', auth, role_middleware_1.doctorOnly, (0, async_handler_1.asyncHandler)(clinicController.getNames.bind(clinicController)));

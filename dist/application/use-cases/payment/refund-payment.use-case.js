@@ -11,21 +11,18 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RefundPaymentUseCase = void 0;
 const tsyringe_1 = require("tsyringe");
-const mongoose_1 = __importDefault(require("mongoose"));
 const refund_details_entity_1 = require("../../../domain/entities/refund-details.entity");
 const validation_error_1 = require("../../../domain/errors/validation.error");
 const not_found_error_1 = require("../../../domain/errors/not-found.error");
 const payment_mapper_1 = require("../../mappers/payment.mapper");
 let RefundPaymentUseCase = class RefundPaymentUseCase {
-    constructor(paymentRepository, treatmentCourseRepository) {
+    constructor(paymentRepository, treatmentCourseRepository, txManager) {
         this.paymentRepository = paymentRepository;
         this.treatmentCourseRepository = treatmentCourseRepository;
+        this.txManager = txManager;
     }
     async execute(id, doctorId, input) {
         if (!id || id.trim().length === 0) {
@@ -46,26 +43,15 @@ let RefundPaymentUseCase = class RefundPaymentUseCase {
             throw new validation_error_1.ValidationError('Refund amount must be greater than zero');
         }
         const refundDetails = new refund_details_entity_1.RefundDetails(new Date(), refundAmount, input.refundReason);
-        const session = await mongoose_1.default.startSession();
-        session.startTransaction();
-        try {
+        return this.txManager.runInTransaction(async (tx) => {
             payment.markRefunded(refundDetails);
-            const mongoRepo = this.paymentRepository;
-            const updated = await mongoRepo.update(payment.id, payment, session);
+            const updated = await this.paymentRepository.update(payment.id, payment, tx);
             if (!updated) {
                 throw new not_found_error_1.NotFoundError('Payment', id);
             }
-            await this.treatmentCourseRepository.decrementTotalPaid(payment.courseId, refundAmount, session);
-            await session.commitTransaction();
+            await this.treatmentCourseRepository.decrementTotalPaid(payment.courseId, refundAmount, tx);
             return (0, payment_mapper_1.paymentToDto)(updated);
-        }
-        catch (error) {
-            await session.abortTransaction();
-            throw error;
-        }
-        finally {
-            session.endSession();
-        }
+        });
     }
 };
 exports.RefundPaymentUseCase = RefundPaymentUseCase;
@@ -73,5 +59,6 @@ exports.RefundPaymentUseCase = RefundPaymentUseCase = __decorate([
     (0, tsyringe_1.injectable)(),
     __param(0, (0, tsyringe_1.inject)('IPaymentRepository')),
     __param(1, (0, tsyringe_1.inject)('ITreatmentCourseRepository')),
-    __metadata("design:paramtypes", [Object, Object])
+    __param(2, (0, tsyringe_1.inject)('ITransactionManager')),
+    __metadata("design:paramtypes", [Object, Object, Object])
 ], RefundPaymentUseCase);

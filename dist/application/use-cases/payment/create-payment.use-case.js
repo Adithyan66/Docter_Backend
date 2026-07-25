@@ -11,25 +11,22 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreatePaymentUseCase = void 0;
 const tsyringe_1 = require("tsyringe");
-const mongoose_1 = __importDefault(require("mongoose"));
 const payment_entity_1 = require("../../../domain/entities/payment.entity");
 const payment_method_vo_1 = require("../../../domain/value-objects/payment-method.vo");
 const validation_error_1 = require("../../../domain/errors/validation.error");
 const payment_mapper_1 = require("../../mappers/payment.mapper");
 let CreatePaymentUseCase = class CreatePaymentUseCase {
-    constructor(paymentRepository, treatmentCourseRepository, patientRepository, doctorRepository, visitRepository, clinicRepository) {
+    constructor(paymentRepository, treatmentCourseRepository, patientRepository, doctorRepository, visitRepository, clinicRepository, txManager) {
         this.paymentRepository = paymentRepository;
         this.treatmentCourseRepository = treatmentCourseRepository;
         this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
         this.visitRepository = visitRepository;
         this.clinicRepository = clinicRepository;
+        this.txManager = txManager;
     }
     async execute(doctorId, input) {
         this.validateInput(input);
@@ -44,22 +41,11 @@ let CreatePaymentUseCase = class CreatePaymentUseCase {
         const paidAt = input.paidAt ? new Date(input.paidAt) : new Date();
         const method = new payment_method_vo_1.PaymentMethodVO(input.method);
         const payment = new payment_entity_1.Payment('', doctorId, input.patientId.trim(), input.courseId.trim(), input.amount, method, paidAt, undefined, undefined, input.visitId ? input.visitId.trim() : undefined, input.clinicId ? input.clinicId.trim() : undefined, input.reference ? input.reference.trim() : undefined, false, undefined, false);
-        const session = await mongoose_1.default.startSession();
-        session.startTransaction();
-        try {
-            const mongoRepo = this.paymentRepository;
-            const created = await mongoRepo.create(payment, session);
-            await this.treatmentCourseRepository.incrementTotalPaid(course.id, input.amount, session, created.id);
-            await session.commitTransaction();
+        return this.txManager.runInTransaction(async (tx) => {
+            const created = await this.paymentRepository.create(payment, tx);
+            await this.treatmentCourseRepository.incrementTotalPaid(course.id, input.amount, tx, created.id);
             return (0, payment_mapper_1.paymentToDto)(created);
-        }
-        catch (error) {
-            await session.abortTransaction();
-            throw error;
-        }
-        finally {
-            session.endSession();
-        }
+        });
     }
     validateInput(input) {
         if (!input.patientId || input.patientId.trim().length === 0) {
@@ -114,5 +100,6 @@ exports.CreatePaymentUseCase = CreatePaymentUseCase = __decorate([
     __param(3, (0, tsyringe_1.inject)('IDoctorRepository')),
     __param(4, (0, tsyringe_1.inject)('IVisitRepository')),
     __param(5, (0, tsyringe_1.inject)('IClinicRepository')),
-    __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object])
+    __param(6, (0, tsyringe_1.inject)('ITransactionManager')),
+    __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object, Object])
 ], CreatePaymentUseCase);

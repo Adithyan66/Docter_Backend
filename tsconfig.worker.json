@@ -1,0 +1,29 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "types": ["@cloudflare/workers-types"],
+    "noEmit": true,
+    "skipLibCheck": true,
+    "rootDir": "src"
+  },
+  "include": [
+    "src/worker.ts",
+    "src/di/worker-container.ts",
+    "src/di/register-app-layer.ts",
+    "src/infrastructure/cloudflare/**/*.ts",
+    "src/infrastructure/config/**/*.ts",
+    "src/infrastructure/constants/**/*.ts",
+    "src/infrastructure/errors/not-found-handler.ts",
+    "src/infrastructure/shared/image-upload.service.ts",
+    "src/application/**/*.ts",
+    "src/domain/**/*.ts",
+    "src/presentation/**/*.ts"
+  ],
+  "exclude": [
+    "src/presentation/adapters/express/**",
+    "src/application/use-cases/backup/**"
+  ]
+}

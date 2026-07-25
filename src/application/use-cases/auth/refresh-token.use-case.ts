@@ -18,7 +18,7 @@ export class RefreshTokenUseCase implements IRefreshTokenUseCase {
   async execute(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
     let payload;
     try {
-      payload = this.jwtService.verifyRefreshToken(refreshToken);
+      payload = await this.jwtService.verifyRefreshToken(refreshToken);
     } catch (error) {
       throw new ValidationError(AuthenticationErrors.INVALID_REFRESH_TOKEN);
     }
@@ -41,7 +41,7 @@ export class RefreshTokenUseCase implements IRefreshTokenUseCase {
         clinicId: staff.clinicId,
         doctorId: staff.doctorId,
       };
-      const accessToken = this.jwtService.generateAccessToken(tokenPayload);
+      const accessToken = await this.jwtService.generateAccessToken(tokenPayload);
       return { accessToken, refreshToken };
     }
 
@@ -61,7 +61,7 @@ export class RefreshTokenUseCase implements IRefreshTokenUseCase {
       role: 'doctor' as const,
     };
 
-    const accessToken = this.jwtService.generateAccessToken(tokenPayload);
+    const accessToken = await this.jwtService.generateAccessToken(tokenPayload);
 
     return { accessToken, refreshToken };
   }

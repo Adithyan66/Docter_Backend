@@ -26,7 +26,7 @@ let LogoutUseCase = class LogoutUseCase {
     async execute(refreshToken) {
         let payload;
         try {
-            payload = this.jwtService.verifyRefreshToken(refreshToken);
+            payload = await this.jwtService.verifyRefreshToken(refreshToken);
         }
         catch (error) {
             throw new validation_error_1.ValidationError(error_messages_1.AuthenticationErrors.INVALID_REFRESH_TOKEN);

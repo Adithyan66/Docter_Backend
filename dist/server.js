@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 require("reflect-metadata");
+require("./load-env");
 require("./di/container");
 const container_1 = require("./di/container");
 const connection_1 = require("./infrastructure/database/connection");
@@ -21,7 +22,7 @@ const startServer = async () => {
         console.log(`[Backup] Backup scheduler started with schedule: ${config_1.config.backup.cronSchedule}`);
         const app = (0, express_app_factory_1.createExpressApp)({
             routes: (router) => {
-                (0, routes_1.setupRoutes)(router);
+                (0, routes_1.setupRoutes)(router, container_1.container);
             },
             notFoundHandler: not_found_handler_1.notFoundHandler,
             errorHandler: error_handler_1.errorHandler,
@@ -36,5 +37,4 @@ const startServer = async () => {
         process.exit(1);
     }
 };
-
 startServer();

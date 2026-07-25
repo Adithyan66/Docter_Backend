@@ -1,5 +1,5 @@
 import { injectable, inject } from 'tsyringe';
-import mongoose from 'mongoose';
+import { ITransactionManager } from '../../interfaces/transaction-manager.interface';
 import { IVisitRepository } from '../../../domain/repositories/visit.repository';
 import { ITreatmentCourseRepository } from '../../../domain/repositories/treatment-course.repository';
 import { IPatientRepository } from '../../../domain/repositories/patient.repository';
@@ -17,10 +17,6 @@ import { PaymentMethodVO } from '../../../domain/value-objects/payment-method.vo
 import { CreateVisitRequestDto, VisitResponseDto, CreateVisitMediaDto } from '../../../presentation/dto/visit.dto';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { visitToDto } from '../../mappers/visit.mapper';
-import { MongoPaymentRepository } from '../../../infrastructure/repositories/mongodb/payment.repository';
-import { MongoVisitRepository } from '../../../infrastructure/repositories/mongodb/visit.repository';
-import { MongoPatientRepository } from '../../../infrastructure/repositories/mongodb/patient.repository';
-import { MongoTreatmentCourseRepository } from '../../../infrastructure/repositories/mongodb/treatment-course.repository';
 import { ICreateVisitUseCase } from '../../interfaces/use-cases/visit/visit-use-cases.interface';
 
 @injectable()
@@ -34,7 +30,8 @@ export class CreateVisitUseCase implements ICreateVisitUseCase {
     @inject('IMediaRepository') private readonly mediaRepository: IMediaRepository,
     @inject('IClinicRepository') private readonly clinicRepository: IClinicRepository,
     @inject('ITreatmentRepository') private readonly treatmentRepository: ITreatmentRepository,
-    @inject('IPaymentRepository') private readonly paymentRepository: IPaymentRepository
+    @inject('IPaymentRepository') private readonly paymentRepository: IPaymentRepository,
+    @inject('ITransactionManager') private readonly txManager: ITransactionManager
   ) {}
 
   async execute(doctorId: string, input: CreateVisitRequestDto): Promise<VisitResponseDto> {
@@ -100,16 +97,8 @@ export class CreateVisitUseCase implements ICreateVisitUseCase {
       false
     );
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-      const mongoVisitRepo = this.visitRepository as MongoVisitRepository;
-      const mongoPatientRepo = this.patientRepository as MongoPatientRepository;
-      const mongoPaymentRepo = this.paymentRepository as MongoPaymentRepository;
-      const mongoCourseRepo = this.treatmentCourseRepository as MongoTreatmentCourseRepository;
-
-      const created = await mongoVisitRepo.create(visit, session);
+    return this.txManager.runInTransaction(async (tx) => {
+      const created = await this.visitRepository.create(visit, tx);
 
       let prescriptionId = input.prescriptionId ? input.prescriptionId.trim() : undefined;
       const mediaIds: string[] = [...(input.mediaIds || [])];
@@ -165,13 +154,13 @@ export class CreateVisitUseCase implements ICreateVisitUseCase {
           !mediaIds.every(id => created.mediaIds.includes(id))) {
         created.setPrescription(prescriptionId);
         mediaIds.forEach(id => created.addMedia(id));
-        await mongoVisitRepo.update(created.id, created, session);
+        await this.visitRepository.update(created.id, created, tx);
       }
 
       const patient = await this.patientRepository.findById(input.patientId.trim());
       if (patient) {
         patient.incrementVisitCount(visitDate);
-        await mongoPatientRepo.update(patient.id, patient, session);
+        await this.patientRepository.update(patient.id, patient, tx);
       }
 
       let paymentId: string | undefined;
@@ -198,10 +187,10 @@ export class CreateVisitUseCase implements ICreateVisitUseCase {
           false
         );
 
-        const createdPayment = await mongoPaymentRepo.create(payment, session);
+        const createdPayment = await this.paymentRepository.create(payment, tx);
         paymentId = createdPayment.id;
 
-        await mongoCourseRepo.incrementTotalPaid(course.id, billedAmount, session, paymentId);
+        await this.treatmentCourseRepository.incrementTotalPaid(course.id, billedAmount, tx, paymentId);
         
         course.addPayment(billedAmount);
         if (paymentId) {
@@ -223,18 +212,11 @@ export class CreateVisitUseCase implements ICreateVisitUseCase {
         course.nextVisitDate = new Date(input.nextVisitDate);
       }
       
-      await mongoCourseRepo.update(course.id, course, session);
-
-      await session.commitTransaction();
+      await this.treatmentCourseRepository.update(course.id, course, tx);
 
       const updatedVisit = await this.visitRepository.findById(created.id);
       return visitToDto(updatedVisit || created);
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      session.endSession();
-    }
+    });
   }
 
   private validateInput(input: CreateVisitRequestDto): void {

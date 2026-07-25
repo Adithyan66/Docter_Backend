@@ -11,13 +11,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateVisitUseCase = void 0;
 const tsyringe_1 = require("tsyringe");
-const mongoose_1 = __importDefault(require("mongoose"));
 const visit_entity_1 = require("../../../domain/entities/visit.entity");
 const prescription_entity_1 = require("../../../domain/entities/prescription.entity");
 const media_entity_1 = require("../../../domain/entities/media.entity");
@@ -26,7 +22,7 @@ const payment_method_vo_1 = require("../../../domain/value-objects/payment-metho
 const validation_error_1 = require("../../../domain/errors/validation.error");
 const visit_mapper_1 = require("../../mappers/visit.mapper");
 let CreateVisitUseCase = class CreateVisitUseCase {
-    constructor(visitRepository, treatmentCourseRepository, patientRepository, doctorRepository, prescriptionRepository, mediaRepository, clinicRepository, treatmentRepository, paymentRepository) {
+    constructor(visitRepository, treatmentCourseRepository, patientRepository, doctorRepository, prescriptionRepository, mediaRepository, clinicRepository, treatmentRepository, paymentRepository, txManager) {
         this.visitRepository = visitRepository;
         this.treatmentCourseRepository = treatmentCourseRepository;
         this.patientRepository = patientRepository;
@@ -36,6 +32,7 @@ let CreateVisitUseCase = class CreateVisitUseCase {
         this.clinicRepository = clinicRepository;
         this.treatmentRepository = treatmentRepository;
         this.paymentRepository = paymentRepository;
+        this.txManager = txManager;
     }
     async execute(doctorId, input) {
         this.validateInput(input);
@@ -74,14 +71,8 @@ let CreateVisitUseCase = class CreateVisitUseCase {
             }
         }
         const visit = new visit_entity_1.Visit('', doctorId, input.patientId.trim(), input.courseId.trim(), visitDate, undefined, undefined, clinicId, input.notes ? input.notes.trim() : undefined, billedAmount, input.mediaIds || [], input.prescriptionId ? input.prescriptionId.trim() : undefined, false);
-        const session = await mongoose_1.default.startSession();
-        session.startTransaction();
-        try {
-            const mongoVisitRepo = this.visitRepository;
-            const mongoPatientRepo = this.patientRepository;
-            const mongoPaymentRepo = this.paymentRepository;
-            const mongoCourseRepo = this.treatmentCourseRepository;
-            const created = await mongoVisitRepo.create(visit, session);
+        return this.txManager.runInTransaction(async (tx) => {
+            const created = await this.visitRepository.create(visit, tx);
             let prescriptionId = input.prescriptionId ? input.prescriptionId.trim() : undefined;
             const mediaIds = [...(input.mediaIds || [])];
             if (input.prescription) {
@@ -102,21 +93,21 @@ let CreateVisitUseCase = class CreateVisitUseCase {
                 !mediaIds.every(id => created.mediaIds.includes(id))) {
                 created.setPrescription(prescriptionId);
                 mediaIds.forEach(id => created.addMedia(id));
-                await mongoVisitRepo.update(created.id, created, session);
+                await this.visitRepository.update(created.id, created, tx);
             }
             const patient = await this.patientRepository.findById(input.patientId.trim());
             if (patient) {
                 patient.incrementVisitCount(visitDate);
-                await mongoPatientRepo.update(patient.id, patient, session);
+                await this.patientRepository.update(patient.id, patient, tx);
             }
             let paymentId;
             if (billedAmount > 0) {
                 const paymentMethod = new payment_method_vo_1.PaymentMethodVO(input.paymentMethod);
                 const paidAt = new Date();
                 const payment = new payment_entity_1.Payment('', doctorId, input.patientId.trim(), input.courseId.trim(), billedAmount, paymentMethod, paidAt, undefined, undefined, created.id, clinicId, input.paymentReference ? input.paymentReference.trim() : undefined, false, undefined, false);
-                const createdPayment = await mongoPaymentRepo.create(payment, session);
+                const createdPayment = await this.paymentRepository.create(payment, tx);
                 paymentId = createdPayment.id;
-                await mongoCourseRepo.incrementTotalPaid(course.id, billedAmount, session, paymentId);
+                await this.treatmentCourseRepository.incrementTotalPaid(course.id, billedAmount, tx, paymentId);
                 course.addPayment(billedAmount);
                 if (paymentId) {
                     course.addPaymentReference(paymentId);
@@ -132,18 +123,10 @@ let CreateVisitUseCase = class CreateVisitUseCase {
             if (input.nextVisitDate) {
                 course.nextVisitDate = new Date(input.nextVisitDate);
             }
-            await mongoCourseRepo.update(course.id, course, session);
-            await session.commitTransaction();
+            await this.treatmentCourseRepository.update(course.id, course, tx);
             const updatedVisit = await this.visitRepository.findById(created.id);
             return (0, visit_mapper_1.visitToDto)(updatedVisit || created);
-        }
-        catch (error) {
-            await session.abortTransaction();
-            throw error;
-        }
-        finally {
-            session.endSession();
-        }
+        });
     }
     validateInput(input) {
         if (!input.patientId || input.patientId.trim().length === 0) {
@@ -221,5 +204,6 @@ exports.CreateVisitUseCase = CreateVisitUseCase = __decorate([
     __param(6, (0, tsyringe_1.inject)('IClinicRepository')),
     __param(7, (0, tsyringe_1.inject)('ITreatmentRepository')),
     __param(8, (0, tsyringe_1.inject)('IPaymentRepository')),
-    __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object, Object, Object, Object])
+    __param(9, (0, tsyringe_1.inject)('ITransactionManager')),
+    __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object, Object, Object, Object, Object])
 ], CreateVisitUseCase);

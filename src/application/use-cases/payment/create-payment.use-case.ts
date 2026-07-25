@@ -1,5 +1,5 @@
 import { injectable, inject } from 'tsyringe';
-import mongoose from 'mongoose';
+import { ITransactionManager } from '../../interfaces/transaction-manager.interface';
 import { IPaymentRepository } from '../../../domain/repositories/payment.repository';
 import { ITreatmentCourseRepository } from '../../../domain/repositories/treatment-course.repository';
 import { IPatientRepository } from '../../../domain/repositories/patient.repository';
@@ -11,7 +11,6 @@ import { PaymentMethodVO } from '../../../domain/value-objects/payment-method.vo
 import { CreatePaymentRequestDto, PaymentResponseDto } from '../../../presentation/dto/payment.dto';
 import { ValidationError } from '../../../domain/errors/validation.error';
 import { paymentToDto } from '../../mappers/payment.mapper';
-import { MongoPaymentRepository } from '../../../infrastructure/repositories/mongodb/payment.repository';
 import { ICreatePaymentUseCase } from '../../interfaces/use-cases/payment/payment-use-cases.interface';
 
 @injectable()
@@ -22,7 +21,8 @@ export class CreatePaymentUseCase implements ICreatePaymentUseCase {
     @inject('IPatientRepository') private readonly patientRepository: IPatientRepository,
     @inject('IDoctorRepository') private readonly doctorRepository: IDoctorRepository,
     @inject('IVisitRepository') private readonly visitRepository: IVisitRepository,
-    @inject('IClinicRepository') private readonly clinicRepository: IClinicRepository
+    @inject('IClinicRepository') private readonly clinicRepository: IClinicRepository,
+    @inject('ITransactionManager') private readonly txManager: ITransactionManager
   ) {}
 
   async execute(doctorId: string, input: CreatePaymentRequestDto): Promise<PaymentResponseDto> {
@@ -60,23 +60,13 @@ export class CreatePaymentUseCase implements ICreatePaymentUseCase {
       false
     );
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    return this.txManager.runInTransaction(async (tx) => {
+      const created = await this.paymentRepository.create(payment, tx);
 
-    try {
-      const mongoRepo = this.paymentRepository as MongoPaymentRepository;
-      const created = await mongoRepo.create(payment, session);
+      await this.treatmentCourseRepository.incrementTotalPaid(course.id, input.amount, tx, created.id);
 
-      await this.treatmentCourseRepository.incrementTotalPaid(course.id, input.amount, session, created.id);
-
-      await session.commitTransaction();
       return paymentToDto(created);
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      session.endSession();
-    }
+    });
   }
 
   private validateInput(input: CreatePaymentRequestDto): void {

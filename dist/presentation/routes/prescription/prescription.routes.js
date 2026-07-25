@@ -5,11 +5,10 @@ const prescription_controller_1 = require("../../controllers/prescription.contro
 const validation_middleware_1 = require("../../middleware/validation.middleware");
 const prescription_validator_1 = require("../../validators/prescription.validator");
 const async_handler_1 = require("../../utils/async-handler");
-const container_1 = require("../../../di/container");
 const auth_middleware_1 = require("../../middleware/auth.middleware");
-const setupPrescriptionRoutes = (router) => {
-    const prescriptionController = container_1.container.resolve(prescription_controller_1.PrescriptionController);
-    const auth = (0, auth_middleware_1.authMiddleware)();
+const setupPrescriptionRoutes = (router, resolver) => {
+    const prescriptionController = resolver.resolve(prescription_controller_1.PrescriptionController);
+    const auth = (0, auth_middleware_1.authMiddleware)(resolver);
     router.post('/prescription/add', auth, (0, validation_middleware_1.validate)(prescription_validator_1.createPrescriptionSchema), (0, async_handler_1.asyncHandler)(prescriptionController.create.bind(prescriptionController)));
     router.get('/prescription/all', auth, (0, async_handler_1.asyncHandler)(prescriptionController.getAll.bind(prescriptionController)));
     router.get('/prescription/:id', auth, (0, async_handler_1.asyncHandler)(prescriptionController.getById.bind(prescriptionController)));

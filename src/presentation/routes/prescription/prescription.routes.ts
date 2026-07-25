@@ -1,14 +1,14 @@
+import { DependencyContainer } from 'tsyringe';
 import { Router } from '../../interfaces';
 import { PrescriptionController } from '../../controllers/prescription.controller';
 import { validate } from '../../middleware/validation.middleware';
 import { createPrescriptionSchema, updatePrescriptionSchema } from '../../validators/prescription.validator';
 import { asyncHandler } from '../../utils/async-handler';
-import { container } from '../../../di/container';
 import { authMiddleware } from '../../middleware/auth.middleware';
 
-export const setupPrescriptionRoutes = (router: Router): void => {
-  const prescriptionController = container.resolve(PrescriptionController);
-  const auth = authMiddleware();
+export const setupPrescriptionRoutes = (router: Router, resolver: DependencyContainer): void => {
+  const prescriptionController = resolver.resolve(PrescriptionController);
+  const auth = authMiddleware(resolver);
 
   router.post('/prescription/add', auth, validate(createPrescriptionSchema), asyncHandler(prescriptionController.create.bind(prescriptionController)));
 

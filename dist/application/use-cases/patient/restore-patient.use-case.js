@@ -11,22 +11,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RestorePatientUseCase = void 0;
 const tsyringe_1 = require("tsyringe");
-const mongoose_1 = __importDefault(require("mongoose"));
 const not_found_error_1 = require("../../../domain/errors/not-found.error");
 const validation_error_1 = require("../../../domain/errors/validation.error");
 let RestorePatientUseCase = class RestorePatientUseCase {
-    constructor(patientRepository, visitRepository, treatmentCourseRepository, paymentRepository, mediaRepository) {
+    constructor(patientRepository, cascade) {
         this.patientRepository = patientRepository;
-        this.visitRepository = visitRepository;
-        this.treatmentCourseRepository = treatmentCourseRepository;
-        this.paymentRepository = paymentRepository;
-        this.mediaRepository = mediaRepository;
+        this.cascade = cascade;
     }
     async execute(id, doctorId) {
         const patient = await this.patientRepository.findByIdAndDoctorIncludingDeleted(id, doctorId);
@@ -36,33 +29,13 @@ let RestorePatientUseCase = class RestorePatientUseCase {
         if (!patient.isDeleted) {
             throw new validation_error_1.ValidationError('Patient is not deleted');
         }
-        const session = await mongoose_1.default.startSession();
-        session.startTransaction();
-        try {
-            patient.restore();
-            await this.patientRepository.update(id, { isDeleted: patient.isDeleted, isActive: patient.isActive }, session);
-            await this.visitRepository.markRestoredByPatientId(id, doctorId, session);
-            await this.treatmentCourseRepository.markRestoredByPatientId(id, doctorId, session);
-            await this.paymentRepository.markRestoredByPatientId(id, doctorId, session);
-            await this.mediaRepository.markRestoredByPatientId(id, doctorId, session);
-            await session.commitTransaction();
-        }
-        catch (error) {
-            await session.abortTransaction();
-            throw error;
-        }
-        finally {
-            session.endSession();
-        }
+        await this.cascade.restore(id, doctorId);
     }
 };
 exports.RestorePatientUseCase = RestorePatientUseCase;
 exports.RestorePatientUseCase = RestorePatientUseCase = __decorate([
     (0, tsyringe_1.injectable)(),
     __param(0, (0, tsyringe_1.inject)('IPatientRepository')),
-    __param(1, (0, tsyringe_1.inject)('IVisitRepository')),
-    __param(2, (0, tsyringe_1.inject)('ITreatmentCourseRepository')),
-    __param(3, (0, tsyringe_1.inject)('IPaymentRepository')),
-    __param(4, (0, tsyringe_1.inject)('IMediaRepository')),
-    __metadata("design:paramtypes", [Object, Object, Object, Object, Object])
+    __param(1, (0, tsyringe_1.inject)('IPatientCascade')),
+    __metadata("design:paramtypes", [Object, Object])
 ], RestorePatientUseCase);

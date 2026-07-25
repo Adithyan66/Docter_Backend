@@ -60,5 +60,19 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "exclude": ["node_modules", "dist", "scripts", "backups"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "scripts",
+    "backups",
+    "drizzle.config.ts",
+    "drizzle",
+    ".wrangler",
+    "vitest.config.mts",
+    "tests",
+    "src/worker.ts",
+    "src/di/worker-container.ts",
+    "src/infrastructure/cloudflare",
+    "src/presentation/adapters/hono"
+  ]
 }

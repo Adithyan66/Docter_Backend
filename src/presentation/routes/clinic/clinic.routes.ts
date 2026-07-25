@@ -1,15 +1,15 @@
+import { DependencyContainer } from 'tsyringe';
 import { Router } from '../../interfaces';
 import { ClinicController } from '../../controllers/clinic.controller';
 import { validate } from '../../middleware/validation.middleware';
 import { createClinicSchema, updateClinicSchema, addClinicImagesSchema } from '../../validators/clinic.validator';
 import { asyncHandler } from '../../utils/async-handler';
-import { container } from '../../../di/container';
 import { authMiddleware } from '../../middleware/auth.middleware';
 import { doctorOnly } from '../../middleware/role.middleware';
 
-export const setupClinicRoutes = (router: Router): void => {
-  const clinicController = container.resolve(ClinicController);
-  const auth = authMiddleware();
+export const setupClinicRoutes = (router: Router, resolver: DependencyContainer): void => {
+  const clinicController = resolver.resolve(ClinicController);
+  const auth = authMiddleware(resolver);
 
   router.post('/clinic/add', auth, doctorOnly, validate(createClinicSchema), asyncHandler(clinicController.create.bind(clinicController)));
 

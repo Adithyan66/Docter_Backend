@@ -19,23 +19,23 @@ export class JwtService implements IJwtService {
     this.refreshExpiresIn = config.jwtRefreshExpiresIn || '7d';
   }
 
-  generate(payload: JwtPayload): string {
+  async generate(payload: JwtPayload): Promise<string> {
     return jwt.sign(payload, this.secret, { expiresIn: this.expiresIn } as jwt.SignOptions);
   }
 
-  verify(token: string): JwtPayload {
+  async verify(token: string): Promise<JwtPayload> {
     return jwt.verify(token, this.secret) as JwtPayload;
   }
 
-  generateAccessToken(payload: JwtPayload): string {
+  async generateAccessToken(payload: JwtPayload): Promise<string> {
     return jwt.sign(payload, this.secret, { expiresIn: this.expiresIn } as jwt.SignOptions);
   }
 
-  generateRefreshToken(payload: JwtPayload): string {
+  async generateRefreshToken(payload: JwtPayload): Promise<string> {
     return jwt.sign(payload, this.refreshSecret, { expiresIn: this.refreshExpiresIn } as jwt.SignOptions);
   }
 
-  verifyRefreshToken(token: string): JwtPayload {
+  async verifyRefreshToken(token: string): Promise<JwtPayload> {
     return jwt.verify(token, this.refreshSecret) as JwtPayload;
   }
 }

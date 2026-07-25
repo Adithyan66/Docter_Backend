@@ -91,6 +91,8 @@ const media_controller_1 = require("../presentation/controllers/media.controller
 const staff_controller_1 = require("../presentation/controllers/staff.controller");
 const auth_controller_1 = require("../presentation/controllers/auth.controller");
 const auth_middleware_1 = require("../presentation/middleware/auth.middleware");
+const mongo_transaction_manager_1 = require("../infrastructure/shared/mongo-transaction-manager");
+const mongo_patient_cascade_service_1 = require("../infrastructure/shared/mongo-patient-cascade.service");
 const create_staff_use_case_1 = require("../application/use-cases/staff/create-staff.use-case");
 const update_staff_use_case_1 = require("../application/use-cases/staff/update-staff.use-case");
 const delete_staff_use_case_1 = require("../application/use-cases/staff/delete-staff.use-case");
@@ -188,4 +190,6 @@ tsyringe_1.container.registerSingleton('MediaController', media_controller_1.Med
 tsyringe_1.container.registerSingleton('StaffController', staff_controller_1.StaffController);
 tsyringe_1.container.registerSingleton('AuthController', auth_controller_1.AuthController);
 tsyringe_1.container.registerSingleton('AuthMiddleware', auth_middleware_1.AuthMiddleware);
+tsyringe_1.container.registerSingleton('ITransactionManager', mongo_transaction_manager_1.MongoTransactionManager);
+tsyringe_1.container.registerSingleton('IPatientCascade', mongo_patient_cascade_service_1.MongoPatientCascadeService);
 exports.default = tsyringe_1.container;
