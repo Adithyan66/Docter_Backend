@@ -55,5 +55,7 @@ export interface ITreatmentCourseRepository extends BaseRepository<TreatmentCour
     limit: number;
     totalPages: number;
   }>;
+  /** Unpaid balance across active and paused courses; never negative per course. */
+  getOutstandingAmount(doctorId: string, clinicId?: string): Promise<number>;
 }
 

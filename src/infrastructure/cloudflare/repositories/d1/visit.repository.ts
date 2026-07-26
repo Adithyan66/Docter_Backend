@@ -240,6 +240,18 @@ export class D1VisitRepository implements IVisitRepository {
     return rows.length;
   }
 
+  async getTotalVisitCount(doctorId: string, clinicId?: string): Promise<number> {
+    const conditions: SQL[] = [eq(visits.doctorId, doctorId), eq(visits.isDeleted, false)];
+    if (clinicId) conditions.push(eq(visits.clinicId, clinicId));
+
+    const row = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(visits)
+      .where(and(...conditions))
+      .get();
+    return row?.count ?? 0;
+  }
+
   private toDomain(row: VisitRow): Visit {
     return new Visit(
       row.id,

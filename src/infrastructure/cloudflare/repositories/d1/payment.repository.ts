@@ -1,11 +1,35 @@
 import { injectable, inject } from 'tsyringe';
 import { and, eq, gte, lte, asc, desc, sql, SQL } from 'drizzle-orm';
-import { IPaymentRepository, PaymentSearchOptions } from '../../../../domain/repositories/payment.repository';
+import {
+  IPaymentRepository,
+  PaymentSearchOptions,
+  RevenueMetrics,
+  RevenueTrendData,
+  RevenueByPaymentMethodData,
+  RevenueByClinicData,
+  MonthlyRevenueData,
+  PaymentCompletionStats,
+} from '../../../../domain/repositories/payment.repository';
 import { Payment } from '../../../../domain/entities/payment.entity';
 import { PaymentMethodVO } from '../../../../domain/value-objects/payment-method.vo';
 import { RefundDetails } from '../../../../domain/entities/refund-details.entity';
 import { getDb, Database } from '../../db/client';
-import { payments, PaymentRow } from '../../db/schema';
+import { payments, clinics, treatmentCourses, PaymentRow } from '../../db/schema';
+
+/**
+ * paid_at is stored as epoch milliseconds, so every date bucket has to go through
+ * `<col>/1000, 'unixepoch'`. Buckets are UTC: the Mongo original grouped in the
+ * API server's local timezone, which Workers do not have.
+ */
+const bucket = (format: string): SQL<string> =>
+  sql<string>`strftime(${format}, ${payments.paidAt} / 1000, 'unixepoch')`;
+
+const startOfUtcMonth = (): Date => {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+};
+
+const startOfUtcYear = (): Date => new Date(Date.UTC(new Date().getUTCFullYear(), 0, 1));
 
 @injectable()
 export class D1PaymentRepository implements IPaymentRepository {
@@ -181,5 +205,180 @@ export class D1PaymentRepository implements IPaymentRepository {
       refundDetails,
       row.isDeleted
     );
+  }
+
+  /** Revenue counts only settled money: not deleted, not refunded. */
+  private revenueBase(doctorId: string, clinicId?: string): SQL[] {
+    const conditions: SQL[] = [
+      eq(payments.doctorId, doctorId),
+      eq(payments.isDeleted, false),
+      eq(payments.refunded, false),
+    ];
+    if (clinicId) conditions.push(eq(payments.clinicId, clinicId));
+    return conditions;
+  }
+
+  private withRange(conditions: SQL[], dateFrom?: Date, dateTo?: Date): SQL[] {
+    const next = [...conditions];
+    if (dateFrom) next.push(gte(payments.paidAt, dateFrom));
+    if (dateTo) next.push(lte(payments.paidAt, dateTo));
+    return next;
+  }
+
+  private async sumWhere(conditions: SQL[]): Promise<number> {
+    const row = await this.db
+      .select({ total: sql<number>`coalesce(sum(${payments.amount}), 0)` })
+      .from(payments)
+      .where(and(...conditions))
+      .get();
+    return row?.total ?? 0;
+  }
+
+  async getRevenueMetrics(
+    doctorId: string,
+    dateFrom?: Date,
+    dateTo?: Date,
+    clinicId?: string
+  ): Promise<RevenueMetrics> {
+    const base = this.revenueBase(doctorId, clinicId);
+
+    const [totalRevenue, revenueThisMonth, revenueThisYear] = await Promise.all([
+      this.sumWhere(this.withRange(base, dateFrom, dateTo)),
+      this.sumWhere([...base, gte(payments.paidAt, startOfUtcMonth())]),
+      this.sumWhere([...base, gte(payments.paidAt, startOfUtcYear())]),
+    ]);
+
+    return { totalRevenue, revenueThisMonth, revenueThisYear };
+  }
+
+  async getRevenueTrend(
+    doctorId: string,
+    period: 'daily' | 'weekly' | 'monthly',
+    dateFrom: Date,
+    dateTo: Date,
+    clinicId?: string
+  ): Promise<RevenueTrendData[]> {
+    const format = period === 'daily' ? '%Y-%m-%d' : period === 'weekly' ? '%Y-%U' : '%Y-%m';
+    const label = bucket(format);
+
+    const rows = await this.db
+      .select({ date: label, amount: sql<number>`coalesce(sum(${payments.amount}), 0)` })
+      .from(payments)
+      .where(
+        and(
+          ...this.revenueBase(doctorId, clinicId),
+          gte(payments.paidAt, dateFrom),
+          lte(payments.paidAt, dateTo)
+        )
+      )
+      .groupBy(label)
+      .orderBy(asc(label))
+      .all();
+
+    return rows.map((r) => ({ date: r.date, amount: r.amount }));
+  }
+
+  async getRevenueByPaymentMethod(
+    doctorId: string,
+    dateFrom?: Date,
+    dateTo?: Date,
+    clinicId?: string
+  ): Promise<RevenueByPaymentMethodData[]> {
+    const rows = await this.db
+      .select({
+        method: payments.method,
+        amount: sql<number>`coalesce(sum(${payments.amount}), 0)`,
+      })
+      .from(payments)
+      .where(and(...this.withRange(this.revenueBase(doctorId, clinicId), dateFrom, dateTo)))
+      .groupBy(payments.method)
+      .all();
+
+    const total = rows.reduce((sum, r) => sum + r.amount, 0);
+    return rows
+      .map((r) => ({
+        method: r.method,
+        amount: r.amount,
+        percentage: total > 0 ? (r.amount / total) * 100 : 0,
+      }))
+      .sort((a, b) => b.amount - a.amount);
+  }
+
+  async getRevenueByClinic(
+    doctorId: string,
+    dateFrom?: Date,
+    dateTo?: Date
+  ): Promise<RevenueByClinicData[]> {
+    // Left join: payments with no clinic, or pointing at a removed one, still
+    // contribute to revenue and surface under an "unknown" bucket.
+    const rows = await this.db
+      .select({
+        clinicId: payments.clinicId,
+        clinicName: clinics.name,
+        amount: sql<number>`coalesce(sum(${payments.amount}), 0)`,
+      })
+      .from(payments)
+      .leftJoin(clinics, eq(clinics.id, payments.clinicId))
+      .where(and(...this.withRange(this.revenueBase(doctorId), dateFrom, dateTo)))
+      .groupBy(payments.clinicId)
+      .all();
+
+    return rows
+      .map((r) => ({
+        clinicId: r.clinicId ?? 'unknown',
+        clinicName: r.clinicName ?? 'Unknown Clinic',
+        amount: r.amount,
+      }))
+      .sort((a, b) => b.amount - a.amount);
+  }
+
+  async getMonthlyRevenueComparison(
+    doctorId: string,
+    months: number,
+    clinicId?: string
+  ): Promise<MonthlyRevenueData[]> {
+    const now = new Date();
+    const startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - months + 1, 1));
+    const label = bucket('%Y-%m');
+
+    const rows = await this.db
+      .select({ month: label, amount: sql<number>`coalesce(sum(${payments.amount}), 0)` })
+      .from(payments)
+      .where(and(...this.revenueBase(doctorId, clinicId), gte(payments.paidAt, startDate)))
+      .groupBy(label)
+      .orderBy(asc(label))
+      .all();
+
+    return rows.map((r) => ({ month: r.month, amount: r.amount }));
+  }
+
+  async getPaymentCompletionStats(
+    doctorId: string,
+    clinicId?: string
+  ): Promise<PaymentCompletionStats> {
+    // Measured over treatment courses, not payment rows — a course counts as
+    // complete once totalPaid covers totalCost.
+    const conditions: SQL[] = [
+      eq(treatmentCourses.doctorId, doctorId),
+      eq(treatmentCourses.isDeleted, false),
+    ];
+    if (clinicId) conditions.push(eq(treatmentCourses.clinicId, clinicId));
+
+    const row = await this.db
+      .select({
+        totalCount: sql<number>`count(*)`,
+        completedCount: sql<number>`coalesce(sum(case when ${treatmentCourses.totalPaid} >= ${treatmentCourses.totalCost} then 1 else 0 end), 0)`,
+      })
+      .from(treatmentCourses)
+      .where(and(...conditions))
+      .get();
+
+    const totalCount = row?.totalCount ?? 0;
+    const completedCount = row?.completedCount ?? 0;
+    return {
+      completedCount,
+      totalCount,
+      rate: totalCount === 0 ? 0 : (completedCount / totalCount) * 100,
+    };
   }
 }

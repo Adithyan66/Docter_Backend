@@ -308,6 +308,25 @@ export class D1TreatmentCourseRepository implements ITreatmentCourseRepository {
     return { reminders, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
+  async getOutstandingAmount(doctorId: string, clinicId?: string): Promise<number> {
+    const conditions: SQL[] = [
+      eq(treatmentCourses.doctorId, doctorId),
+      eq(treatmentCourses.isDeleted, false),
+      inArray(treatmentCourses.status, ['active', 'paused']),
+    ];
+    if (clinicId) conditions.push(eq(treatmentCourses.clinicId, clinicId));
+
+    // max(...,0) per course so an overpaid course cannot offset another's balance.
+    const row = await this.db
+      .select({
+        total: sql<number>`coalesce(sum(max(${treatmentCourses.totalCost} - ${treatmentCourses.totalPaid}, 0)), 0)`,
+      })
+      .from(treatmentCourses)
+      .where(and(...conditions))
+      .get();
+    return row?.total ?? 0;
+  }
+
   private toDomain(row: TreatmentCourseRow): TreatmentCourse {
     return new TreatmentCourse(
       row.id,

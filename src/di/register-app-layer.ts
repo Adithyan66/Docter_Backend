@@ -67,6 +67,20 @@ import { ClinicController } from '../presentation/controllers/clinic.controller'
 import { PatientController } from '../presentation/controllers/patient.controller';
 import { TreatmentCourseController } from '../presentation/controllers/treatment-course.controller';
 import { VisitController } from '../presentation/controllers/visit.controller';
+import { CalendarEntryController } from '../presentation/controllers/calendar-entry.controller';
+import { AnalyticsController } from '../presentation/controllers/analytics.controller';
+import { GetFinancialDashboardUseCase } from '../application/use-cases/analytics/get-financial-dashboard.use-case';
+import { CreateCalendarEntryUseCase } from '../application/use-cases/calendar-entry/create-calendar-entry.use-case';
+import { UpdateCalendarEntryUseCase } from '../application/use-cases/calendar-entry/update-calendar-entry.use-case';
+import { DeleteCalendarEntryUseCase } from '../application/use-cases/calendar-entry/delete-calendar-entry.use-case';
+import { GetCalendarEntryUseCase } from '../application/use-cases/calendar-entry/get-calendar-entry.use-case';
+import { GetMonthlyCalendarUseCase } from '../application/use-cases/calendar-entry/get-monthly-calendar.use-case';
+import { GetCalendarEntriesByDateUseCase } from '../application/use-cases/calendar-entry/get-calendar-entries-by-date.use-case';
+import { AddAppointmentUseCase } from '../application/use-cases/calendar-entry/add-appointment.use-case';
+import { UpdateAppointmentUseCase } from '../application/use-cases/calendar-entry/update-appointment.use-case';
+import { DeleteAppointmentUseCase } from '../application/use-cases/calendar-entry/delete-appointment.use-case';
+import { ToggleAppointmentCompletedUseCase } from '../application/use-cases/calendar-entry/toggle-appointment-completed.use-case';
+import { GetAppointmentsUseCase } from '../application/use-cases/calendar-entry/get-appointments.use-case';
 import { DailyActivityController } from '../presentation/controllers/daily-activity.controller';
 import { PaymentController } from '../presentation/controllers/payment.controller';
 import { PrescriptionController } from '../presentation/controllers/prescription.controller';
@@ -147,6 +161,20 @@ export function registerAppLayer(c: DependencyContainer): void {
   c.register('IUpdatePrescriptionUseCase', { useClass: UpdatePrescriptionUseCase });
   c.register('IDeletePrescriptionUseCase', { useClass: DeletePrescriptionUseCase });
 
+  c.register('ICreateCalendarEntryUseCase', { useClass: CreateCalendarEntryUseCase });
+  c.register('IUpdateCalendarEntryUseCase', { useClass: UpdateCalendarEntryUseCase });
+  c.register('IDeleteCalendarEntryUseCase', { useClass: DeleteCalendarEntryUseCase });
+  c.register('IGetCalendarEntryUseCase', { useClass: GetCalendarEntryUseCase });
+  c.register('IGetMonthlyCalendarUseCase', { useClass: GetMonthlyCalendarUseCase });
+  c.register('IGetCalendarEntriesByDateUseCase', { useClass: GetCalendarEntriesByDateUseCase });
+  c.register('IAddAppointmentUseCase', { useClass: AddAppointmentUseCase });
+  c.register('IUpdateAppointmentUseCase', { useClass: UpdateAppointmentUseCase });
+  c.register('IDeleteAppointmentUseCase', { useClass: DeleteAppointmentUseCase });
+  c.register('IToggleAppointmentCompletedUseCase', { useClass: ToggleAppointmentCompletedUseCase });
+  c.register('IGetAppointmentsUseCase', { useClass: GetAppointmentsUseCase });
+
+  c.register('IGetFinancialDashboardUseCase', { useClass: GetFinancialDashboardUseCase });
+
   c.register('ICreateMediaUseCase', { useClass: CreateMediaUseCase });
   c.register('IGetMediaUseCase', { useClass: GetMediaUseCase });
   c.register('IGetAllMediaUseCase', { useClass: GetAllMediaUseCase });
@@ -163,6 +191,8 @@ export function registerAppLayer(c: DependencyContainer): void {
   c.register(PaymentController, { useClass: PaymentController });
   c.register(PrescriptionController, { useClass: PrescriptionController });
   c.register(MediaController, { useClass: MediaController });
+  c.register(CalendarEntryController, { useClass: CalendarEntryController });
+  c.register(AnalyticsController, { useClass: AnalyticsController });
   c.register(StaffController, { useClass: StaffController });
   c.register(AuthController, { useClass: AuthController });
   c.register(AuthMiddleware, { useClass: AuthMiddleware });

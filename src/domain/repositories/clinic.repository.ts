@@ -100,6 +100,8 @@ export interface IClinicRepository extends BaseRepository<Clinic> {
   findAllPaginated(options: FindAllPaginatedOptions): Promise<{ clinics: ClinicListResult[]; total: number; page: number; limit: number; totalPages: number }>;
   findByName(name: string, doctorId: string): Promise<Clinic | null>;
   findByClinicId(clinicId: string, doctorId: string): Promise<Clinic | null>;
+  /** Existence check by primary key — note this is the id, not the clinicId code. */
+  existsByClinicIdAndDoctorId(id: string, doctorId: string): Promise<boolean>;
   findNames(doctorId: string, search?: string): Promise<Array<{ id: string; name: string }>>;
   getStatistics(clinicId: string, options: ClinicStatisticsOptions): Promise<ClinicStatistics>;
   getClinicImages(clinicId: string, options: GetClinicImagesOptions): Promise<{ images: string[]; total: number; page: number; limit: number; totalPages: number }>;

@@ -1,30 +1,44 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "doctor-backend",
-  "main": "src/worker.ts",
-  "compatibility_date": "2024-11-01",
-  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
-  "observability": { "enabled": true },
-  "vars": {
-    "NODE_ENV": "production",
-    "CORS_ORIGIN": "",
-    "ALLOWED_IMAGE_TYPES": "profile,clinic,treatment,visit,report"
-  },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "doctor-db",
-      "database_id": "00000000-0000-0000-0000-000000000000",
-      "migrations_dir": "drizzle/migrations"
-    }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "MEDIA",
-      "bucket_name": "doctor-media"
-    }
-  ],
-  "triggers": {
-    "crons": ["0 2 * * *"]
-  }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "doctor-backend",
+	"main": "src/worker.ts",
+	"compatibility_date": "2024-11-01",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"nodejs_compat_populate_process_env"
+	],
+	"observability": {
+		"enabled": true
+	},
+	"vars": {
+		"NODE_ENV": "production",
+		"CORS_ORIGIN": "",
+		// Must match the ImageUploadType union the client sends — these values are
+		// also used verbatim as the R2 key prefix (see ImageUploadService).
+		"ALLOWED_IMAGE_TYPES": "Treatment-Images,Clinic-Images,Patient-profile,Patient-Media",
+		// The UI renders stored URLs straight into <img src>, so getPublicUrl must
+		// return a genuinely public host. Without this it falls back to the S3 API
+		// endpoint, which requires SigV4 and rejects unsigned browser requests.
+		// r2.dev is rate-limited by Cloudflare — swap for a custom domain in production.
+		"R2_PUBLIC_BASE_URL": "https://pub-1628c1ca2bd342728688dc53ab08b200.r2.dev"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "doctor-db",
+			"database_id": "188c55d6-09d6-473c-aaba-e92e046eb673",
+			"migrations_dir": "drizzle/migrations"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "MEDIA",
+			"bucket_name": "doctor-media"
+		}
+	],
+	"triggers": {
+		"crons": [
+			"0 2 * * *"
+		]
+	}
 }

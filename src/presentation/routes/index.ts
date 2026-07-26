@@ -12,6 +12,8 @@ import { setupPrescriptionRoutes } from './prescription/prescription.routes';
 import { setupMediaRoutes } from './media/media.routes';
 import { setupDailyActivityRoutes } from './daily-activity/daily-activity.routes';
 import { setupStaffRoutes } from './staff/staff.routes';
+import { setupCalendarEntryRoutes } from './calendar-entry/calendar-entry.routes';
+import { setupAnalyticsRoutes } from './analytics/analytics.routes';
 
 export const setupRoutes = (router: Router, resolver: DependencyContainer): void => {
   setupAuthRoutes(router, resolver);
@@ -26,5 +28,7 @@ export const setupRoutes = (router: Router, resolver: DependencyContainer): void
   setupMediaRoutes(router, resolver);
   setupDailyActivityRoutes(router, resolver);
   setupStaffRoutes(router, resolver);
+  setupCalendarEntryRoutes(router, resolver);
+  setupAnalyticsRoutes(router, resolver);
 };
 

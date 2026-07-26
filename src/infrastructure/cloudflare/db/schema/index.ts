@@ -10,6 +10,15 @@ export interface WorkingDay {
   endTime: string;
 }
 
+export interface AppointmentItem {
+  patientId: string;
+  treatmentId?: string;
+  startTime?: string;
+  endTime?: string;
+  notes?: string;
+  completed: boolean;
+}
+
 export interface PrescriptionItem {
   medicineName: string;
   form?: string;
@@ -285,6 +294,35 @@ export const patientIdCounters = sqliteTable('patient_id_counters', {
   updatedAt: updatedAt(),
 });
 
+/**
+ * `date` is a plain YYYY-MM-DD string rather than a timestamp. The Mongo original
+ * normalized to local midnight and grouped with the *server's* timezone offset;
+ * Workers always run UTC, so porting that literally would shift every date for
+ * non-UTC users. A text date has no timezone axis and matches the wire format the
+ * client already sends. Appointments stay an embedded JSON array, mirroring how the
+ * rest of this schema stores Mongo subdocuments — the HTTP API addresses them by
+ * index, so ordering must be stable.
+ */
+export const calendarEntries = sqliteTable(
+  'calendar_entries',
+  {
+    id: text('id').primaryKey(),
+    doctorId: text('doctor_id').notNull().references(() => doctors.id),
+    clinicId: text('clinic_id').notNull().references(() => clinics.id),
+    date: text('date').notNull(),
+    startTime: text('start_time').notNull(),
+    endTime: text('end_time').notNull(),
+    notes: text('notes'),
+    appointments: text('appointments', { mode: 'json' }).$type<AppointmentItem[]>().notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index('calendar_entries_doctor_date_idx').on(t.doctorId, t.date),
+    index('calendar_entries_doctor_date_clinic_idx').on(t.doctorId, t.date, t.clinicId),
+  ]
+);
+
 export type DoctorRow = typeof doctors.$inferSelect;
 export type ClinicRow = typeof clinics.$inferSelect;
 export type StaffRow = typeof staff.$inferSelect;
@@ -296,3 +334,4 @@ export type PrescriptionRow = typeof prescriptions.$inferSelect;
 export type PaymentRow = typeof payments.$inferSelect;
 export type MediaRow = typeof media.$inferSelect;
 export type PatientIdCounterRow = typeof patientIdCounters.$inferSelect;
+export type CalendarEntryRow = typeof calendarEntries.$inferSelect;

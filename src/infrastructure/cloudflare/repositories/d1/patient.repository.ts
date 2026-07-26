@@ -217,6 +217,26 @@ export class D1PatientRepository implements IPatientRepository {
     try { return new PatientId(v); } catch { return undefined; }
   }
 
+  async getActivePatientCount(doctorId: string, clinicId?: string): Promise<number> {
+    const conditions: SQL[] = [
+      eq(patients.doctorId, doctorId),
+      eq(patients.isDeleted, false),
+      eq(patients.isActive, true),
+    ];
+    if (clinicId) {
+      conditions.push(
+        sql`EXISTS (SELECT 1 FROM json_each(${patients.clinics}) WHERE value = ${clinicId})`
+      );
+    }
+
+    const row = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(patients)
+      .where(and(...conditions))
+      .get();
+    return row?.count ?? 0;
+  }
+
   private toDomain(row: PatientRow): Patient {
     return new Patient(
       row.id,

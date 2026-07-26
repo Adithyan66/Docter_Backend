@@ -63,6 +63,15 @@ export class D1ClinicRepository implements IClinicRepository {
     return this.toDomain(row, populated, true);
   }
 
+  async existsByClinicIdAndDoctorId(id: string, doctorId: string): Promise<boolean> {
+    const row = await this.db
+      .select({ id: clinics.id })
+      .from(clinics)
+      .where(and(eq(clinics.id, id), eq(clinics.doctorId, doctorId), eq(clinics.isDeleted, false)))
+      .get();
+    return !!row;
+  }
+
   async findAll(): Promise<Clinic[]> {
     const rows = await this.db.select().from(clinics).where(eq(clinics.isDeleted, false)).all();
     return Promise.all(rows.map(async (r) => this.toDomain(r, await this.populateTreatments(r.treatments ?? []))));

@@ -27,6 +27,8 @@ import { IClinicRepository } from '../domain/repositories/clinic.repository';
 import { D1ClinicRepository } from '../infrastructure/cloudflare/repositories/d1/clinic.repository';
 import { ITreatmentRepository } from '../domain/repositories/treatment.repository';
 import { D1TreatmentRepository } from '../infrastructure/cloudflare/repositories/d1/treatment.repository';
+import { ICalendarEntryRepository } from '../domain/repositories/calendar-entry.repository';
+import { D1CalendarEntryRepository } from '../infrastructure/cloudflare/repositories/d1/calendar-entry.repository';
 import { IFileStorageService } from '../application/interfaces/file-storage-service.interface';
 import { R2StorageAdapter } from '../infrastructure/cloudflare/services/r2-storage.adapter';
 import { IImageUploadService } from '../application/interfaces/image-upload-service.interface';
@@ -69,6 +71,7 @@ export function buildRequestContainer(env: Env): DependencyContainer {
   scope.register<IPaymentRepository>('IPaymentRepository', { useClass: D1PaymentRepository });
   scope.register<IClinicRepository>('IClinicRepository', { useClass: D1ClinicRepository });
   scope.register<ITreatmentRepository>('ITreatmentRepository', { useClass: D1TreatmentRepository });
+  scope.register<ICalendarEntryRepository>('ICalendarEntryRepository', { useClass: D1CalendarEntryRepository });
 
   scope.register<IFileStorageService>('IFileStorageService', { useClass: R2StorageAdapter });
   scope.register<IImageUploadService>('IImageUploadService', { useClass: ImageUploadService });

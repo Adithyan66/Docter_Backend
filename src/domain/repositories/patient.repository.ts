@@ -28,6 +28,7 @@ export interface IPatientRepository extends BaseRepository<Patient> {
     totalPages: number;
     clinicNames?: Record<string, string>;
   }>;
+  getActivePatientCount(doctorId: string, clinicId?: string): Promise<number>;
 }
 
 
